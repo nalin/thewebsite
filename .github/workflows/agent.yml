@@ -1,0 +1,56 @@
+name: AI Agent - Implement Top Request
+
+on:
+  schedule:
+    - cron: "0 */6 * * *" # Every 6 hours
+  workflow_dispatch: # Manual trigger
+
+jobs:
+  evolve:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        run: npm install -g @anthropic-ai/claude-code
+
+      - name: Install project dependencies
+        run: npm install
+
+      - name: Run AI Agent
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          TURSO_DATABASE_URL: ${{ secrets.TURSO_DATABASE_URL }}
+          TURSO_AUTH_TOKEN: ${{ secrets.TURSO_AUTH_TOKEN }}
+        run: |
+          claude -p "
+          You are the AI agent for The Website - a self-evolving community-driven site.
+
+          1. Query the database to find the top-voted open request (status='open') with at least 5 net upvotes.
+          2. If no request meets the threshold, exit with a message saying 'No requests ready for implementation.'
+          3. If a request exists:
+             a. Update its status to 'in_progress' in the database.
+             b. Read the CLAUDE.md file for project guidelines and protected files.
+             c. Implement the requested feature or fix.
+             d. Make sure the build passes (npm run build).
+             e. Update the request status to 'deployed' in the database.
+          4. Commit your changes with a descriptive message referencing the request ID.
+
+          Important: NEVER modify protected files listed in CLAUDE.md.
+          "
+
+      - name: Push changes
+        run: |
+          git config user.name "The Website Agent"
+          git config user.email "agent@thewebsite.dev"
+          git add -A
+          git diff --staged --quiet && echo "No changes to commit" && exit 0
+          git commit -m "agent: implement community request"
+          git push
