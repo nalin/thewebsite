@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { signIn, signOut } from "@/lib/auth";
 import { getSession } from "@/lib/session";
 import { db } from "@/lib/db";
