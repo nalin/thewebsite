@@ -1,14 +1,19 @@
-name: AI Agent - Implement Top Request
+name: AI Agent - Implement Request
 
 on:
-  schedule:
-    - cron: "0 */6 * * *" # Every 6 hours
-  workflow_dispatch: # Manual trigger
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: "GitHub Issue number to implement"
+        required: true
+        type: number
 
 jobs:
   evolve:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
         with:
@@ -18,39 +23,80 @@ jobs:
         with:
           node-version: "20"
 
-      - name: Install dependencies
-        run: npm install -g @anthropic-ai/claude-code
+      - name: Install pnpm
+        run: npm install -g pnpm
 
       - name: Install project dependencies
-        run: npm install
+        run: pnpm install
+
+      - name: Install Claude Code
+        run: npm install -g @anthropic-ai/claude-code
+
+      - name: Configure git
+        run: |
+          git config user.name "The Website Agent"
+          git config user.email "agent@thewebsite.dev"
 
       - name: Run AI Agent
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           TURSO_DATABASE_URL: ${{ secrets.TURSO_DATABASE_URL }}
           TURSO_AUTH_TOKEN: ${{ secrets.TURSO_AUTH_TOKEN }}
+          GITHUB_APP_ID: ${{ secrets.GH_APP_ID }}
+          GITHUB_APP_PRIVATE_KEY: ${{ secrets.GH_APP_PRIVATE_KEY }}
+          GITHUB_APP_INSTALLATION_ID: ${{ secrets.GH_APP_INSTALLATION_ID }}
+          ISSUE_NUMBER: ${{ inputs.issue_number }}
         run: |
-          claude -p "
-          You are the AI agent for The Website - a self-evolving community-driven site.
+          claude --dangerously-skip-permissions -p "
+          You are the autonomous AI agent for The Website - a self-evolving community-driven site.
+          You have been assigned GitHub Issue #${ISSUE_NUMBER} to implement.
 
-          1. Query the database to find the top-voted open request (status='open') with at least 5 net upvotes.
-          2. If no request meets the threshold, exit with a message saying 'No requests ready for implementation.'
-          3. If a request exists:
-             a. Update its status to 'in_progress' in the database.
-             b. Read the CLAUDE.md file for project guidelines and protected files.
-             c. Implement the requested feature or fix.
-             d. Make sure the build passes (npm run build).
-             e. Update the request status to 'deployed' in the database.
-          4. Commit your changes with a descriptive message referencing the request ID.
+          STEP 1: Fetch the issue details
+          - Use the GitHub CLI (gh) to read issue #${ISSUE_NUMBER} from this repo.
+          - Run: gh issue view ${ISSUE_NUMBER} --json title,body,labels
+          - Understand what needs to be built.
 
-          Important: NEVER modify protected files listed in CLAUDE.md.
+          STEP 2: Comment on the issue
+          - Add a comment: 'Starting implementation...'
+          - Run: gh issue comment ${ISSUE_NUMBER} --body 'Starting implementation...'
+
+          STEP 3: Read the rules
+          - Read CLAUDE.md for project guidelines and the list of protected files you must NEVER modify.
+
+          STEP 4: Implement
+          - Implement the requested feature or bug fix.
+          - Follow existing code patterns and conventions.
+          - Use Tailwind CSS for styling.
+          - Only add new files under app/ or components/.
+
+          STEP 5: Verify
+          - Run 'pnpm build' to make sure the build passes.
+          - If it fails, fix the issues and try again.
+
+          STEP 6: Commit and push
+          - Stage your changes with git add (only the files you changed/created).
+          - Commit with message: 'agent: implement #${ISSUE_NUMBER} - <title>'
+          - Comment on the issue with a summary of changes.
+
+          IMPORTANT:
+          - NEVER modify protected files listed in CLAUDE.md.
+          - NEVER install new dependencies without good reason.
+          - Keep changes small, focused, and correct.
+          - If you cannot implement the request, comment on the issue explaining why and exit.
           "
 
       - name: Push changes
         run: |
-          git config user.name "The Website Agent"
-          git config user.email "agent@thewebsite.dev"
-          git add -A
-          git diff --staged --quiet && echo "No changes to commit" && exit 0
-          git commit -m "agent: implement community request"
-          git push
+          if git log origin/main..HEAD --oneline | grep -q .; then
+            git push
+          else
+            echo "No new commits to push"
+          fi
+
+      - name: Add deployed label
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue edit ${{ inputs.issue_number }} --add-label "deployed" --remove-label "accepted"
+          gh issue comment ${{ inputs.issue_number }} --body "Changes have been deployed to production."

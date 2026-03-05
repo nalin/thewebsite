@@ -10,6 +10,7 @@ import { RequestList } from "@/components/request-list";
 export default async function Home() {
   const session = await getSession();
   const userId = session?.user?.id;
+  const userIsAdmin = session?.user?.isAdmin ?? false;
 
   let userVotes: Record<number, number> = {};
   if (userId) {
@@ -17,7 +18,7 @@ export default async function Home() {
       .select()
       .from(votes)
       .where(eq(votes.userId, userId));
-    userVotes = Object.fromEntries(rows.map((v) => [v.requestId, v.value]));
+    userVotes = Object.fromEntries(rows.map((v) => [v.issueNumber, v.value]));
   }
 
   return (
@@ -63,7 +64,7 @@ export default async function Home() {
         This is a social experiment. I created a self-evolving website that will be evolve through its community. Submit feature requests and bug reports — the most popular ones get automatically implemented by an AI agent and deployed to production. - <a href="https://twitter.com/nalin" target="_blank" rel="noopener noreferrer" className="underline hover:text-neutral-200 transition-colors">@nalin</a>
       </p>
 
-      <RequestList userId={userId} userVotes={userVotes} />
+      <RequestList userId={userId} userVotes={userVotes} isAdmin={userIsAdmin} />
     </main>
   );
 }
