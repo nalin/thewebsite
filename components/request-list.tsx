@@ -5,24 +5,26 @@ import { RequestCard } from "./request-card";
 import { RequestForm } from "./request-form";
 
 interface RequestData {
-  id: number;
+  issueNumber: number;
   title: string;
-  description: string;
+  body: string | null;
   type: string;
   status: string;
-  score: number;
-  authorName: string | null;
-  authorImage: string | null;
+  authorGithub: string;
+  authorAvatar: string | null;
+  thumbsUp: number;
+  thumbsDown: number;
+  htmlUrl: string;
   createdAt: string;
-  userId: string;
 }
 
 interface Props {
   userId: string | undefined;
   userVotes: Record<number, number>;
+  isAdmin: boolean;
 }
 
-export function RequestList({ userId, userVotes: initialVotes }: Props) {
+export function RequestList({ userId, userVotes: initialVotes, isAdmin }: Props) {
   const [requests, setRequests] = useState<RequestData[]>([]);
   const [userVotes, setUserVotes] = useState<Record<number, number>>(initialVotes);
   const [loading, setLoading] = useState(true);
@@ -40,8 +42,8 @@ export function RequestList({ userId, userVotes: initialVotes }: Props) {
     fetchRequests();
   }, [fetchRequests]);
 
-  async function handleVote(requestId: number, value: number) {
-    const res = await fetch(`/api/requests/${requestId}/vote`, {
+  async function handleVote(issueNumber: number, value: number) {
+    const res = await fetch(`/api/requests/${issueNumber}/vote`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ value }),
@@ -52,9 +54,9 @@ export function RequestList({ userId, userVotes: initialVotes }: Props) {
       setUserVotes((prev) => {
         const next = { ...prev };
         if (data.voted === null) {
-          delete next[requestId];
+          delete next[issueNumber];
         } else {
-          next[requestId] = data.voted;
+          next[issueNumber] = data.voted;
         }
         return next;
       });
@@ -90,11 +92,13 @@ export function RequestList({ userId, userVotes: initialVotes }: Props) {
           <div className="space-y-3">
             {requests.map((r) => (
               <RequestCard
-                key={r.id}
+                key={r.issueNumber}
                 request={r}
-                userVote={userVotes[r.id] ?? null}
+                userVote={userVotes[r.issueNumber] ?? null}
                 onVote={handleVote}
                 isSignedIn={!!userId}
+                isAdmin={isAdmin}
+                onApproved={fetchRequests}
               />
             ))}
           </div>
