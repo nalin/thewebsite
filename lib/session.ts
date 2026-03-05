@@ -1,7 +1,8 @@
 import { cookies } from "next/headers";
 import { db } from "./db";
-import { sessions, users } from "./schema";
+import { sessions, users, accounts } from "./schema";
 import { eq, and, gt } from "drizzle-orm";
+import { isAdmin } from "./admin";
 
 export async function getSession() {
   const cookieStore = await cookies();
@@ -17,6 +18,7 @@ export async function getSession() {
       expires: sessions.expires,
       userName: users.name,
       userImage: users.image,
+      githubUsername: users.githubUsername,
     })
     .from(sessions)
     .innerJoin(users, eq(sessions.userId, users.id))
@@ -30,11 +32,20 @@ export async function getSession() {
 
   if (!result) return null;
 
+  // Check if admin
+  const account = await db
+    .select({ providerAccountId: accounts.providerAccountId })
+    .from(accounts)
+    .where(eq(accounts.userId, result.userId))
+    .get();
+
   return {
     user: {
       id: result.userId,
       name: result.userName,
       image: result.userImage,
+      githubUsername: result.githubUsername,
+      isAdmin: isAdmin(account?.providerAccountId),
     },
   };
 }

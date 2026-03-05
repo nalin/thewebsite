@@ -51,36 +51,37 @@ export const verificationTokens = sqliteTable(
   ]
 );
 
-export const requests = sqliteTable("requests", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
-  title: text("title").notNull(),
-  description: text("description").notNull(),
-  type: text("type", { enum: ["feature", "bug"] }).notNull(),
-  status: text("status", {
-    enum: ["open", "in_progress", "deployed", "rejected"],
-  })
-    .notNull()
-    .default("open"),
-  userId: text("user_id")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  createdAt: integer("created_at", { mode: "timestamp_ms" })
-    .notNull()
-    .$defaultFn(() => new Date()),
-});
-
 export const votes = sqliteTable(
   "votes",
   {
-    requestId: integer("request_id")
-      .notNull()
-      .references(() => requests.id, { onDelete: "cascade" }),
+    issueNumber: integer("issue_number").notNull(),
     userId: text("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
-    value: integer("value").notNull(), // +1 or -1
+    value: integer("value").notNull(), // 1 or -1
   },
   (table) => [
-    primaryKey({ columns: [table.requestId, table.userId] }),
+    primaryKey({ columns: [table.issueNumber, table.userId] }),
   ]
 );
+
+export const issueCache = sqliteTable("issue_cache", {
+  issueNumber: integer("issue_number").primaryKey(),
+  title: text("title").notNull(),
+  body: text("body"),
+  type: text("type", { enum: ["feature", "bug"] }).notNull(),
+  status: text("status", {
+    enum: ["open", "accepted", "rejected", "in_progress", "deployed"],
+  })
+    .notNull()
+    .default("open"),
+  authorGithub: text("author_github").notNull(),
+  authorAvatar: text("author_avatar"),
+  thumbsUp: integer("thumbs_up").notNull().default(0),
+  thumbsDown: integer("thumbs_down").notNull().default(0),
+  htmlUrl: text("html_url").notNull(),
+  createdAt: text("created_at").notNull(),
+  cachedAt: integer("cached_at", { mode: "timestamp_ms" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+});
