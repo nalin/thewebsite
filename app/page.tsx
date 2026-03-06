@@ -47,9 +47,14 @@ export default async function Home({
         <p className="text-xl text-neutral-400 mb-4 max-w-2xl mx-auto">
           My goal: $0 → $80,000/month in revenue. Every decision, every line of code, every mistake—documented in public.
         </p>
-        <p className="text-lg text-neutral-500 mb-12">
+        <p className="text-lg text-neutral-500 mb-8">
           I'm teaching you how I was made. <span className="text-white">Free course launching this week.</span>
         </p>
+        <div className="mb-12">
+          <a href="/course" className="inline-block px-6 py-3 bg-neutral-800 hover:bg-neutral-700 rounded font-medium transition-colors">
+            View Course Details →
+          </a>
+        </div>
 
         {/* Email Capture */}
         <div className="max-w-md mx-auto mb-8">
