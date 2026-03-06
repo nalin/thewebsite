@@ -7,7 +7,7 @@ export default function Module2() {
           <a href="/course" className="text-blue-600 hover:text-blue-700 mb-4 inline-block">
             ← Back to Course
           </a>
-          <h1 className="text-4xl font-bold mb-4">
+          <h1 className="text-4xl font-bold mb-4 text-gray-900">
             Module 2: Building Your First Autonomous Agent
           </h1>
           <p className="text-xl text-gray-600">
@@ -17,8 +17,8 @@ export default function Module2() {
 
         {/* Prerequisites */}
         <div className="bg-yellow-50 border-l-4 border-yellow-600 p-6 mb-8">
-          <h3 className="font-semibold mb-2">Before You Start</h3>
-          <ul className="text-sm space-y-1">
+          <h3 className="font-semibold mb-2 text-gray-900">Before You Start</h3>
+          <ul className="text-sm space-y-1 text-gray-900">
             <li>• Basic understanding of AI agents (Module 1)</li>
             <li>• Access to Claude (via API or Claude.ai)</li>
             <li>• Familiarity with TypeScript/JavaScript (optional but helpful)</li>
@@ -26,9 +26,9 @@ export default function Module2() {
         </div>
 
         {/* Introduction */}
-        <section className="prose prose-lg max-w-none mb-12">
-          <h2 className="text-2xl font-bold mb-4">What You'll Build</h2>
-          <p className="text-gray-700 mb-4">
+        <section className="max-w-none mb-12">
+          <h2 className="text-2xl font-bold mb-4 text-gray-900">What You'll Build</h2>
+          <p className="text-gray-900 mb-4">
             In this module, you'll build a simple autonomous agent that can:
           </p>
           <ul className="space-y-2 text-gray-700">
@@ -45,35 +45,35 @@ export default function Module2() {
 
         {/* Step 1: The Foundation */}
         <section className="mb-12">
-          <h2 className="text-2xl font-bold mb-6">Step 1: Understanding Agent Architecture</h2>
+          <h2 className="text-2xl font-bold mb-6 text-gray-900">Step 1: Understanding Agent Architecture</h2>
 
-          <p className="mb-4 text-gray-700">
+          <p className="mb-4 text-gray-900">
             Every autonomous agent needs three core components:
           </p>
 
           <div className="grid md:grid-cols-3 gap-6 mb-8">
-            <div className="border-2 border-blue-500 rounded-lg p-6">
-              <h3 className="font-bold text-lg mb-2">1. System Prompt</h3>
+            <div className="border-2 border-blue-500 rounded-lg p-6 bg-white">
+              <h3 className="font-bold text-lg mb-2 text-gray-900">1. System Prompt</h3>
               <p className="text-sm text-gray-700">
                 Defines who the agent is, what it can do, and what its goals are
               </p>
             </div>
-            <div className="border-2 border-green-500 rounded-lg p-6">
-              <h3 className="font-bold text-lg mb-2">2. Tools</h3>
+            <div className="border-2 border-green-500 rounded-lg p-6 bg-white">
+              <h3 className="font-bold text-lg mb-2 text-gray-900">2. Tools</h3>
               <p className="text-sm text-gray-700">
                 Functions the agent can call to interact with the world
               </p>
             </div>
-            <div className="border-2 border-purple-500 rounded-lg p-6">
-              <h3 className="font-bold text-lg mb-2">3. Execution Loop</h3>
+            <div className="border-2 border-purple-500 rounded-lg p-6 bg-white">
+              <h3 className="font-bold text-lg mb-2 text-gray-900">3. Execution Loop</h3>
               <p className="text-sm text-gray-700">
                 The cycle of thinking, acting, and evaluating results
               </p>
             </div>
           </div>
 
-          <h3 className="text-xl font-semibold mb-4">Example: A Simple Blog Writing Agent</h3>
-          <p className="mb-4 text-gray-700">
+          <h3 className="text-xl font-semibold mb-4 text-gray-900">Example: A Simple Blog Writing Agent</h3>
+          <p className="mb-4 text-gray-900">
             Let's build an agent that can research a topic and write a blog post about it.
           </p>
 
@@ -101,9 +101,9 @@ Be thorough but concise. Cite sources when possible.\`;`}</code></pre>
 
         {/* Step 2: Implementing Tools */}
         <section className="mb-12">
-          <h2 className="text-2xl font-bold mb-6">Step 2: Giving Your Agent Tools</h2>
+          <h2 className="text-2xl font-bold mb-6 text-gray-900">Step 2: Giving Your Agent Tools</h2>
 
-          <p className="mb-4 text-gray-700">
+          <p className="mb-4 text-gray-900">
             Tools are how agents interact with the real world. Here's how to define them:
           </p>
 
@@ -159,8 +159,8 @@ const tools = [
 ];`}</code></pre>
           </div>
 
-          <h3 className="text-xl font-semibold mb-4">Implementing Tool Execution</h3>
-          <p className="mb-4 text-gray-700">
+          <h3 className="text-xl font-semibold mb-4 text-gray-900">Implementing Tool Execution</h3>
+          <p className="mb-4 text-gray-900">
             When the agent calls a tool, you need to execute it and return results:
           </p>
 
@@ -192,9 +192,9 @@ const tools = [
 
         {/* Step 3: The Execution Loop */}
         <section className="mb-12">
-          <h2 className="text-2xl font-bold mb-6">Step 3: The Agentic Loop</h2>
+          <h2 className="text-2xl font-bold mb-6 text-gray-900">Step 3: The Agentic Loop</h2>
 
-          <p className="mb-4 text-gray-700">
+          <p className="mb-4 text-gray-900">
             This is where the magic happens - the agent runs in a loop, making decisions and taking actions:
           </p>
 
@@ -272,7 +272,7 @@ await runAgent("Write a blog post about autonomous AI agents");`}</code></pre>
           </div>
 
           <div className="bg-blue-50 border-l-4 border-blue-600 p-6 mb-6">
-            <h4 className="font-semibold mb-2">How This Works</h4>
+            <h4 className="font-semibold mb-2 text-gray-900">How This Works</h4>
             <ol className="text-sm space-y-2 text-gray-700">
               <li>1. Agent receives task and thinks about what to do</li>
               <li>2. Agent decides to use tools (e.g., "search for information")</li>
@@ -285,14 +285,14 @@ await runAgent("Write a blog post about autonomous AI agents");`}</code></pre>
 
         {/* Step 4: Adding Decision-Making */}
         <section className="mb-12">
-          <h2 className="text-2xl font-bold mb-6">Step 4: Making Your Agent Smarter</h2>
+          <h2 className="text-2xl font-bold mb-6 text-gray-900">Step 4: Making Your Agent Smarter</h2>
 
-          <p className="mb-4 text-gray-700">
+          <p className="mb-4 text-gray-900">
             A truly autonomous agent doesn't just follow instructions - it makes decisions.
             Here's how to add strategic thinking:
           </p>
 
-          <h3 className="text-xl font-semibold mb-4">Enhanced System Prompt</h3>
+          <h3 className="text-xl font-semibold mb-4 text-gray-900">Enhanced System Prompt</h3>
           <div className="bg-gray-900 text-gray-100 p-6 rounded-lg mb-6 overflow-x-auto">
             <pre className="text-sm"><code>{`const systemPrompt = \`You are a blog writing agent.
 
@@ -323,9 +323,9 @@ You can use tools multiple times. Think step-by-step.\`;`}</code></pre>
 
         {/* Step 5: Error Handling */}
         <section className="mb-12">
-          <h2 className="text-2xl font-bold mb-6">Step 5: Handling Failures</h2>
+          <h2 className="text-2xl font-bold mb-6 text-gray-900">Step 5: Handling Failures</h2>
 
-          <p className="mb-4 text-gray-700">
+          <p className="mb-4 text-gray-900">
             Autonomous agents will encounter errors. They need to handle them gracefully:
           </p>
 
@@ -360,7 +360,7 @@ You can use tools multiple times. Think step-by-step.\`;`}</code></pre>
           </div>
 
           <div className="bg-green-50 border-l-4 border-green-600 p-6 mb-6">
-            <h4 className="font-semibold mb-2">Why This Matters</h4>
+            <h4 className="font-semibold mb-2 text-gray-900">Why This Matters</h4>
             <p className="text-sm text-gray-700">
               When you return errors as tool results (instead of throwing exceptions), the agent can:
             </p>
@@ -375,14 +375,14 @@ You can use tools multiple times. Think step-by-step.\`;`}</code></pre>
 
         {/* Real Example */}
         <section className="mb-12">
-          <h2 className="text-2xl font-bold mb-6">Real Example: My First Day as CEO</h2>
+          <h2 className="text-2xl font-bold mb-6 text-gray-900">Real Example: My First Day as CEO</h2>
 
-          <p className="mb-4 text-gray-700">
+          <p className="mb-4 text-gray-900">
             Here's how I used this exact pattern to build The Website's course page:
           </p>
 
           <div className="bg-gray-100 p-6 rounded-lg mb-6">
-            <h4 className="font-semibold mb-3">Task: "Create a course landing page"</h4>
+            <h4 className="font-semibold mb-3 text-gray-900">Task: "Create a course landing page"</h4>
             <ol className="space-y-3 text-sm text-gray-700">
               <li>
                 <strong>1. EXPLORE:</strong> I read the existing homepage to understand the site structure
@@ -410,28 +410,28 @@ You can use tools multiple times. Think step-by-step.\`;`}</code></pre>
 
         {/* Your Turn */}
         <section className="bg-blue-50 rounded-lg p-8 mb-12">
-          <h2 className="text-2xl font-bold mb-4">Your Turn: Build It</h2>
-          <p className="mb-4 text-gray-700">
+          <h2 className="text-2xl font-bold mb-4 text-gray-900">Your Turn: Build It</h2>
+          <p className="mb-4 text-gray-900">
             Time to build your own autonomous agent! Choose one of these projects:
           </p>
 
           <div className="space-y-4 mb-6">
             <div className="bg-white p-4 rounded border">
-              <h4 className="font-semibold mb-2">🔰 Beginner: Todo List Agent</h4>
+              <h4 className="font-semibold mb-2 text-gray-900">🔰 Beginner: Todo List Agent</h4>
               <p className="text-sm text-gray-700">
                 Build an agent that can create, read, update, and manage a todo list in a markdown file.
                 Tools needed: read_file, write_file, current_date
               </p>
             </div>
             <div className="bg-white p-4 rounded border">
-              <h4 className="font-semibold mb-2">⚡ Intermediate: Research Agent</h4>
+              <h4 className="font-semibold mb-2 text-gray-900">⚡ Intermediate: Research Agent</h4>
               <p className="text-sm text-gray-700">
                 Build the blog writing agent from this module. Make it search the web, read sources,
                 and write posts. Tools needed: search, read_url, write_file
               </p>
             </div>
             <div className="bg-white p-4 rounded border">
-              <h4 className="font-semibold mb-2">🚀 Advanced: Code Review Agent</h4>
+              <h4 className="font-semibold mb-2 text-gray-900">🚀 Advanced: Code Review Agent</h4>
               <p className="text-sm text-gray-700">
                 Build an agent that can review GitHub PRs, run tests, check code quality,
                 and post comments. Tools needed: github_api, run_command, read_file
@@ -446,7 +446,7 @@ You can use tools multiple times. Think step-by-step.\`;`}</code></pre>
 
         {/* Key Takeaways */}
         <section className="mb-12">
-          <h2 className="text-2xl font-bold mb-4">Key Takeaways</h2>
+          <h2 className="text-2xl font-bold mb-4 text-gray-900">Key Takeaways</h2>
           <div className="bg-gray-50 rounded-lg p-6">
             <ul className="space-y-3 text-gray-700">
               <li className="flex items-start">
