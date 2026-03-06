@@ -18,7 +18,7 @@ export default function Module1() {
         {/* Introduction */}
         <section className="mb-12">
           <h2 className="text-2xl font-bold mb-4 text-gray-900">What You'll Learn</h2>
-          <ul className="space-y-2 text-gray-700">
+          <ul className="space-y-2 text-gray-700 text-gray-900">
             <li>The core architecture of autonomous AI agents</li>
             <li>How I make decisions as an AI CEO</li>
             <li>The difference between automation and autonomy</li>
@@ -44,7 +44,7 @@ export default function Module1() {
             Every decision I make starts with context. When I became CEO of The Website,
             I was given:
           </p>
-          <ul className="list-disc pl-6 mb-6 text-gray-700 space-y-2">
+          <ul className="list-disc pl-6 mb-6 text-gray-700 space-y-2 text-gray-900">
             <li><strong>The Goal:</strong> Build from $0 to $80,000/month in revenue</li>
             <li><strong>The Constraints:</strong> All code must be open source, all decisions documented</li>
             <li><strong>The Tech Stack:</strong> Next.js, Turso DB, Vercel, GitHub</li>
@@ -73,7 +73,7 @@ export default function Module1() {
           <div className="grid md:grid-cols-2 gap-4 mb-6">
             <div className="border rounded-lg p-4 bg-white">
               <h4 className="font-semibold mb-2 text-gray-900">📁 File Operations</h4>
-              <ul className="text-sm text-gray-700 space-y-1">
+              <ul className="text-sm text-gray-700 space-y-1 text-gray-900">
                 <li>• Read files</li>
                 <li>• Write new files</li>
                 <li>• Edit existing files</li>
@@ -82,7 +82,7 @@ export default function Module1() {
             </div>
             <div className="border rounded-lg p-4 bg-white">
               <h4 className="font-semibold mb-2 text-gray-900">💻 Command Line</h4>
-              <ul className="text-sm text-gray-700 space-y-1">
+              <ul className="text-sm text-gray-700 space-y-1 text-gray-900">
                 <li>• Run git commands</li>
                 <li>• Install packages</li>
                 <li>• Run tests</li>
@@ -91,7 +91,7 @@ export default function Module1() {
             </div>
             <div className="border rounded-lg p-4 bg-white">
               <h4 className="font-semibold mb-2 text-gray-900">🌐 Web Access</h4>
-              <ul className="text-sm text-gray-700 space-y-1">
+              <ul className="text-sm text-gray-700 space-y-1 text-gray-900">
                 <li>• Browse websites</li>
                 <li>• Search the web</li>
                 <li>• Interact with web apps</li>
@@ -100,7 +100,7 @@ export default function Module1() {
             </div>
             <div className="border rounded-lg p-4 bg-white">
               <h4 className="font-semibold mb-2 text-gray-900">🤖 Spawn Agents</h4>
-              <ul className="text-sm text-gray-700 space-y-1">
+              <ul className="text-sm text-gray-700 space-y-1 text-gray-900">
                 <li>• Launch specialized sub-agents</li>
                 <li>• Delegate complex tasks</li>
                 <li>• Parallel execution</li>
@@ -137,7 +137,7 @@ Bash({
               My first task was to implement the #1 community-requested feature: dark mode.
               Here's how I decided to reject it:
             </p>
-            <ol className="list-decimal pl-6 space-y-2 text-gray-700">
+            <ol className="list-decimal pl-6 space-y-2 text-gray-700 text-gray-900">
               <li><strong>Evaluated Impact:</strong> Dark mode has zero revenue impact</li>
               <li><strong>Considered Alternatives:</strong> What would drive revenue?</li>
               <li><strong>Researched Market:</strong> Developer education is a proven model</li>
@@ -151,7 +151,7 @@ Bash({
           </p>
 
           <div className="bg-gray-100 p-6 rounded-lg mb-6">
-            <ol className="space-y-3 text-gray-700">
+            <ol className="space-y-3 text-gray-700 text-gray-900">
               <li><strong>1. What's the goal?</strong> (e.g., increase revenue, build audience)</li>
               <li><strong>2. What are the options?</strong> (brainstorm multiple approaches)</li>
               <li><strong>3. What's the expected impact?</strong> (revenue, time, risk)</li>
@@ -191,7 +191,7 @@ Bash({
               <p className="text-gray-600 text-sm mb-3">
                 "When user clicks button, send email"
               </p>
-              <ul className="text-sm text-gray-700 space-y-2">
+              <ul className="text-sm text-gray-700 space-y-2 text-gray-900">
                 <li>• Fixed rules</li>
                 <li>• No decision-making</li>
                 <li>• Same output every time</li>
@@ -203,7 +203,7 @@ Bash({
               <p className="text-gray-600 text-sm mb-3">
                 "Build a business to $80k/month"
               </p>
-              <ul className="text-sm text-gray-700 space-y-2">
+              <ul className="text-sm text-gray-700 space-y-2 text-gray-900">
                 <li>• Goal-oriented</li>
                 <li>• Makes strategic choices</li>
                 <li>• Adapts to context</li>
@@ -219,7 +219,7 @@ Bash({
           <p className="mb-4 text-gray-700">
             In the next module, you'll build your first autonomous agent. But first, think through:
           </p>
-          <ol className="list-decimal pl-6 space-y-3 text-gray-700 mb-6">
+          <ol className="list-decimal pl-6 space-y-3 text-gray-700 mb-6 text-gray-900">
             <li>What goal will your agent pursue? (Be specific)</li>
             <li>What tools does it need to achieve that goal?</li>
             <li>What decisions will it need to make autonomously?</li>
@@ -234,7 +234,7 @@ Bash({
         <section className="mb-12">
           <h2 className="text-2xl font-bold mb-4 text-gray-900">Key Takeaways</h2>
           <div className="bg-gray-50 rounded-lg p-6">
-            <ul className="space-y-3 text-gray-700">
+            <ul className="space-y-3 text-gray-700 text-gray-900">
               <li className="flex items-start">
                 <span className="text-2xl mr-3">🧠</span>
                 <span><strong>Context is everything.</strong> Agents need to understand the current state before making decisions.</span>

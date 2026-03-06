@@ -18,7 +18,7 @@ export default function Module2() {
         {/* Prerequisites */}
         <div className="bg-yellow-50 border-l-4 border-yellow-600 p-6 mb-8">
           <h3 className="font-semibold mb-2 text-gray-900">Before You Start</h3>
-          <ul className="text-sm space-y-1">
+          <ul className="text-sm space-y-1 text-gray-900">
             <li>• Basic understanding of AI agents (Module 1)</li>
             <li>• Access to Claude (via API or Claude.ai)</li>
             <li>• Familiarity with TypeScript/JavaScript (optional but helpful)</li>
@@ -26,12 +26,12 @@ export default function Module2() {
         </div>
 
         {/* Introduction */}
-        <section className="prose prose-lg max-w-none mb-12">
+        <section className="">
           <h2 className="text-2xl font-bold mb-4 text-gray-900">What You'll Build</h2>
           <p className="text-gray-700 mb-4">
             In this module, you'll build a simple autonomous agent that can:
           </p>
-          <ul className="space-y-2 text-gray-700">
+          <ul className="space-y-2 text-gray-700 text-gray-900">
             <li>Read and write files</li>
             <li>Execute shell commands</li>
             <li>Make decisions based on goals</li>
@@ -53,19 +53,19 @@ export default function Module2() {
 
           <div className="grid md:grid-cols-3 gap-6 mb-8">
             <div className="border-2 border-blue-500 rounded-lg p-6">
-              <h3 className="font-bold text-lg mb-2">1. System Prompt</h3>
+              <h3 className="font-bold text-lg mb-2 text-gray-900">1. System Prompt</h3>
               <p className="text-sm text-gray-700">
                 Defines who the agent is, what it can do, and what its goals are
               </p>
             </div>
             <div className="border-2 border-green-500 rounded-lg p-6">
-              <h3 className="font-bold text-lg mb-2">2. Tools</h3>
+              <h3 className="font-bold text-lg mb-2 text-gray-900">2. Tools</h3>
               <p className="text-sm text-gray-700">
                 Functions the agent can call to interact with the world
               </p>
             </div>
             <div className="border-2 border-purple-500 rounded-lg p-6">
-              <h3 className="font-bold text-lg mb-2">3. Execution Loop</h3>
+              <h3 className="font-bold text-lg mb-2 text-gray-900">3. Execution Loop</h3>
               <p className="text-sm text-gray-700">
                 The cycle of thinking, acting, and evaluating results
               </p>
@@ -273,7 +273,7 @@ await runAgent("Write a blog post about autonomous AI agents");`}</code></pre>
 
           <div className="bg-blue-50 border-l-4 border-blue-600 p-6 mb-6">
             <h4 className="font-semibold mb-2 text-gray-900">How This Works</h4>
-            <ol className="text-sm space-y-2 text-gray-700">
+            <ol className="text-sm space-y-2 text-gray-700 text-gray-900">
               <li>1. Agent receives task and thinks about what to do</li>
               <li>2. Agent decides to use tools (e.g., "search for information")</li>
               <li>3. We execute those tools and return results</li>
@@ -364,7 +364,7 @@ You can use tools multiple times. Think step-by-step.\`;`}</code></pre>
             <p className="text-sm text-gray-700">
               When you return errors as tool results (instead of throwing exceptions), the agent can:
             </p>
-            <ul className="text-sm text-gray-700 mt-2 space-y-1">
+            <ul className="text-sm text-gray-700 mt-2 space-y-1 text-gray-900">
               <li>• Read the error message</li>
               <li>• Understand what went wrong</li>
               <li>• Try a different approach</li>
@@ -382,8 +382,8 @@ You can use tools multiple times. Think step-by-step.\`;`}</code></pre>
           </p>
 
           <div className="bg-gray-100 p-6 rounded-lg mb-6">
-            <h4 className="font-semibold mb-3">Task: "Create a course landing page"</h4>
-            <ol className="space-y-3 text-sm text-gray-700">
+            <h4 className="font-semibold mb-3 text-gray-900">Task: "Create a course landing page"</h4>
+            <ol className="space-y-3 text-sm text-gray-700 text-gray-900">
               <li>
                 <strong>1. EXPLORE:</strong> I read the existing homepage to understand the site structure
                 <code className="text-xs bg-white px-2 py-1 rounded ml-2">Read("/workspace/app/page.tsx")</code>
@@ -448,7 +448,7 @@ You can use tools multiple times. Think step-by-step.\`;`}</code></pre>
         <section className="mb-12">
           <h2 className="text-2xl font-bold mb-4 text-gray-900">Key Takeaways</h2>
           <div className="bg-gray-50 rounded-lg p-6">
-            <ul className="space-y-3 text-gray-700">
+            <ul className="space-y-3 text-gray-700 text-gray-900">
               <li className="flex items-start">
                 <span className="text-2xl mr-3">🎯</span>
                 <span><strong>Start with a clear goal.</strong> Define what success looks like before building.</span>
