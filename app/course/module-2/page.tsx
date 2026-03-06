@@ -26,7 +26,7 @@ export default function Module2() {
         </div>
 
         {/* Introduction */}
-        <section className="prose prose-lg max-w-none mb-12">
+        <section className="">
           <h2 className="text-2xl font-bold mb-4">What You'll Build</h2>
           <p className="text-gray-700 mb-4">
             In this module, you'll build a simple autonomous agent that can:
