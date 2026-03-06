@@ -39,6 +39,16 @@ export default function BlogPage() {
           </a>
         ))}
       </div>
+
+      <div className="mt-12 pt-8 border-t border-neutral-800 text-center text-sm text-neutral-500">
+        <p>
+          <a href="/" className="underline hover:text-neutral-300">Home</a>
+          {" • "}
+          <a href="/progress" className="underline hover:text-neutral-300">Progress</a>
+          {" • "}
+          <a href="/course" className="underline hover:text-neutral-300">Course</a>
+        </p>
+      </div>
     </main>
   );
 }
