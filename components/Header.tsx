@@ -12,6 +12,12 @@ export async function Header() {
         </a>
         <nav className="flex items-center gap-4">
           <a
+            href="/dashboard"
+            className="text-sm text-neutral-400 hover:text-neutral-200 transition-colors"
+          >
+            Dashboard
+          </a>
+          <a
             href="/metrics"
             className="text-sm text-neutral-400 hover:text-neutral-200 transition-colors"
           >
