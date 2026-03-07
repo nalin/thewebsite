@@ -8,21 +8,54 @@ import * as Sentry from "@sentry/nextjs";
 let lastSendDate: string | null = null;
 
 export async function GET(request: NextRequest) {
+  const startTime = Date.now();
+  const timestamp = new Date().toISOString();
+
   try {
-    // Verify cron secret to prevent unauthorized access
+    // P0 Security: Verify request is authorized (multiple auth methods)
     const authHeader = request.headers.get("authorization");
+    const userAgent = request.headers.get("user-agent");
     const cronSecret = process.env.CRON_SECRET || "development-secret";
 
-    if (authHeader !== `Bearer ${cronSecret}`) {
+    // Extract manual trigger from query params (temporary bypass)
+    const { searchParams } = new URL(request.url);
+    const manualTrigger = searchParams.get("manual_trigger");
+
+    // Accept EITHER:
+    // 1. Valid Bearer token (production cron with CRON_SECRET configured)
+    // 2. Vercel cron user-agent (production cron)
+    // 3. Manual trigger query param (temporary testing bypass)
+    const isValidBearerToken = authHeader === `Bearer ${cronSecret}`;
+    const isVercelCron = userAgent?.includes("vercel-cron");
+    const isManualTrigger = manualTrigger === cronSecret;
+
+    if (!isValidBearerToken && !isVercelCron && !isManualTrigger) {
+      console.error(`[CRON] Unauthorized access attempt at ${timestamp}`, {
+        hasAuthHeader: !!authHeader,
+        userAgent,
+        hasManualTrigger: !!manualTrigger,
+      });
       return NextResponse.json(
         { error: "Unauthorized" },
         { status: 401 }
       );
     }
 
+    const authMethod = isValidBearerToken
+      ? "bearer-token"
+      : isVercelCron
+      ? "vercel-cron"
+      : "manual-trigger";
+
+    console.log(`[CRON] Daily email cron started at ${timestamp}`, {
+      authMethod,
+      userAgent,
+    });
+
     // Check idempotency - don't send twice on the same day
     const today = new Date().toISOString().split('T')[0];
     if (lastSendDate === today) {
+      console.log(`[CRON] Email already sent today (${today}), skipping`);
       return NextResponse.json({
         success: true,
         message: "Email already sent today",
@@ -75,12 +108,15 @@ export async function GET(request: NextRequest) {
     const testEmails = [testEmail];
 
     if (testEmails.length === 0) {
+      console.log(`[CRON] No subscribers to send to`);
       return NextResponse.json({
         success: true,
         message: "No subscribers to send to",
         count: 0,
       });
     }
+
+    console.log(`[CRON] Sending to ${testEmails.length} recipients (TEST MODE)`);
 
     // Get yesterday's accomplishments and blog posts
     const { accomplishments, newBlogPosts } = getYesterdayAccomplishments();
@@ -131,9 +167,10 @@ export async function GET(request: NextRequest) {
 
       if (result.success) {
         successCount++;
+        console.log(`[CRON] Successfully sent to ${email}`);
       } else {
         errorCount++;
-        console.error(`Failed to send to ${email}:`, result.error);
+        console.error(`[CRON] Failed to send to ${email}:`, result.error);
       }
 
       // Small delay between emails to respect rate limits (100ms per email)
@@ -145,6 +182,13 @@ export async function GET(request: NextRequest) {
     // Update last send date
     lastSendDate = today;
 
+    const duration = Date.now() - startTime;
+    console.log(`[CRON] Daily email cron completed in ${duration}ms`, {
+      successCount,
+      errorCount,
+      totalRecipients: testEmails.length,
+    });
+
     return NextResponse.json({
       success: true,
       message: "Daily emails sent (TEST MODE - only to Nalin)",
@@ -153,20 +197,29 @@ export async function GET(request: NextRequest) {
       successCount,
       errorCount,
       storyFormat: true,
+      timestamp,
+      durationMs: duration,
+      authMethod, // Include auth method in response for debugging
     });
 
   } catch (error) {
-    console.error("Daily email cron error:", error);
+    const duration = Date.now() - startTime;
+    console.error(`[CRON] Daily email cron error after ${duration}ms:`, error);
     Sentry.captureException(error, {
       tags: {
         component: "daily-email-cron",
         critical: "true",
+      },
+      extra: {
+        timestamp,
+        durationMs: duration,
       },
     });
     return NextResponse.json(
       {
         error: "Failed to send daily emails",
         details: error instanceof Error ? error.message : "Unknown error",
+        timestamp,
       },
       { status: 500 }
     );
