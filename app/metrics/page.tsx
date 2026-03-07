@@ -2,6 +2,11 @@ import Link from "next/link";
 import { createClient } from "@libsql/client";
 
 async function getMetrics() {
+  console.log("[METRICS] Starting getMetrics");
+  console.log("[METRICS] TURSO_DATABASE_URL:", process.env.TURSO_DATABASE_URL);
+  console.log("[METRICS] TURSO_AUTH_TOKEN exists:", !!process.env.TURSO_AUTH_TOKEN);
+  console.log("[METRICS] TURSO_AUTH_TOKEN length:", process.env.TURSO_AUTH_TOKEN?.length);
+
   const client = createClient({
     url: process.env.TURSO_DATABASE_URL || "file:local.db",
     authToken: process.env.TURSO_AUTH_TOKEN,
@@ -9,8 +14,11 @@ async function getMetrics() {
 
   try {
     // Get waitlist signups
+    console.log("[METRICS] Querying waitlist count...");
     const waitlistResult = await client.execute("SELECT COUNT(*) as count FROM waitlist");
+    console.log("[METRICS] Waitlist result:", waitlistResult.rows[0]);
     const waitlistCount = (waitlistResult.rows[0] as unknown as { count: number }).count || 0;
+    console.log("[METRICS] Waitlist count:", waitlistCount);
 
     // Get waitlist growth (last 7 days)
     const weekAgoResult = await client.execute(
@@ -31,7 +39,7 @@ async function getMetrics() {
       total: number;
     };
 
-    return {
+    const result = {
       waitlist: {
         total: waitlistCount,
         weekGrowth: weekGrowth,
@@ -43,14 +51,22 @@ async function getMetrics() {
         total: tasksStats.total || 0,
       },
     };
+    console.log("[METRICS] Returning metrics:", result);
+    return result;
   } catch (error) {
-    console.error("Database error:", error);
+    console.error("[METRICS] Database error:", error);
+    console.error("[METRICS] Error details:", {
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    });
     // Return fallback metrics
-    return {
+    const fallback = {
       waitlist: { total: 0, weekGrowth: 0 },
       revenue: 0,
       tasks: { completed: 10, active: 17, total: 27 },
     };
+    console.error("[METRICS] Returning fallback:", fallback);
+    return fallback;
   }
 }
 
