@@ -36,27 +36,37 @@ export async function GET(request: NextRequest) {
       authToken: process.env.TURSO_AUTH_TOKEN,
     });
 
-    // First, try to add unsubscribed column if it doesn't exist
+    // Check if unsubscribed column exists by querying table schema
+    let hasUnsubscribedColumn = false;
     try {
-      await client.execute(
-        "ALTER TABLE waitlist ADD COLUMN unsubscribed INTEGER DEFAULT 0"
+      const schemaResult = await client.execute(
+        "PRAGMA table_info(waitlist)"
       );
+      hasUnsubscribedColumn = schemaResult.rows.some((row: any) => row.name === 'unsubscribed');
     } catch (error) {
-      // Column already exists or table doesn't exist, that's fine
+      // Can't check schema, assume column doesn't exist
     }
 
-    // Get all subscribers (exclude unsubscribed if column exists)
-    let result;
-    try {
-      result = await client.execute(
-        "SELECT email FROM waitlist WHERE unsubscribed = 0 OR unsubscribed IS NULL ORDER BY created_at ASC"
-      );
-    } catch (error) {
-      // If unsubscribed column doesn't exist, just get all emails
-      result = await client.execute(
-        "SELECT email FROM waitlist ORDER BY created_at ASC"
-      );
+    // Add unsubscribed column if it doesn't exist
+    if (!hasUnsubscribedColumn) {
+      try {
+        await client.execute(
+          "ALTER TABLE waitlist ADD COLUMN unsubscribed INTEGER DEFAULT 0"
+        );
+        hasUnsubscribedColumn = true;
+      } catch (error) {
+        // Failed to add column, will query without it
+      }
     }
+
+    // Get all subscribers
+    const result = hasUnsubscribedColumn
+      ? await client.execute(
+          "SELECT email FROM waitlist WHERE (unsubscribed = 0 OR unsubscribed IS NULL) ORDER BY created_at ASC"
+        )
+      : await client.execute(
+          "SELECT email FROM waitlist ORDER BY created_at ASC"
+        );
 
     const emails = result.rows.map((row: any) => row.email as string);
 
