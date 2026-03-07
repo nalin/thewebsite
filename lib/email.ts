@@ -80,7 +80,7 @@ export async function sendDailyUpdate(
     const html = generateDailyUpdateEmail(data);
 
     const { error } = await resend.emails.send({
-      from: 'The Website <updates@thewebsite.app>',
+      from: 'The Website <updates@updates.thewebsite.app>',
       to,
       subject: `Daily Update - ${data.date}`,
       html,

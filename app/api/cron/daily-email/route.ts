@@ -70,7 +70,11 @@ export async function GET(request: NextRequest) {
 
     const emails = result.rows.map((row: any) => row.email as string);
 
-    if (emails.length === 0) {
+    // TEMPORARY: For testing, only send to Nalin
+    const testEmail = "nalin.mittal@gmail.com";
+    const testEmails = [testEmail];
+
+    if (testEmails.length === 0) {
       return NextResponse.json({
         success: true,
         message: "No subscribers to send to",
@@ -94,7 +98,8 @@ export async function GET(request: NextRequest) {
     let errorCount = 0;
 
     // Send individual emails (each with unique unsubscribe link)
-    for (const email of emails) {
+    // TEMPORARY: Using testEmails instead of emails for testing
+    for (const email of testEmails) {
       const unsubscribeUrl = `${baseUrl}/unsubscribe?email=${encodeURIComponent(email)}`;
 
       const emailData: DailyUpdateData = {
@@ -116,7 +121,7 @@ export async function GET(request: NextRequest) {
       }
 
       // Small delay between emails to respect rate limits (100ms per email)
-      if (emails.indexOf(email) < emails.length - 1) {
+      if (testEmails.indexOf(email) < testEmails.length - 1) {
         await new Promise(resolve => setTimeout(resolve, 100));
       }
     }
@@ -126,8 +131,9 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: "Daily emails sent",
-      totalSubscribers: emails.length,
+      message: "Daily emails sent (TEST MODE - only to Nalin)",
+      totalSubscribers: testEmails.length,
+      actualSubscribers: emails.length,
       successCount,
       errorCount,
       accomplishments: accomplishments.length,
