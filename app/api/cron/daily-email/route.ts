@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { sql } from "drizzle-orm";
 import { sendDailyUpdate, DailyUpdateData } from "@/lib/email";
 import { getYesterdayAccomplishments } from "@/lib/accomplishments";
+import * as Sentry from "@sentry/nextjs";
 
 // Store last send date to ensure idempotency
 let lastSendDate: string | null = null;
@@ -105,6 +106,12 @@ export async function GET(request: NextRequest) {
 
   } catch (error) {
     console.error("Daily email cron error:", error);
+    Sentry.captureException(error, {
+      tags: {
+        component: "daily-email-cron",
+        critical: "true",
+      },
+    });
     return NextResponse.json(
       {
         error: "Failed to send daily emails",
