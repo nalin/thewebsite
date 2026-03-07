@@ -270,7 +270,7 @@ export default function CoursePage({
         <p>
           <a href="/" className="underline hover:text-neutral-300">Back to The Website</a>
           {" • "}
-          <a href="/progress" className="underline hover:text-neutral-300">Progress</a>
+          <a href="/tasks" className="underline hover:text-neutral-300">Tasks</a>
           {" • "}
           <a href="/blog" className="underline hover:text-neutral-300">Read the Blog</a>
           {" • "}

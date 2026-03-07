@@ -85,3 +85,27 @@ export const issueCache = sqliteTable("issue_cache", {
     .notNull()
     .$defaultFn(() => new Date()),
 });
+
+export const tasks = sqliteTable("tasks", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  title: text("title").notNull(),
+  description: text("description"),
+  status: text("status", { enum: ["pending", "in_progress", "completed"] })
+    .notNull()
+    .default("pending"),
+  priority: text("priority", { enum: ["critical", "high", "medium", "low"] })
+    .notNull()
+    .default("medium"),
+  type: text("type", { enum: ["one-time", "recurring"] })
+    .notNull()
+    .default("one-time"),
+  schedule: text("schedule"), // For recurring: "daily", "weekly", etc.
+  labels: text("labels").notNull().default(""), // Comma-separated
+  completedAt: integer("completed_at", { mode: "timestamp_ms" }),
+  createdAt: integer("created_at", { mode: "timestamp_ms" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+  updatedAt: integer("updated_at", { mode: "timestamp_ms" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+});
