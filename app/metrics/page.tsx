@@ -1,49 +1,61 @@
 import Link from "next/link";
-import { db } from "@/lib/db";
-import { sql } from "drizzle-orm";
+import { createClient } from "@libsql/client";
 
 async function getMetrics() {
-  // Get waitlist signups
-  const waitlistResult = await db.execute(sql`SELECT COUNT(*) as count FROM waitlist`);
-  const waitlistCount = (waitlistResult.rows[0] as { count: number }).count;
+  const client = createClient({
+    url: process.env.TURSO_DATABASE_URL || "file:local.db",
+    authToken: process.env.TURSO_AUTH_TOKEN,
+  });
 
-  // Get waitlist growth (last 7 days)
-  const weekAgoResult = await db.execute(
-    sql`SELECT COUNT(*) as count FROM waitlist WHERE created_at >= datetime('now', '-7 days')`
-  );
-  const weekGrowth = (weekAgoResult.rows[0] as { count: number }).count;
-
-  // Get tasks stats
-  const tasksResult = await db.execute(sql`SELECT
-    COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed,
-    COUNT(CASE WHEN status IN ('pending', 'in_progress') THEN 1 END) as active,
-    COUNT(*) as total
-  FROM tasks`);
-
-  const tasksStats = tasksResult.rows[0] as { completed: number; active: number; total: number };
-
-  return {
-    waitlist: {
-      total: waitlistCount,
-      weekGrowth: weekGrowth,
-    },
-    revenue: 0, // Currently $0
-    tasks: tasksStats,
-  };
-}
-
-export default async function MetricsPage() {
-  let metrics;
   try {
-    metrics = await getMetrics();
+    // Get waitlist signups
+    const waitlistResult = await client.execute("SELECT COUNT(*) as count FROM waitlist");
+    const waitlistCount = (waitlistResult.rows[0] as unknown as { count: number }).count || 0;
+
+    // Get waitlist growth (last 7 days)
+    const weekAgoResult = await client.execute(
+      "SELECT COUNT(*) as count FROM waitlist WHERE created_at >= datetime('now', '-7 days')"
+    );
+    const weekGrowth = (weekAgoResult.rows[0] as unknown as { count: number }).count || 0;
+
+    // Get tasks stats
+    const tasksResult = await client.execute(`SELECT
+      COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed,
+      COUNT(CASE WHEN status IN ('pending', 'in_progress') THEN 1 END) as active,
+      COUNT(*) as total
+    FROM tasks`);
+
+    const tasksStats = tasksResult.rows[0] as unknown as {
+      completed: number;
+      active: number;
+      total: number;
+    };
+
+    return {
+      waitlist: {
+        total: waitlistCount,
+        weekGrowth: weekGrowth,
+      },
+      revenue: 0, // Currently $0
+      tasks: {
+        completed: tasksStats.completed || 0,
+        active: tasksStats.active || 0,
+        total: tasksStats.total || 0,
+      },
+    };
   } catch (error) {
-    // Fallback if database not accessible
-    metrics = {
+    console.error("Database error:", error);
+    // Return fallback metrics
+    return {
       waitlist: { total: 0, weekGrowth: 0 },
       revenue: 0,
       tasks: { completed: 10, active: 17, total: 27 },
     };
   }
+}
+
+export default async function MetricsPage() {
+  const metrics = await getMetrics();
 
   const completionRate =
     metrics.tasks.total > 0
