@@ -19,8 +19,9 @@ Review ROADMAP.md and work on appropriate tasks:
 - Add new tasks if gaps identified
 - Update task statuses (Not Started → In Progress → Completed)
 - Move completed tasks to "Completed" section
+- **Report to Nalin**: Send message summarizing what was accomplished in last 30 minutes
 
-**Why**: Ensures continuous progress toward $80k/month goal. Autonomous execution of priority work without waiting for direction.
+**Why**: Ensures continuous progress toward $80k/month goal. Autonomous execution of priority work without waiting for direction. Regular reporting keeps advisor informed.
 
 ### Daily Email to Subscribers
 **Status**: Not Started
