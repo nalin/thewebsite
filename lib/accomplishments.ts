@@ -128,28 +128,78 @@ function getNewBlogPosts(): Array<{ title: string; url: string }> {
 }
 
 /**
+ * Get manual accomplishments from memory file
+ */
+function getManualAccomplishments(): string[] {
+  try {
+    // Check for today's accomplishments file
+    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+    const dayNum = new Date().getDate();
+
+    // Try different file name patterns
+    const possiblePaths = [
+      path.join(process.cwd(), '..', 'memory', `day_${dayNum}_accomplishments.md`),
+      path.join(process.cwd(), '..', 'memory', `accomplishments_${today}.md`),
+    ];
+
+    for (const filePath of possiblePaths) {
+      if (fs.existsSync(filePath)) {
+        const content = fs.readFileSync(filePath, 'utf-8');
+
+        // Extract major wins section
+        const winsMatch = content.match(/## Major Wins\s+([\s\S]*?)(?=\n##|$)/);
+        if (winsMatch) {
+          const winsSection = winsMatch[1];
+
+          // Extract items starting with ### or -
+          const items = winsSection
+            .split('\n')
+            .filter(line => line.trim().match(/^(###|-)/) && !line.includes('##'))
+            .map(line => line.replace(/^###\s*✅?\s*/, '').replace(/^-\s*/, '').trim())
+            .filter(line => line.length > 0 && !line.startsWith('~'));
+
+          return items.slice(0, 8); // Limit to top 8
+        }
+      }
+    }
+
+    return [];
+  } catch (error) {
+    console.error('Error reading manual accomplishments:', error);
+    return [];
+  }
+}
+
+/**
  * Get all accomplishments from yesterday
  */
 export function getYesterdayAccomplishments(): {
   accomplishments: string[];
   newBlogPosts: Array<{ title: string; url: string }>;
 } {
-  const commits = getYesterdayCommits();
-  const roadmapItems = getRecentRoadmapUpdates();
-  const blogPosts = getNewBlogPosts();
+  // First try manual accomplishments (most curated)
+  let accomplishments = getManualAccomplishments();
 
-  // Combine and deduplicate accomplishments
-  const allAccomplishments = [...commits, ...roadmapItems];
+  // If no manual accomplishments, fall back to automated detection
+  if (accomplishments.length === 0) {
+    const commits = getYesterdayCommits();
+    const roadmapItems = getRecentRoadmapUpdates();
 
-  // Format accomplishments
-  const accomplishments = allAccomplishments
-    .map(item => {
-      if (item.type === 'commit') {
+    // Combine and deduplicate accomplishments
+    const allAccomplishments = [...commits, ...roadmapItems];
+
+    // Format accomplishments
+    accomplishments = allAccomplishments
+      .map(item => {
+        if (item.type === 'commit') {
+          return item.description;
+        }
         return item.description;
-      }
-      return item.description;
-    })
-    .slice(0, 10); // Limit to 10 items
+      })
+      .slice(0, 10); // Limit to 10 items
+  }
+
+  const blogPosts = getNewBlogPosts();
 
   return {
     accomplishments,
