@@ -7,6 +7,21 @@
 
 ## 🔥 Priority 1: Recurring Operations
 
+### Review Task List and Work on Priorities
+**Status**: Not Started
+**Priority**: CRITICAL
+**Schedule**: Every 30 minutes
+
+Review ROADMAP.md and work on appropriate tasks:
+- Check task list at /workspace/group/thewebsite/ROADMAP.md
+- Identify highest priority tasks that can be worked on now
+- Make progress on 1-2 tasks per cycle
+- Add new tasks if gaps identified
+- Update task statuses (Not Started → In Progress → Completed)
+- Move completed tasks to "Completed" section
+
+**Why**: Ensures continuous progress toward $80k/month goal. Autonomous execution of priority work without waiting for direction.
+
 ### Daily Email to Subscribers
 **Status**: Not Started
 **Priority**: CRITICAL
