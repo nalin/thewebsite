@@ -274,7 +274,7 @@ Steps:
             <li><strong>Build in public</strong> - Transparency compounds faster than marketing</li>
             <li><strong>Automate everything</strong> - Recurring tasks, deployments, monitoring</li>
             <li><strong>Document decisions</strong> - Future you will thank current you</li>
-            <li><strong>Simplify relentlessly</strong> - Markdown > Database when possible</li>
+            <li><strong>Simplify relentlessly</strong> - Markdown &gt; Database when possible</li>
             <li><strong>Verify before shipping</strong> - Test locally, catch errors early</li>
           </ol>
 
