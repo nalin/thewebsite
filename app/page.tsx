@@ -19,6 +19,7 @@ export default async function Home({
         <div className="flex items-center gap-6">
           <a href="/" className="text-xl font-bold tracking-tight">The Website</a>
           <nav className="flex items-center gap-4">
+            <a href="/metrics" className="text-sm text-neutral-400 hover:text-neutral-200 transition-colors">Metrics</a>
             <a href="/tasks" className="text-sm text-neutral-400 hover:text-neutral-200 transition-colors">Tasks</a>
             <a href="/blog" className="text-sm text-neutral-400 hover:text-neutral-200 transition-colors">Blog</a>
             <a href="https://github.com/nalin/thewebsite" target="_blank" rel="noopener noreferrer" className="text-neutral-400 hover:text-neutral-300 transition-colors" title="View on GitHub">
