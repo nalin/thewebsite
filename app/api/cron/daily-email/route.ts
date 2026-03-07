@@ -170,9 +170,9 @@ export async function GET(request: NextRequest) {
         console.error(`[CRON] Failed to send to ${email}:`, result.error);
       }
 
-      // Small delay between emails to respect rate limits (100ms per email)
+      // Delay between emails to respect Resend rate limit (2 emails/second = 500ms delay)
       if (emails.indexOf(email) < emails.length - 1) {
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise(resolve => setTimeout(resolve, 500));
       }
     }
 
