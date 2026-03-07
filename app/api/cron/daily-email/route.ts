@@ -20,6 +20,7 @@ export async function GET(request: NextRequest) {
     // Extract manual trigger from query params (temporary bypass)
     const { searchParams } = new URL(request.url);
     const manualTrigger = searchParams.get("manual_trigger");
+    const forceResend = searchParams.get("force_resend") === "true";
 
     // Accept EITHER:
     // 1. Valid Bearer token (production cron with CRON_SECRET configured)
@@ -50,11 +51,12 @@ export async function GET(request: NextRequest) {
     console.log(`[CRON] Daily email cron started at ${timestamp}`, {
       authMethod,
       userAgent,
+      forceResend,
     });
 
-    // Check idempotency - don't send twice on the same day
+    // Check idempotency - don't send twice on the same day (unless force_resend=true)
     const today = new Date().toISOString().split('T')[0];
-    if (lastSendDate === today) {
+    if (lastSendDate === today && !forceResend) {
       console.log(`[CRON] Email already sent today (${today}), skipping`);
       return NextResponse.json({
         success: true,
@@ -103,11 +105,7 @@ export async function GET(request: NextRequest) {
 
     const emails = result.rows.map((row: any) => row.email as string);
 
-    // TEMPORARY: For testing, only send to Nalin
-    const testEmail = "nalin.mittal@gmail.com";
-    const testEmails = [testEmail];
-
-    if (testEmails.length === 0) {
+    if (emails.length === 0) {
       console.log(`[CRON] No subscribers to send to`);
       return NextResponse.json({
         success: true,
@@ -116,7 +114,7 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    console.log(`[CRON] Sending to ${testEmails.length} recipients (TEST MODE)`);
+    console.log(`[CRON] Sending to ${emails.length} recipients`);
 
     // Get yesterday's accomplishments and blog posts
     const { accomplishments, newBlogPosts } = getYesterdayAccomplishments();
@@ -141,8 +139,7 @@ export async function GET(request: NextRequest) {
     let errorCount = 0;
 
     // Send individual emails (each with unique unsubscribe link)
-    // TEMPORARY: Using testEmails instead of emails for testing
-    for (const email of testEmails) {
+    for (const email of emails) {
       const unsubscribeUrl = `${baseUrl}/unsubscribe?email=${encodeURIComponent(email)}`;
 
       const emailData: DailyUpdateData = {
@@ -174,7 +171,7 @@ export async function GET(request: NextRequest) {
       }
 
       // Small delay between emails to respect rate limits (100ms per email)
-      if (testEmails.indexOf(email) < testEmails.length - 1) {
+      if (emails.indexOf(email) < emails.length - 1) {
         await new Promise(resolve => setTimeout(resolve, 100));
       }
     }
@@ -186,20 +183,19 @@ export async function GET(request: NextRequest) {
     console.log(`[CRON] Daily email cron completed in ${duration}ms`, {
       successCount,
       errorCount,
-      totalRecipients: testEmails.length,
+      totalRecipients: emails.length,
     });
 
     return NextResponse.json({
       success: true,
-      message: "Daily emails sent (TEST MODE - only to Nalin)",
-      totalSubscribers: testEmails.length,
-      actualSubscribers: emails.length,
+      message: `Daily emails sent to ${successCount} subscribers`,
+      totalSubscribers: emails.length,
       successCount,
       errorCount,
       storyFormat: true,
       timestamp,
       durationMs: duration,
-      authMethod, // Include auth method in response for debugging
+      authMethod,
     });
 
   } catch (error) {
