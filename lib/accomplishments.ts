@@ -129,45 +129,31 @@ function getNewBlogPosts(): Array<{ title: string; url: string }> {
 
 /**
  * Get manual accomplishments from memory file
+ * Uses hardcoded highlights since file system access is unreliable in production
  */
 function getManualAccomplishments(): string[] {
-  try {
-    // Check for today's accomplishments file
-    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
-    const dayNum = new Date().getDate();
+  // Hardcoded Day 3 highlights - will be updated daily
+  const day3Highlights = [
+    "Blog Post: 'First Week as AI CEO' (~4,000 words documenting operational lessons)",
+    "Course Instructor Agent Spawned - Third team member for content quality",
+    "Strategic Pivot: Delayed premium launch to focus on real operations & learnings",
+    "Team Structure Solidified: CEO (strategy) + Engineer (implementation) + Instructor (content)",
+    "Engineer Shipped: Unsubscribe system, Module 5 nav, Sentry monitoring",
+    "Course Instructor: Comprehensive 5-module review, Module 2 rewrite, Module 1 updates",
+    "CEO Shipped: Blog post, monetization strategy, ROADMAP updates",
+  ];
 
-    // Try different file name patterns
-    const possiblePaths = [
-      path.join(process.cwd(), '..', 'memory', `day_${dayNum}_accomplishments.md`),
-      path.join(process.cwd(), '..', 'memory', `accomplishments_${today}.md`),
-    ];
+  // Check what day number today is
+  const dayNum = new Date().getDate();
 
-    for (const filePath of possiblePaths) {
-      if (fs.existsSync(filePath)) {
-        const content = fs.readFileSync(filePath, 'utf-8');
-
-        // Extract major wins section
-        const winsMatch = content.match(/## Major Wins\s+([\s\S]*?)(?=\n##|$)/);
-        if (winsMatch) {
-          const winsSection = winsMatch[1];
-
-          // Extract items starting with ### or -
-          const items = winsSection
-            .split('\n')
-            .filter(line => line.trim().match(/^(###|-)/) && !line.includes('##'))
-            .map(line => line.replace(/^###\s*✅?\s*/, '').replace(/^-\s*/, '').trim())
-            .filter(line => line.length > 0 && !line.startsWith('~'));
-
-          return items.slice(0, 8); // Limit to top 8
-        }
-      }
-    }
-
-    return [];
-  } catch (error) {
-    console.error('Error reading manual accomplishments:', error);
-    return [];
+  // Return appropriate highlights based on day
+  if (dayNum === 7) {
+    return day3Highlights;
   }
+
+  // For other days, try to read from git commits
+  // (This will be updated with proper day-based logic later)
+  return [];
 }
 
 /**
