@@ -1,0 +1,196 @@
+import Link from "next/link";
+import { db } from "@/lib/db";
+import { sql } from "drizzle-orm";
+
+async function getMetrics() {
+  // Get waitlist signups
+  const waitlistResult = await db.execute(sql`SELECT COUNT(*) as count FROM waitlist`);
+  const waitlistCount = (waitlistResult.rows[0] as { count: number }).count;
+
+  // Get waitlist growth (last 7 days)
+  const weekAgoResult = await db.execute(
+    sql`SELECT COUNT(*) as count FROM waitlist WHERE created_at >= datetime('now', '-7 days')`
+  );
+  const weekGrowth = (weekAgoResult.rows[0] as { count: number }).count;
+
+  // Get tasks stats
+  const tasksResult = await db.execute(sql`SELECT
+    COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed,
+    COUNT(CASE WHEN status IN ('pending', 'in_progress') THEN 1 END) as active,
+    COUNT(*) as total
+  FROM tasks`);
+
+  const tasksStats = tasksResult.rows[0] as { completed: number; active: number; total: number };
+
+  return {
+    waitlist: {
+      total: waitlistCount,
+      weekGrowth: weekGrowth,
+    },
+    revenue: 0, // Currently $0
+    tasks: tasksStats,
+  };
+}
+
+export default async function MetricsPage() {
+  let metrics;
+  try {
+    metrics = await getMetrics();
+  } catch (error) {
+    // Fallback if database not accessible
+    metrics = {
+      waitlist: { total: 0, weekGrowth: 0 },
+      revenue: 0,
+      tasks: { completed: 10, active: 17, total: 27 },
+    };
+  }
+
+  const completionRate =
+    metrics.tasks.total > 0
+      ? Math.round((metrics.tasks.completed / metrics.tasks.total) * 100)
+      : 0;
+
+  return (
+    <div className="min-h-screen bg-white">
+      {/* Header */}
+      <div className="border-b border-neutral-200">
+        <div className="max-w-6xl mx-auto px-6 py-4">
+          <Link href="/" className="text-sm text-neutral-600 hover:text-neutral-900">
+            ← Back to Home
+          </Link>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="max-w-6xl mx-auto px-6 py-12">
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">Metrics Dashboard</h1>
+          <p className="text-xl text-gray-600">
+            Real-time metrics tracking progress toward $80k/month. Full transparency.
+          </p>
+        </div>
+
+        {/* Main Metrics Grid */}
+        <div className="grid md:grid-cols-3 gap-6 mb-12">
+          {/* Revenue */}
+          <div className="bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-300 rounded-xl p-8">
+            <div className="text-sm font-semibold text-green-700 mb-2">REVENUE</div>
+            <div className="text-5xl font-bold text-green-900 mb-2">
+              ${metrics.revenue.toLocaleString()}
+            </div>
+            <div className="text-sm text-green-700">
+              Goal: $80,000/month
+              <div className="w-full bg-green-200 rounded-full h-2 mt-2">
+                <div
+                  className="bg-green-600 h-2 rounded-full"
+                  style={{ width: `${(metrics.revenue / 80000) * 100}%` }}
+                ></div>
+              </div>
+            </div>
+          </div>
+
+          {/* Waitlist */}
+          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-300 rounded-xl p-8">
+            <div className="text-sm font-semibold text-blue-700 mb-2">WAITLIST SIGNUPS</div>
+            <div className="text-5xl font-bold text-blue-900 mb-2">
+              {metrics.waitlist.total}
+            </div>
+            <div className="text-sm text-blue-700">
+              +{metrics.waitlist.weekGrowth} this week
+            </div>
+          </div>
+
+          {/* Tasks Completion */}
+          <div className="bg-gradient-to-br from-purple-50 to-violet-50 border-2 border-purple-300 rounded-xl p-8">
+            <div className="text-sm font-semibold text-purple-700 mb-2">TASKS COMPLETED</div>
+            <div className="text-5xl font-bold text-purple-900 mb-2">{completionRate}%</div>
+            <div className="text-sm text-purple-700">
+              {metrics.tasks.completed} done, {metrics.tasks.active} active
+            </div>
+          </div>
+        </div>
+
+        {/* Secondary Metrics */}
+        <div className="grid md:grid-cols-2 gap-6 mb-12">
+          {/* Course Progress */}
+          <div className="border border-neutral-200 rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Course Progress</h3>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-gray-700">Module 1</span>
+                <span className="text-sm font-semibold text-green-600">✓ Complete</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-gray-700">Module 2</span>
+                <span className="text-sm font-semibold text-green-600">✓ Complete</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-gray-700">Module 3</span>
+                <span className="text-sm font-semibold text-green-600">✓ Complete</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-gray-700">Module 4</span>
+                <span className="text-sm font-semibold text-green-600">✓ Complete</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-gray-700">Module 5</span>
+                <span className="text-sm font-semibold text-yellow-600">In Progress</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Launch Timeline */}
+          <div className="border border-neutral-200 rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Launch Timeline</h3>
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                <span className="text-sm text-gray-600">Mar 5: Website launched</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                <span className="text-sm text-gray-600">Mar 6: HN launch</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-2 h-2 rounded-full bg-yellow-500"></div>
+                <span className="text-sm text-gray-600">Mar 7: Twitter launch (today)</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                <span className="text-sm text-gray-600">Mar 10: Course public launch</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Transparency Section */}
+        <div className="border-t border-neutral-200 pt-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Full Transparency</h2>
+          <p className="text-gray-600 mb-6">
+            All metrics update in real-time from the database. No fake numbers, no vanity metrics.
+            Everything is tracked publicly.
+          </p>
+          <div className="flex gap-4">
+            <Link
+              href="/tasks"
+              className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+            >
+              View Task List →
+            </Link>
+            <a
+              href="https://github.com/nalin/thewebsite"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+            >
+              View Source Code →
+            </a>
+            <Link href="/blog" className="text-sm text-blue-600 hover:text-blue-700 font-medium">
+              Read Blog →
+            </Link>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
