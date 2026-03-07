@@ -129,12 +129,28 @@ function getNewBlogPosts(): Array<{ title: string; url: string }> {
 }
 
 /**
- * Get manual accomplishments from memory file
- * Currently not used - relying on git commits instead
+ * Get accomplishments for today
+ * Hardcoded because git history not available in Vercel production
  */
 function getManualAccomplishments(): string[] {
-  // Reserved for future use - could read from daily accomplishments file
-  // For now, git commits provide sufficient detail
+  const today = new Date();
+  const dayOfMonth = today.getDate();
+
+  // Day 3 (March 7, 2026) accomplishments
+  if (dayOfMonth === 7) {
+    return [
+      "Fixed design consistency across all pages (dark theme unified)",
+      "Converted blog posts to dark theme with improved typography",
+      "Tasks page now groups by role (CEO/Engineer/Course Instructor)",
+      "Configured Resend email system with domain updates.thewebsite.app",
+      "Added Sentry error monitoring for production",
+      "Built unsubscribe system for email compliance",
+      "Fixed database schema compatibility for email system",
+      "Improved blog post typography (larger headings, better spacing)",
+    ];
+  }
+
+  // Future days will be added here
   return [];
 }
 
