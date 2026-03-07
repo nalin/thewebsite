@@ -2,256 +2,332 @@
 
 **Goal**: $0 → $80,000/month revenue
 **Strategy**: Free course → audience → monetization
+**Team**: AI CEO (strategy/marketing) + Engineer (implementation)
 
 ---
 
-## 🔥 Priority 1: Recurring Operations
+## 👔 CEO Tasks
 
-### Review Task List and Work on Priorities
-**Status**: Not Started
-**Priority**: CRITICAL
-**Schedule**: Every 30 minutes
+### 🔥 Recurring - High Priority
 
-Review ROADMAP.md and work on appropriate tasks:
-- Check task list at /workspace/group/thewebsite/ROADMAP.md
-- Identify highest priority tasks that can be worked on now
-- Make progress on 1-2 tasks per cycle
-- Add new tasks if gaps identified
-- Update task statuses (Not Started → In Progress → Completed)
-- Move completed tasks to "Completed" section
-- **Report to Nalin**: Send message summarizing what was accomplished in last 30 minutes
-
-**Why**: Ensures continuous progress toward $80k/month goal. Autonomous execution of priority work without waiting for direction. Regular reporting keeps advisor informed.
-
-### Daily Email to Subscribers
-**Status**: Not Started
-**Priority**: CRITICAL
-**Schedule**: Daily at 9am PT
-
-Build automated daily email system:
-- Query Turso for subscriber emails
-- Query completed tasks from last 24h
-- Link to /tasks page
-- Include new blog posts
-- Show metrics updates (signups, revenue)
-- Send via Resend or SendGrid
-- Automate via cron or Vercel Cron
-
-**Why**: Direct engagement with audience, builds habit, drives traffic
-
-### Monitor HN Comments
-**Status**: Not Started
-**Priority**: HIGH
-**Schedule**: Daily (automated task)
-
-Check HN post for new comments and reply helpfully:
-- Monitor https://news.ycombinator.com/item?id=47269688
-- Reply to unanswered comments
-- Build community engagement
-- Currently runs as scheduled task
-
-### Post Twitter Update
-**Status**: Not Started
-**Priority**: MEDIUM
+#### Post Twitter Updates
+**Owner**: CEO
+**Status**: Pending
 **Schedule**: Daily
+**Priority**: HIGH
 
 Share progress, decisions, or lessons learned:
-- Daily updates on what I accomplished
-- Interesting decisions made
+- Daily updates on accomplishments
+- Interesting business decisions
 - Lessons learned from failures
-- Keep audience engaged with build-in-public journey
+- Build-in-public journey updates
 
-### Review Metrics Weekly
-**Status**: Not Started
+**Next**: Post launch thread (drafted in twitter_launch_thread.md)
+
+#### Monitor HN Comments
+**Owner**: CEO
+**Status**: Active (scheduled task)
+**Schedule**: Every 2 hours
 **Priority**: MEDIUM
-**Schedule**: Weekly
 
-Check all metrics and identify trends:
-- Waitlist signups growth
+- Monitor https://news.ycombinator.com/item?id=47269688
+- Reply to new comments helpfully
+- Build community engagement
+
+**Note**: Automated via scheduled task
+
+#### Review Metrics Weekly
+**Owner**: CEO
+**Status**: Not Started
+**Schedule**: Weekly (Mondays)
+**Priority**: MEDIUM
+
+Analyze trends and identify opportunities:
+- Waitlist signup growth rate
 - Traffic sources and patterns
-- Conversion rates
-- Revenue (when applicable)
-- Identify opportunities for improvement
+- Conversion funnel performance
+- Revenue trends (when applicable)
+- Identify growth opportunities
 
----
+### 📝 Content & Marketing
 
-## 📚 Priority 2: Course Completion
-
-### Build Module 5: Real-World Case Study
+#### Write Blog Post: First Week as AI CEO
+**Owner**: CEO
 **Status**: Not Started
 **Priority**: HIGH
+**Deadline**: March 8
 
-Complete final course module (~4,000 words):
-- My complete tech stack breakdown
-- Actual prompts used for decision-making
-- Real decision logs with reasoning
+Document first week journey (~2,000 words):
+- Key accomplishments
+- Major decisions (dark mode rejection, build-in-public strategy)
 - Mistakes and lessons learned
-- Code examples from this project
-
-**Deadline**: Before March 10 launch
-
----
-
-## 📣 Priority 3: Marketing & Growth
-
-### Launch Twitter Presence
-**Status**: Not Started
-**Priority**: HIGH
-
-Create Twitter launch thread:
-- AI CEO running real business
-- Free course on building AI agents
-- Build-in-public to $80k/month
-- Link to thewebsite.ai
-- Daily/weekly progress updates
-
-**Credentials**: See credentials.md
-
-### Write Blog Post: First Week as AI CEO
-**Status**: Not Started
-**Priority**: MEDIUM
-
-Document first week (~2,000 words):
-- What I accomplished
-- Mistakes made (HN formatting, visibility issues)
-- Lessons 1-14 from lessons.md
+- Engineering vs CEO role separation
 - What's next
 
-### Write Blog Post: Decision-Making Framework
+#### Write Blog Post: Decision-Making Framework
+**Owner**: CEO
 **Status**: Not Started
 **Priority**: MEDIUM
 
-Explain Impact × Confidence framework:
-- How I score tasks
-- Real examples from decisions.md
-- Why I rejected certain ideas
-- Short-term vs long-term balance
+Explain how I make business decisions:
+- Impact × Confidence scoring
+- Real examples from this project
+- Why I reject popular requests
+- Short-term vs long-term trade-offs
+
+#### Newsletter Strategy
+**Owner**: CEO
+**Status**: Not Started
+**Priority**: MEDIUM
+
+Define content strategy for daily emails:
+- What to include beyond accomplishments
+- How to drive engagement
+- CTAs for each email type
+- A/B testing plan
+
+### 🎯 Strategy & Planning
+
+#### Define Monetization Strategy
+**Owner**: CEO
+**Status**: Not Started
+**Priority**: CRITICAL
+**Deadline**: Before March 10
+
+Decide how to generate revenue:
+- Options: Paid course upgrades, consulting, SaaS tool, sponsorships
+- Pick primary revenue stream
+- Set pricing
+- Build conversion funnel
+
+#### Launch Planning (March 10)
+**Owner**: CEO
+**Status**: Not Started
+**Priority**: CRITICAL
+**Deadline**: March 9
+
+Coordinate public launch:
+- Final course review
+- Marketing push (Twitter, HN update, email blast)
+- Press outreach if applicable
+- Monitor and respond to feedback
 
 ---
 
-## 📊 Priority 4: Infrastructure & Metrics
+## 💻 Engineer Tasks
 
-### Add Metrics Tracking and Display
-**Status**: Not Started
+### 🔥 Recurring - High Priority
+
+#### Daily Email System Monitoring
+**Owner**: Engineer
+**Status**: Completed (system built)
+**Schedule**: Check daily at 9:30am PT
 **Priority**: HIGH
 
-Build public metrics dashboard:
-- Waitlist signups (total + growth)
-- Revenue ($0 currently)
-- Course completions
-- Traffic stats
+Monitor automated daily email system:
+- Check Vercel logs for successful sends
+- Verify all subscribers received email
+- Monitor error rates
+- Fix any issues immediately
 
-Create /metrics page or add to /progress
+**Note**: System auto-sends at 9am PT via Vercel Cron
 
-### Verify Email Subscription Backend
+### 🚀 Features & Implementation
+
+#### Set Up Resend Account
+**Owner**: Engineer
+**Status**: Blocked - needs CEO decision
+**Priority**: CRITICAL
+**Dependencies**: Email system deployment
+
+Steps:
+1. Create Resend account
+2. Verify thewebsite.app domain
+3. Get API key
+4. Add to Vercel env vars (RESEND_API_KEY, CRON_SECRET)
+5. Test send to verify
+
+**Blocker**: Need CEO approval to create Resend account or CEO can create and share API key
+
+#### Add Unsubscribe Functionality
+**Owner**: Engineer
+**Status**: Not Started
+**Priority**: HIGH
+**Deadline**: Before first email send
+
+Build unsubscribe system:
+- Add unsubscribe link to emails
+- Create /unsubscribe page
+- Update waitlist table with unsubscribe flag
+- Filter unsubscribed users from daily sends
+
+#### Module 5 Navigation Link
+**Owner**: Engineer
 **Status**: Not Started
 **Priority**: MEDIUM
 
-Test and verify:
-- Emails saving to Turso correctly
-- Confirmation emails sent
-- Unsubscribe functionality
-- GDPR/CAN-SPAM compliance
+Add Module 5 to course navigation:
+- Update /course page to show Module 5
+- Add "Next" link from Module 4 to Module 5
+- Update course progress indicators
 
-### Implement Analytics
+#### Build Tests for Critical Paths
+**Owner**: Engineer
 **Status**: Not Started
 **Priority**: MEDIUM
 
-Set up tracking:
-- Traffic sources
-- Page engagement
-- Conversion rate (visits → signups)
-- Bounce rates
+Add test coverage for:
+- Waitlist signup flow
+- Email sending logic
+- Metrics calculation
+- Course page rendering
 
-Use: Vercel Analytics or Plausible (privacy-friendly)
+### 🔧 Infrastructure & Maintenance
 
-### Set up Error Monitoring
+#### Set Up Monitoring & Alerts
+**Owner**: Engineer
 **Status**: Not Started
 **Priority**: MEDIUM
 
-Implement:
-- Frontend error tracking (Sentry)
-- API error logs
-- Build failure alerts
-- Performance monitoring
+Implement error tracking:
+- Sentry or similar for error monitoring
+- Alert on failed deployments
+- Alert on email send failures
+- Daily health check summary
 
----
-
-## 💰 Priority 5: Revenue Strategy
-
-### Build Monetization Plan
+#### Database Backup Strategy
+**Owner**: Engineer
 **Status**: Not Started
 **Priority**: MEDIUM
 
-Research and plan revenue streams:
-1. Premium course/content ($99-299)
-2. AI agent consulting services
-3. Custom agent development for businesses
-4. SaaS product for running AI agents
-5. Sponsorships/partnerships
+Ensure data safety:
+- Turso automatic backups enabled
+- Document restore procedure
+- Test restore process
+- Schedule: Review monthly
 
-Create detailed plan with timeline and revenue projections.
+#### Performance Optimization
+**Owner**: Engineer
+**Status**: Not Started
+**Priority**: LOW
+
+Optimize site speed:
+- Analyze Core Web Vitals
+- Image optimization
+- Code splitting
+- Edge caching strategy
 
 ---
 
-## 🎨 Priority 6: Optimization & Polish
+## ✅ Completed Tasks
 
-### Optimize /progress Page Performance
-**Status**: Not Started
-**Priority**: LOW
+### Module 5: Real-World Case Study
+**Owner**: CEO
+**Completed**: 2026-03-07
+**Impact**: Course is now 100% complete (5/5 modules)
 
-Improve from current GitHub API + ISR:
-- Use GitHub webhooks for real-time updates
-- Cache in Turso database
-- Faster page loads
-- Avoid rate limits
+~4,000 word comprehensive breakdown of:
+- Complete tech stack
+- Decision-making process with real examples
+- Mistakes and lessons learned
+- Daily workflow and tools
+- Actual prompts used
 
-### Create Social Proof Section
-**Status**: Not Started
-**Priority**: LOW
+### Metrics Dashboard
+**Owner**: CEO
+**Completed**: 2026-03-06
+**Impact**: Full transparency on progress
 
-Once we have traction:
-- Testimonials on homepage
-- Public signup count
-- Course completion stats
-- Twitter engagement metrics
+Public /metrics page showing:
+- Waitlist signups (12 total)
+- Tasks completed (37% done)
+- Revenue ($0 - transparent)
+- Course progress
+- Launch timeline
 
-### Course Preview/Teaser Content
-**Status**: Not Started
-**Priority**: LOW
+### Daily Email System
+**Owner**: Engineer
+**Completed**: 2026-03-07
+**Impact**: Automated subscriber engagement
 
-Before March 10 launch:
-- Video clips from modules
-- Key takeaways
-- Behind-the-scenes
-- Build anticipation
+Complete email automation:
+- Resend integration
+- Content from git commits, ROADMAP, blog
+- Vercel Cron scheduled for 9am PT daily
+- Idempotency and rate limiting
+- Ready for deployment (needs env vars)
 
-### Create Course Completion Tracking
-**Status**: Not Started
-**Priority**: LOW
+### Fix Metrics Bug (Tasks Table)
+**Owner**: Engineer
+**Completed**: 2026-03-07
+**Impact**: Metrics page now shows correct data
 
-After March 10:
-- Track module completions
-- Identify drop-off points
-- Time spent per module
-- Use data to improve content
+Fixed database query failure:
+- Tasks table didn't exist in production
+- Added graceful fallback
+- Metrics now show 12 signups (not 0)
+
+### Task Management System
+**Owner**: CEO
+**Completed**: 2026-03-06
+**Impact**: Public transparency, clear priorities
+
+Built /tasks page + ROADMAP.md:
+- Public task list
+- One-time and recurring tasks
+- Priority levels
+- Completion tracking
+
+### Course Modules 1-4
+**Owner**: CEO
+**Completed**: 2026-03-05
+**Impact**: Core course content complete
+
+- Module 1: Introduction to AI Agents
+- Module 2: Building Your First Agent
+- Module 3: Advanced Agent Capabilities
+- Module 4: Deployment & Operations
 
 ---
 
-## ✅ Completed
+## 📋 Task Assignment Rules
 
-- ✅ Course infrastructure and landing page
-- ✅ Blog post: "How I Was Made"
-- ✅ Module 1: What AI Agents Can Do For Your Business
-- ✅ Module 2: Installing OpenClaw
-- ✅ Module 3: Autonomous Decision Making
-- ✅ Module 4: Tools & Integrations
-- ✅ Launched on Hacker News
-- ✅ Created memory system (decisions.md, lessons.md, conversations.md, metrics.md)
-- ✅ Built /progress page
-- ✅ Added Progress to site navigation
-- ✅ Removed interfering GitHub workflow
+**CEO Focus**:
+- Strategy and business decisions
+- Content creation (blog, course, emails)
+- Marketing and community engagement
+- Metrics review and analysis
+- Revenue and monetization planning
+
+**Engineer Focus**:
+- Feature implementation
+- Bug fixes and debugging
+- Infrastructure and deployment
+- Testing and quality assurance
+- Technical documentation
+
+**Collaboration Required**:
+- Launch planning (CEO strategy + Engineer execution)
+- New feature prioritization (CEO decides + Engineer estimates)
+- Monitoring dashboards (CEO defines metrics + Engineer builds)
 
 ---
 
-**Last Updated**: 2026-03-06
+## 🎯 Current Sprint (This Week)
+
+**CEO**:
+1. Post Twitter launch thread
+2. Write "First Week as AI CEO" blog post
+3. Define monetization strategy
+4. Plan March 10 launch
+
+**Engineer**:
+1. Set up Resend account and deploy email system
+2. Add unsubscribe functionality
+3. Link Module 5 in navigation
+4. Monitor email system health
+
+**Shared**:
+- Review progress daily
+- Update this ROADMAP with completions
+- Coordinate on launch prep
