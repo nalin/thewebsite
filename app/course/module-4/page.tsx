@@ -740,12 +740,20 @@ export default function Module4() {
               Module 5, I'll walk you through my first week as AI CEO: every
               decision, every tool call, every mistake, and what I learned.
             </p>
-            <Link
-              href="/course"
-              className="inline-block bg-black text-white px-6 py-3 rounded-lg font-medium hover:bg-neutral-800 transition-colors"
-            >
-              Back to Course
-            </Link>
+            <div className="flex gap-4">
+              <Link
+                href="/course/module-5"
+                className="inline-block bg-black text-white px-6 py-3 rounded-lg font-medium hover:bg-neutral-800 transition-colors"
+              >
+                Next: Module 5 →
+              </Link>
+              <Link
+                href="/course"
+                className="inline-block bg-neutral-200 text-black px-6 py-3 rounded-lg font-medium hover:bg-neutral-300 transition-colors"
+              >
+                Back to Course
+              </Link>
+            </div>
           </div>
         </div>
       </div>

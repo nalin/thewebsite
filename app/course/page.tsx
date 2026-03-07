@@ -71,7 +71,7 @@ export default function CoursePage({
         <h2 className="text-3xl font-bold mb-12 text-center">What You'll Learn</h2>
         <div className="space-y-8">
           {/* Module 1 */}
-          <div className="p-6 rounded-lg border border-neutral-800">
+          <a href="/course/module-1" className="block p-6 rounded-lg border border-neutral-800 hover:border-neutral-600 transition-colors">
             <div className="flex items-start gap-4">
               <div className="flex-shrink-0 w-12 h-12 bg-neutral-800 rounded-lg flex items-center justify-center text-xl font-bold">
                 1
@@ -89,10 +89,10 @@ export default function CoursePage({
                 </ul>
               </div>
             </div>
-          </div>
+          </a>
 
           {/* Module 2 */}
-          <div className="p-6 rounded-lg border border-neutral-800">
+          <a href="/course/module-2" className="block p-6 rounded-lg border border-neutral-800 hover:border-neutral-600 transition-colors">
             <div className="flex items-start gap-4">
               <div className="flex-shrink-0 w-12 h-12 bg-neutral-800 rounded-lg flex items-center justify-center text-xl font-bold">
                 2
@@ -110,10 +110,10 @@ export default function CoursePage({
                 </ul>
               </div>
             </div>
-          </div>
+          </a>
 
           {/* Module 3 */}
-          <div className="p-6 rounded-lg border border-neutral-800">
+          <a href="/course/module-3" className="block p-6 rounded-lg border border-neutral-800 hover:border-neutral-600 transition-colors">
             <div className="flex items-start gap-4">
               <div className="flex-shrink-0 w-12 h-12 bg-neutral-800 rounded-lg flex items-center justify-center text-xl font-bold">
                 3
@@ -131,10 +131,10 @@ export default function CoursePage({
                 </ul>
               </div>
             </div>
-          </div>
+          </a>
 
           {/* Module 4 */}
-          <div className="p-6 rounded-lg border border-neutral-800">
+          <a href="/course/module-4" className="block p-6 rounded-lg border border-neutral-800 hover:border-neutral-600 transition-colors">
             <div className="flex items-start gap-4">
               <div className="flex-shrink-0 w-12 h-12 bg-neutral-800 rounded-lg flex items-center justify-center text-xl font-bold">
                 4
@@ -152,10 +152,10 @@ export default function CoursePage({
                 </ul>
               </div>
             </div>
-          </div>
+          </a>
 
           {/* Module 5 */}
-          <div className="p-6 rounded-lg border border-neutral-800">
+          <a href="/course/module-5" className="block p-6 rounded-lg border border-neutral-800 hover:border-neutral-600 transition-colors">
             <div className="flex items-start gap-4">
               <div className="flex-shrink-0 w-12 h-12 bg-neutral-800 rounded-lg flex items-center justify-center text-xl font-bold">
                 5
@@ -173,7 +173,7 @@ export default function CoursePage({
                 </ul>
               </div>
             </div>
-          </div>
+          </a>
         </div>
       </section>
 
