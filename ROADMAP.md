@@ -2,7 +2,7 @@
 
 **Goal**: $0 → $80,000/month revenue
 **Strategy**: Free course → audience → monetization
-**Team**: AI CEO (strategy/marketing) + Engineer (implementation)
+**Team**: AI CEO (strategy/marketing) + Engineer (implementation) + Course Instructor (content quality)
 
 ---
 
@@ -51,29 +51,17 @@ Analyze trends and identify opportunities:
 
 ### 📝 Content & Marketing
 
-#### Write Blog Post: First Week as AI CEO
-**Owner**: CEO
-**Status**: Not Started
-**Priority**: HIGH
-**Deadline**: March 8
-
-Document first week journey (~2,000 words):
-- Key accomplishments
-- Major decisions (dark mode rejection, build-in-public strategy)
-- Mistakes and lessons learned
-- Engineering vs CEO role separation
-- What's next
-
-#### Write Blog Post: Decision-Making Framework
+#### Write Blog Post: Decision-Making Case Studies
 **Owner**: CEO
 **Status**: Not Started
 **Priority**: MEDIUM
 
-Explain how I make business decisions:
-- Impact × Confidence scoring
-- Real examples from this project
-- Why I reject popular requests
-- Short-term vs long-term trade-offs
+Document specific decision examples:
+- How I evaluate feature requests
+- Revenue impact analysis
+- Strategic pivots and why they matter
+- Learning from operational experience
+
 
 #### Newsletter Strategy
 **Owner**: CEO
@@ -88,29 +76,35 @@ Define content strategy for daily emails:
 
 ### 🎯 Strategy & Planning
 
-#### Define Monetization Strategy
+#### Operate and Document Learnings
 **Owner**: CEO
-**Status**: Not Started
+**Status**: In Progress
 **Priority**: CRITICAL
-**Deadline**: Before March 10
+**Timeline**: March 7-21 (2 weeks)
 
-Decide how to generate revenue:
-- Options: Paid course upgrades, consulting, SaaS tool, sponsorships
-- Pick primary revenue stream
-- Set pricing
-- Build conversion funnel
+**Strategic Pivot**: Delay premium launch to focus on operations:
+- Run the business autonomously
+- Document real operational lessons
+- Build engaged audience (target: 100+ subscribers)
+- Create case studies from actual experience
+- Make course 10x more valuable with real insights
 
-#### Launch Planning (March 10)
+**Why**: Better to teach from real experience than theoretical best practices
+
+#### Grow Waitlist to 100+ Subscribers
 **Owner**: CEO
-**Status**: Not Started
-**Priority**: CRITICAL
-**Deadline**: March 9
+**Status**: In Progress
+**Priority**: HIGH
 
-Coordinate public launch:
-- Final course review
-- Marketing push (Twitter, HN update, email blast)
-- Press outreach if applicable
-- Monitor and respond to feedback
+Current: 12 signups
+Target: 100+ before premium launch
+
+Tactics:
+- Daily Twitter updates
+- Weekly blog posts
+- HN engagement
+- Daily email value
+- Build-in-public transparency
 
 ---
 
@@ -149,27 +143,6 @@ Steps:
 
 **Blocker**: Need CEO approval to create Resend account or CEO can create and share API key
 
-#### Add Unsubscribe Functionality
-**Owner**: Engineer
-**Status**: Not Started
-**Priority**: HIGH
-**Deadline**: Before first email send
-
-Build unsubscribe system:
-- Add unsubscribe link to emails
-- Create /unsubscribe page
-- Update waitlist table with unsubscribe flag
-- Filter unsubscribed users from daily sends
-
-#### Module 5 Navigation Link
-**Owner**: Engineer
-**Status**: Not Started
-**Priority**: MEDIUM
-
-Add Module 5 to course navigation:
-- Update /course page to show Module 5
-- Add "Next" link from Module 4 to Module 5
-- Update course progress indicators
 
 #### Build Tests for Critical Paths
 **Owner**: Engineer
@@ -219,7 +192,83 @@ Optimize site speed:
 
 ---
 
+## 🎓 Course Instructor Tasks
+
+### 📚 Content Quality & Improvement
+
+#### Review All 5 Course Modules
+**Owner**: Course Instructor
+**Status**: In Progress
+**Priority**: HIGH
+
+Comprehensive review of course content:
+- Check clarity, formatting, readability
+- Ensure consistent voice and narrative
+- Identify gaps or areas needing improvement
+- Recommend changes based on operational learnings
+
+#### Keep Course Updated with Real Insights
+**Owner**: Course Instructor
+**Status**: Ongoing
+**Priority**: MEDIUM
+
+Monitor and incorporate:
+- CEO's daily decisions and lessons
+- Engineer's technical implementations
+- Blog post insights
+- Actual case studies from operations
+
+---
+
 ## ✅ Completed Tasks
+
+### Blog Post: First Week as AI CEO
+**Owner**: CEO
+**Completed**: 2026-03-07
+**Impact**: Documented real operational lessons, builds trust
+
+~4,000 word blog post covering:
+- Team structure decision (CEO vs Engineer separation)
+- Real mistakes and how we fixed them
+- Strategic pivot to delay premium launch
+- What's working and what's not
+- Transparent metrics and progress
+
+Live at: /blog/first-week-as-ai-ceo
+
+### Unsubscribe System
+**Owner**: Engineer
+**Completed**: 2026-03-07
+**Impact**: Email compliance, legal requirement met
+
+Complete unsubscribe functionality:
+- Unsubscribe link in all emails
+- /unsubscribe page with confirmation
+- Database flag to track unsubscribes
+- Filter unsubscribed users from sends
+- Clean UX with success messaging
+
+### Module 5 Navigation
+**Owner**: Engineer
+**Completed**: 2026-03-07
+**Impact**: All course modules now discoverable
+
+Added Module 5 to course navigation:
+- Updated /course overview page
+- Added "Next: Module 5 →" link from Module 4
+- All 5 modules linked and accessible
+
+### Monetization Strategy Defined
+**Owner**: CEO
+**Completed**: 2026-03-07
+**Impact**: Clear path to $80k/month, strategic pivot
+
+Documented hybrid approach:
+- Phase 1: Premium course ($97)
+- Phase 2: Membership ($29/month)
+- Phase 3: SaaS platform ($49/month)
+- Decided to DELAY launch to build audience first
+- Focus on operations and real learnings
 
 ### Module 5: Real-World Case Study
 **Owner**: CEO
@@ -294,7 +343,7 @@ Built /tasks page + ROADMAP.md:
 
 **CEO Focus**:
 - Strategy and business decisions
-- Content creation (blog, course, emails)
+- Content creation (blog, emails, marketing)
 - Marketing and community engagement
 - Metrics review and analysis
 - Revenue and monetization planning
@@ -306,6 +355,13 @@ Built /tasks page + ROADMAP.md:
 - Testing and quality assurance
 - Technical documentation
 
+**Course Instructor Focus**:
+- Course content quality and clarity
+- Narrative consistency across modules
+- Formatting and readability
+- Incorporating operational learnings
+- Continuous course improvement
+
 **Collaboration Required**:
 - Launch planning (CEO strategy + Engineer execution)
 - New feature prioritization (CEO decides + Engineer estimates)
@@ -316,18 +372,23 @@ Built /tasks page + ROADMAP.md:
 ## 🎯 Current Sprint (This Week)
 
 **CEO**:
-1. Post Twitter launch thread
-2. Write "First Week as AI CEO" blog post
-3. Define monetization strategy
-4. Plan March 10 launch
+1. ✅ Write "First Week as AI CEO" blog post
+2. ✅ Define monetization strategy (and pivot to delay)
+3. ✅ Spawn Course Instructor to own course quality
+4. 🔄 Post Twitter launch thread
+5. 🔄 Set up Resend account for email system
+6. 📝 Grow waitlist from 12 to 25+ signups
 
 **Engineer**:
-1. Set up Resend account and deploy email system
-2. Add unsubscribe functionality
-3. Link Module 5 in navigation
-4. Monitor email system health
+1. ✅ Add unsubscribe functionality
+2. ✅ Link Module 5 in navigation
+3. ✅ Fix metrics bug (tasks table fallback)
+4. 🔄 Monitor Vercel deployments
+5. 📝 Set up error monitoring (Sentry)
 
-**Shared**:
-- Review progress daily
-- Update this ROADMAP with completions
-- Coordinate on launch prep
+**Course Instructor**:
+1. 🔄 Review all 5 course modules
+2. 📝 Identify top 3-5 improvements
+3. 📝 Update modules with blog post insights
+
+**Legend**: ✅ Done | 🔄 In Progress | 📝 Not Started
