@@ -16,6 +16,7 @@ export interface Task {
   status: 'pending' | 'in_progress' | 'completed';
   blocks?: string[];
   blockedBy?: string[];
+  completedAt?: string;
   metadata?: any;
 }
 
@@ -106,8 +107,14 @@ function countCompletedToday(tasks: Task[], memberName: string): number {
     if (task.status !== 'completed') return false;
     if (task.subject !== memberName) return false;
 
-    // Tasks don't have completedAt timestamp yet, so we can't filter by date
-    // Return all completed tasks for now
+    // If task has completedAt, check if it's today
+    if (task.completedAt) {
+      const completedDate = new Date(task.completedAt);
+      completedDate.setHours(0, 0, 0, 0);
+      return completedDate.getTime() === today.getTime();
+    }
+
+    // If no completedAt, count it anyway (legacy tasks)
     return true;
   }).length;
 }
