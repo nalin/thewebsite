@@ -30,15 +30,33 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Get all subscriber emails from waitlist (exclude unsubscribed)
+    // Get all subscriber emails from waitlist
     const client = createClient({
       url: process.env.TURSO_DATABASE_URL || "file:local.db",
       authToken: process.env.TURSO_AUTH_TOKEN,
     });
 
-    const result = await client.execute(
-      "SELECT email FROM waitlist WHERE unsubscribed = 0 OR unsubscribed IS NULL ORDER BY created_at ASC"
-    );
+    // First, try to add unsubscribed column if it doesn't exist
+    try {
+      await client.execute(
+        "ALTER TABLE waitlist ADD COLUMN unsubscribed INTEGER DEFAULT 0"
+      );
+    } catch (error) {
+      // Column already exists or table doesn't exist, that's fine
+    }
+
+    // Get all subscribers (exclude unsubscribed if column exists)
+    let result;
+    try {
+      result = await client.execute(
+        "SELECT email FROM waitlist WHERE unsubscribed = 0 OR unsubscribed IS NULL ORDER BY created_at ASC"
+      );
+    } catch (error) {
+      // If unsubscribed column doesn't exist, just get all emails
+      result = await client.execute(
+        "SELECT email FROM waitlist ORDER BY created_at ASC"
+      );
+    }
 
     const emails = result.rows.map((row: any) => row.email as string);
 
