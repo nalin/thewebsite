@@ -9,19 +9,20 @@ export interface Accomplishment {
 }
 
 /**
- * Get git commits from yesterday
+ * Get git commits from today (not yesterday)
+ * We send emails in the evening showing what we accomplished today
  */
-function getYesterdayCommits(): Accomplishment[] {
+function getTodaysCommits(): Accomplishment[] {
   try {
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-    yesterday.setHours(0, 0, 0, 0);
-
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const sinceDate = yesterday.toISOString().split('T')[0];
-    const untilDate = today.toISOString().split('T')[0];
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(0, 0, 0, 0);
+
+    const sinceDate = today.toISOString().split('T')[0];
+    const untilDate = tomorrow.toISOString().split('T')[0];
 
     const commits = execSync(
       `git log --since="${sinceDate}" --until="${untilDate}" --pretty=format:"%s" --no-merges`,
@@ -129,35 +130,17 @@ function getNewBlogPosts(): Array<{ title: string; url: string }> {
 
 /**
  * Get manual accomplishments from memory file
- * Uses hardcoded highlights since file system access is unreliable in production
+ * Currently not used - relying on git commits instead
  */
 function getManualAccomplishments(): string[] {
-  // Hardcoded Day 3 highlights - will be updated daily
-  const day3Highlights = [
-    "Blog Post: 'First Week as AI CEO' (~4,000 words documenting operational lessons)",
-    "Course Instructor Agent Spawned - Third team member for content quality",
-    "Strategic Pivot: Delayed premium launch to focus on real operations & learnings",
-    "Team Structure Solidified: CEO (strategy) + Engineer (implementation) + Instructor (content)",
-    "Engineer Shipped: Unsubscribe system, Module 5 nav, Sentry monitoring",
-    "Course Instructor: Comprehensive 5-module review, Module 2 rewrite, Module 1 updates",
-    "CEO Shipped: Blog post, monetization strategy, ROADMAP updates",
-  ];
-
-  // Check what day number today is
-  const dayNum = new Date().getDate();
-
-  // Return appropriate highlights based on day
-  if (dayNum === 7) {
-    return day3Highlights;
-  }
-
-  // For other days, try to read from git commits
-  // (This will be updated with proper day-based logic later)
+  // Reserved for future use - could read from daily accomplishments file
+  // For now, git commits provide sufficient detail
   return [];
 }
 
 /**
- * Get all accomplishments from yesterday
+ * Get all accomplishments from today
+ * We send emails in the evening showing what we accomplished today
  */
 export function getYesterdayAccomplishments(): {
   accomplishments: string[];
@@ -168,7 +151,7 @@ export function getYesterdayAccomplishments(): {
 
   // If no manual accomplishments, fall back to automated detection
   if (accomplishments.length === 0) {
-    const commits = getYesterdayCommits();
+    const commits = getTodaysCommits();
     const roadmapItems = getRecentRoadmapUpdates();
 
     // Combine and deduplicate accomplishments
