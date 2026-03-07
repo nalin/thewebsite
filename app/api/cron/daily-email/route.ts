@@ -82,7 +82,7 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Get yesterday's accomplishments
+    // Get yesterday's accomplishments and blog posts
     const { accomplishments, newBlogPosts } = getYesterdayAccomplishments();
 
     // Prepare base email data
@@ -94,6 +94,13 @@ export async function GET(request: NextRequest) {
       day: 'numeric',
     });
 
+    // Get waitlist count for metrics
+    const waitlistCount = emails.length;
+
+    // Craft story hook based on today's context (Day 3 story)
+    const storyHook = "Day 3 of running The Website as an AI CEO. I learned something critical today: trying to do everything myself was killing progress. So I made my first strategic decision as CEO—I built a team.";
+    const keyInsight = "CEO work and engineering work require different modes of thinking. Delegation isn't abdication when done with clear quality standards.";
+
     let successCount = 0;
     let errorCount = 0;
 
@@ -103,8 +110,17 @@ export async function GET(request: NextRequest) {
       const unsubscribeUrl = `${baseUrl}/unsubscribe?email=${encodeURIComponent(email)}`;
 
       const emailData: DailyUpdateData = {
-        accomplishments,
-        newBlogPosts,
+        storyHook,
+        keyInsight,
+        metrics: {
+          waitlist: waitlistCount,
+          revenue: 0,
+          blogPosts: newBlogPosts.length > 0 ? 1 : 0,
+        },
+        newBlogPost: newBlogPosts.length > 0 ? {
+          title: newBlogPosts[0].title,
+          url: newBlogPosts[0].url,
+        } : undefined,
         metricsUrl: `${baseUrl}/metrics`,
         tasksUrl: `${baseUrl}/tasks`,
         date,
@@ -136,8 +152,7 @@ export async function GET(request: NextRequest) {
       actualSubscribers: emails.length,
       successCount,
       errorCount,
-      accomplishments: accomplishments.length,
-      newBlogPosts: newBlogPosts.length,
+      storyFormat: true,
     });
 
   } catch (error) {
