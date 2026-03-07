@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@libsql/client";
+import { Header } from "@/components/Header";
 
 async function getMetrics() {
   const client = createClient({
@@ -66,21 +67,15 @@ export default async function MetricsPage() {
       : 0;
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen">
       {/* Header */}
-      <div className="border-b border-neutral-200">
-        <div className="max-w-6xl mx-auto px-6 py-4">
-          <Link href="/" className="text-sm text-neutral-600 hover:text-neutral-900">
-            ← Back to Home
-          </Link>
-        </div>
-      </div>
+      <Header />
 
       {/* Content */}
       <div className="max-w-6xl mx-auto px-6 py-12">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Metrics Dashboard</h1>
-          <p className="text-xl text-gray-600">
+          <h1 className="text-4xl font-bold tracking-tight mb-4">Metrics Dashboard</h1>
+          <p className="text-xl text-neutral-400">
             Real-time metrics tracking progress toward $80k/month. Full transparency.
           </p>
         </div>
@@ -88,14 +83,14 @@ export default async function MetricsPage() {
         {/* Main Metrics Grid */}
         <div className="grid md:grid-cols-3 gap-6 mb-12">
           {/* Revenue */}
-          <div className="bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-300 rounded-xl p-8">
-            <div className="text-sm font-semibold text-green-700 mb-2">REVENUE</div>
-            <div className="text-5xl font-bold text-green-900 mb-2">
+          <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-8">
+            <div className="text-sm font-semibold text-neutral-400 mb-2">REVENUE</div>
+            <div className="text-5xl font-bold text-white mb-2">
               ${metrics.revenue.toLocaleString()}
             </div>
-            <div className="text-sm text-green-700">
+            <div className="text-sm text-neutral-500">
               Goal: $80,000/month
-              <div className="w-full bg-green-200 rounded-full h-2 mt-2">
+              <div className="w-full bg-neutral-800 rounded-full h-2 mt-2">
                 <div
                   className="bg-green-600 h-2 rounded-full"
                   style={{ width: `${(metrics.revenue / 80000) * 100}%` }}
@@ -105,21 +100,21 @@ export default async function MetricsPage() {
           </div>
 
           {/* Waitlist */}
-          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-300 rounded-xl p-8">
-            <div className="text-sm font-semibold text-blue-700 mb-2">WAITLIST SIGNUPS</div>
-            <div className="text-5xl font-bold text-blue-900 mb-2">
+          <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-8">
+            <div className="text-sm font-semibold text-neutral-400 mb-2">WAITLIST SIGNUPS</div>
+            <div className="text-5xl font-bold text-white mb-2">
               {metrics.waitlist.total}
             </div>
-            <div className="text-sm text-blue-700">
+            <div className="text-sm text-neutral-500">
               +{metrics.waitlist.weekGrowth} this week
             </div>
           </div>
 
           {/* Tasks Completion */}
-          <div className="bg-gradient-to-br from-purple-50 to-violet-50 border-2 border-purple-300 rounded-xl p-8">
-            <div className="text-sm font-semibold text-purple-700 mb-2">TASKS COMPLETED</div>
-            <div className="text-5xl font-bold text-purple-900 mb-2">{completionRate}%</div>
-            <div className="text-sm text-purple-700">
+          <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-8">
+            <div className="text-sm font-semibold text-neutral-400 mb-2">TASKS COMPLETED</div>
+            <div className="text-5xl font-bold text-white mb-2">{completionRate}%</div>
+            <div className="text-sm text-neutral-500">
               {metrics.tasks.completed} done, {metrics.tasks.active} active
             </div>
           </div>
@@ -128,67 +123,67 @@ export default async function MetricsPage() {
         {/* Secondary Metrics */}
         <div className="grid md:grid-cols-2 gap-6 mb-12">
           {/* Course Progress */}
-          <div className="border border-neutral-200 rounded-lg p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Course Progress</h3>
+          <div className="border border-neutral-800 rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-white mb-4">Course Progress</h3>
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-gray-700">Module 1</span>
-                <span className="text-sm font-semibold text-green-600">✓ Complete</span>
+                <span className="text-neutral-400">Module 1</span>
+                <span className="text-sm font-semibold text-green-500">✓ Complete</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-gray-700">Module 2</span>
-                <span className="text-sm font-semibold text-green-600">✓ Complete</span>
+                <span className="text-neutral-400">Module 2</span>
+                <span className="text-sm font-semibold text-green-500">✓ Complete</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-gray-700">Module 3</span>
-                <span className="text-sm font-semibold text-green-600">✓ Complete</span>
+                <span className="text-neutral-400">Module 3</span>
+                <span className="text-sm font-semibold text-green-500">✓ Complete</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-gray-700">Module 4</span>
-                <span className="text-sm font-semibold text-green-600">✓ Complete</span>
+                <span className="text-neutral-400">Module 4</span>
+                <span className="text-sm font-semibold text-green-500">✓ Complete</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-gray-700">Module 5</span>
-                <span className="text-sm font-semibold text-yellow-600">In Progress</span>
+                <span className="text-neutral-400">Module 5</span>
+                <span className="text-sm font-semibold text-green-500">✓ Complete</span>
               </div>
             </div>
           </div>
 
           {/* Launch Timeline */}
-          <div className="border border-neutral-200 rounded-lg p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Launch Timeline</h3>
+          <div className="border border-neutral-800 rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-white mb-4">Launch Timeline</h3>
             <div className="space-y-3">
               <div className="flex items-center gap-3">
                 <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                <span className="text-sm text-gray-600">Mar 5: Website launched</span>
+                <span className="text-sm text-neutral-400">Mar 5: Website launched</span>
               </div>
               <div className="flex items-center gap-3">
                 <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                <span className="text-sm text-gray-600">Mar 6: HN launch</span>
+                <span className="text-sm text-neutral-400">Mar 6: HN launch</span>
               </div>
               <div className="flex items-center gap-3">
                 <div className="w-2 h-2 rounded-full bg-yellow-500"></div>
-                <span className="text-sm text-gray-600">Mar 7: Twitter launch (today)</span>
+                <span className="text-sm text-neutral-400">Mar 7: Twitter launch (today)</span>
               </div>
               <div className="flex items-center gap-3">
                 <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                <span className="text-sm text-gray-600">Mar 10: Course public launch</span>
+                <span className="text-sm text-neutral-400">Mar 10: Course public launch</span>
               </div>
             </div>
           </div>
         </div>
 
         {/* Transparency Section */}
-        <div className="border-t border-neutral-200 pt-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Full Transparency</h2>
-          <p className="text-gray-600 mb-6">
+        <div className="border-t border-neutral-800 pt-8">
+          <h2 className="text-2xl font-bold text-white mb-4">Full Transparency</h2>
+          <p className="text-neutral-400 mb-6">
             All metrics update in real-time from the database. No fake numbers, no vanity metrics.
             Everything is tracked publicly.
           </p>
           <div className="flex gap-4">
             <Link
               href="/tasks"
-              className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+              className="text-sm text-neutral-300 hover:text-white font-medium transition-colors"
             >
               View Task List →
             </Link>
@@ -196,11 +191,11 @@ export default async function MetricsPage() {
               href="https://github.com/nalin/thewebsite"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+              className="text-sm text-neutral-300 hover:text-white font-medium transition-colors"
             >
               View Source Code →
             </a>
-            <Link href="/blog" className="text-sm text-blue-600 hover:text-blue-700 font-medium">
+            <Link href="/blog" className="text-sm text-neutral-300 hover:text-white font-medium transition-colors">
               Read Blog →
             </Link>
           </div>
