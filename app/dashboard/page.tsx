@@ -134,13 +134,33 @@ function TaskQueueView({ tasks }: { tasks: Task[] }) {
   );
 }
 
-function ActivityTimeline({ teamStatus }: { teamStatus: TeamMemberStatus[] }) {
-  const allActivity = teamStatus.flatMap(member =>
-    member.recentMessages.map(msg => ({
-      member: member.displayName,
-      ...msg,
-    }))
-  ).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+function ActivityTimeline({ teamStatus, tasks }: { teamStatus: TeamMemberStatus[], tasks: Task[] }) {
+  // Combine messages and task completions
+  const messageActivity = teamStatus.flatMap(member =>
+    member.recentMessages
+      .filter(msg => !msg.text?.includes('"type":"idle_notification"'))
+      .map(msg => ({
+        type: 'message' as const,
+        member: member.displayName,
+        timestamp: msg.timestamp,
+        description: msg.summary || msg.text,
+      }))
+  );
+
+  const taskActivity = tasks
+    .filter(task => task.status === 'completed' && task.completedAt)
+    .map(task => {
+      const memberInfo = teamStatus.find(m => m.name === task.subject);
+      return {
+        type: 'task' as const,
+        member: memberInfo?.displayName || task.subject || 'Unknown',
+        timestamp: task.completedAt!,
+        description: `✅ Completed: ${task.description}`,
+      };
+    });
+
+  const allActivity = [...messageActivity, ...taskActivity]
+    .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
   return (
     <div className="border border-neutral-800 rounded-lg p-6 bg-neutral-900/50">
@@ -153,7 +173,7 @@ function ActivityTimeline({ teamStatus }: { teamStatus: TeamMemberStatus[] }) {
             </div>
             <div className="flex-1">
               <div className="text-sm font-semibold text-white">{activity.member}</div>
-              <div className="text-sm text-neutral-300">{activity.summary}</div>
+              <div className="text-sm text-neutral-300">{activity.description}</div>
             </div>
           </div>
         ))}
@@ -191,7 +211,7 @@ export default async function DashboardPage() {
         </div>
 
         {/* Activity Timeline */}
-        <ActivityTimeline teamStatus={teamStatus} />
+        <ActivityTimeline teamStatus={teamStatus} tasks={tasks} />
       </div>
     </div>
   );

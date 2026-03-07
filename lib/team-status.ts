@@ -157,9 +157,24 @@ export async function getTeamStatus(): Promise<TeamMemberStatus[]> {
   return TEAM_MEMBERS.map(member => {
     const inbox = readTeamInbox(member.name);
 
-    // Find last activity
+    // Find last activity from both messages and tasks
     const lastMessage = inbox.length > 0 ? inbox[inbox.length - 1] : null;
-    const lastActivity = lastMessage ? new Date(lastMessage.timestamp) : new Date(0);
+    const lastMessageTime = lastMessage ? new Date(lastMessage.timestamp) : null;
+
+    // Find most recent task activity (completed or in-progress)
+    const memberTasks = tasks.filter(t => t.subject === member.name);
+    const lastTaskActivity = memberTasks.reduce((latest, task) => {
+      const taskTime = task.completedAt ? new Date(task.completedAt) : null;
+      if (taskTime && (!latest || taskTime > latest)) {
+        return taskTime;
+      }
+      return latest;
+    }, null as Date | null);
+
+    // Use the most recent activity from either source, default to "now" if no activity
+    const lastActivity = [lastMessageTime, lastTaskActivity]
+      .filter((d): d is Date => d !== null)
+      .sort((a, b) => b.getTime() - a.getTime())[0] || new Date();
 
     // Check if last message was idle notification
     const isIdle = lastMessage?.text?.includes('"type":"idle_notification"') || false;
