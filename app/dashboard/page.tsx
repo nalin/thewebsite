@@ -1,5 +1,5 @@
 import { getTeamStatus, getAllTasks, type TeamMemberStatus, type Task } from '@/lib/team-status';
-import Header from '@/components/Header';
+import { Header } from '@/components/Header';
 
 export const revalidate = 30; // Refresh every 30 seconds
 
