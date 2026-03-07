@@ -16,9 +16,19 @@ export async function POST(request: NextRequest) {
       CREATE TABLE IF NOT EXISTS waitlist (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         email TEXT UNIQUE NOT NULL,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        unsubscribed INTEGER DEFAULT 0
       )
     `);
+
+    // Add unsubscribed column if it doesn't exist (for existing tables)
+    try {
+      await db.run(sql`
+        ALTER TABLE waitlist ADD COLUMN unsubscribed INTEGER DEFAULT 0
+      `);
+    } catch (error) {
+      // Column already exists, that's fine
+    }
 
     // Insert email (ignore if already exists)
     try {

@@ -30,9 +30,11 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Get all subscriber emails from waitlist
+    // Get all subscriber emails from waitlist (exclude unsubscribed)
     const result = await db.all(sql`
-      SELECT email FROM waitlist ORDER BY created_at ASC
+      SELECT email FROM waitlist
+      WHERE unsubscribed = 0 OR unsubscribed IS NULL
+      ORDER BY created_at ASC
     `);
 
     const emails = result.map((row: any) => row.email);
@@ -48,45 +50,43 @@ export async function GET(request: NextRequest) {
     // Get yesterday's accomplishments
     const { accomplishments, newBlogPosts } = getYesterdayAccomplishments();
 
-    // Prepare email data
+    // Prepare base email data
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://thewebsite.app";
-    const emailData: DailyUpdateData = {
-      accomplishments,
-      newBlogPosts,
-      metricsUrl: `${baseUrl}/metrics`,
-      tasksUrl: `${baseUrl}/tasks`,
-      date: new Date().toLocaleDateString('en-US', {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      }),
-    };
-
-    // Send emails in batches to avoid rate limits
-    const batchSize = 50;
-    const batches: string[][] = [];
-
-    for (let i = 0; i < emails.length; i += batchSize) {
-      batches.push(emails.slice(i, i + batchSize));
-    }
+    const date = new Date().toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
 
     let successCount = 0;
     let errorCount = 0;
 
-    for (const batch of batches) {
-      const result = await sendDailyUpdate(batch, emailData);
+    // Send individual emails (each with unique unsubscribe link)
+    for (const email of emails) {
+      const unsubscribeUrl = `${baseUrl}/unsubscribe?email=${encodeURIComponent(email)}`;
+
+      const emailData: DailyUpdateData = {
+        accomplishments,
+        newBlogPosts,
+        metricsUrl: `${baseUrl}/metrics`,
+        tasksUrl: `${baseUrl}/tasks`,
+        date,
+        unsubscribeUrl,
+      };
+
+      const result = await sendDailyUpdate(email, emailData);
 
       if (result.success) {
-        successCount += batch.length;
+        successCount++;
       } else {
-        errorCount += batch.length;
-        console.error('Batch send failed:', result.error);
+        errorCount++;
+        console.error(`Failed to send to ${email}:`, result.error);
       }
 
-      // Small delay between batches to respect rate limits
-      if (batches.indexOf(batch) < batches.length - 1) {
-        await new Promise(resolve => setTimeout(resolve, 1000));
+      // Small delay between emails to respect rate limits (100ms per email)
+      if (emails.indexOf(email) < emails.length - 1) {
+        await new Promise(resolve => setTimeout(resolve, 100));
       }
     }
 

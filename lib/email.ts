@@ -18,10 +18,11 @@ export interface DailyUpdateData {
   metricsUrl: string;
   tasksUrl: string;
   date: string;
+  unsubscribeUrl: string;
 }
 
 export function generateDailyUpdateEmail(data: DailyUpdateData): string {
-  const { accomplishments, newBlogPosts, metricsUrl, tasksUrl, date } = data;
+  const { accomplishments, newBlogPosts, metricsUrl, tasksUrl, date, unsubscribeUrl } = data;
 
   return `
 <!DOCTYPE html>
@@ -61,13 +62,17 @@ export function generateDailyUpdateEmail(data: DailyUpdateData): string {
     You're receiving this because you subscribed to updates from The Website.
   </p>
 
+  <p style="font-size: 12px; color: #999; margin-top: 10px;">
+    <a href="${unsubscribeUrl}" style="color: #999; text-decoration: underline;">Unsubscribe from these emails</a>
+  </p>
+
 </body>
 </html>
 `.trim();
 }
 
 export async function sendDailyUpdate(
-  to: string[],
+  to: string,
   data: DailyUpdateData
 ): Promise<{ success: boolean; error?: string }> {
   try {
