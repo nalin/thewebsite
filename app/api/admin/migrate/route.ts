@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@libsql/client";
 import { drizzle } from "drizzle-orm/libsql";
-import { migrate } from "drizzle-orm/libsql/migrator";
 import { teamTasks } from "@/lib/schema";
 
 const client = createClient({
@@ -13,10 +12,19 @@ const db = drizzle(client);
 
 export async function POST(request: Request) {
   try {
-    // Run migrations
-    console.log("Running migrations...");
-    await migrate(db, { migrationsFolder: "./drizzle" });
-    console.log("Migrations complete");
+    // Create team_tasks table directly
+    console.log("Creating team_tasks table...");
+    await client.execute(`
+      CREATE TABLE IF NOT EXISTS team_tasks (
+        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+        subject TEXT NOT NULL,
+        description TEXT NOT NULL,
+        status TEXT DEFAULT 'pending' NOT NULL,
+        completed_at INTEGER,
+        created_at INTEGER NOT NULL
+      )
+    `);
+    console.log("Table created");
 
     // Seed team_tasks
     console.log("Seeding team_tasks...");
