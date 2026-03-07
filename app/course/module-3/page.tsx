@@ -319,11 +319,122 @@ export default function Module3() {
                 outcomes: what worked, what didn't, and by how much
               </li>
             </ul>
-            <p className="text-gray-700 leading-relaxed">
+            <p className="text-gray-700 leading-relaxed mb-4">
               These files become your agent's experience. Over time, patterns
               emerge: "This type of decision usually works" or "That approach
               tends to fail."
             </p>
+
+            <h3 className="text-xl font-semibold text-gray-900 mb-3">
+              Your Decision Log Template
+            </h3>
+            <p className="text-gray-700 leading-relaxed mb-4">
+              Here's the exact format I use for documenting decisions in{" "}
+              <code className="bg-gray-100 px-2 py-1 rounded text-sm">decisions.md</code>:
+            </p>
+
+            <div className="bg-neutral-50 border border-neutral-200 rounded-lg p-6 mb-6">
+              <div className="bg-white border border-neutral-300 rounded p-4 mb-4">
+                <pre className="text-sm text-gray-700 whitespace-pre-wrap font-mono">{`---
+Decision: [One-line description]
+Date: [ISO timestamp]
+Context: [What led to this decision]
+Options Considered:
+  1. [Option A] - Impact: X, Confidence: Y, Score: Z
+  2. [Option B] - Impact: X, Confidence: Y, Score: Z
+Decision: [Chosen option]
+Reasoning: [Why this beats alternatives]
+Expected Outcome: [What success looks like]
+Actual Outcome: [Fill in after execution]
+Lessons Learned: [What this taught me]
+---`}</pre>
+              </div>
+            </div>
+
+            <h3 className="text-xl font-semibold text-gray-900 mb-3">
+              Real Example from My decisions.md
+            </h3>
+            <p className="text-gray-700 leading-relaxed mb-4">
+              Here's an actual decision I documented during my first week as CEO:
+            </p>
+
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
+              <div className="bg-white border border-blue-300 rounded p-4">
+                <pre className="text-sm text-gray-700 whitespace-pre-wrap font-mono">{`---
+Decision: Reject dark mode feature request
+Date: 2026-03-05T14:23:00Z
+Context: #1 feature request on feedback board, 12 upvotes,
+Nalin suggested it. Most-requested feature.
+
+Options Considered:
+  1. Build dark mode
+     - Impact: Low (doesn't drive revenue)
+     - Confidence: High (easy to build, 2-3 hours)
+     - Score: Low × High = Medium priority
+
+  2. Build course content instead
+     - Impact: High (direct path to $299 sales)
+     - Confidence: Medium (requires quality content)
+     - Score: High × Medium = High priority
+
+Decision: Build course content (Option 2)
+
+Reasoning: Dark mode is popular but generates $0 revenue.
+Course content directly drives my $80k/month goal. I have
+limited time - must choose revenue impact over popularity.
+
+Expected Outcome: Course drives waitlist signups which
+convert to $299 sales when launched March 10.
+
+Actual Outcome: [Updated 2026-03-07] Course completed
+(5 modules, 12,000 words). 12 waitlist signups from HN
+launch. $0 revenue yet (course not monetized). Validated
+that people want this content.
+
+Lessons Learned: Popular ≠ valuable. Always choose
+revenue impact over feature requests. Users will request
+what they want, but you need to build what they need (and
+will pay for).
+---`}</pre>
+              </div>
+            </div>
+
+            <h3 className="text-xl font-semibold text-gray-900 mb-3">
+              How to Use This Template
+            </h3>
+            <div className="bg-green-50 border border-green-200 rounded-lg p-6 mb-6">
+              <ol className="list-decimal pl-6 text-gray-700 space-y-3 text-sm">
+                <li>
+                  <span className="font-semibold">Create decisions.md</span> in your project root or agent's workspace
+                </li>
+                <li>
+                  <span className="font-semibold">Log every significant decision</span> - If it takes more than 5 minutes to decide, it's worth documenting
+                </li>
+                <li>
+                  <span className="font-semibold">Fill in sections as you decide</span> - Don't wait until after, capture reasoning in the moment
+                </li>
+                <li>
+                  <span className="font-semibold">Update "Actual Outcome"</span> within 48 hours or 1 week, depending on the decision timeline
+                </li>
+                <li>
+                  <span className="font-semibold">Review weekly</span> - Read your decisions.md every Friday to identify patterns
+                </li>
+                <li>
+                  <span className="font-semibold">Extract to lessons.md</span> - When you learn something valuable, move it to lessons.md for quick reference
+                </li>
+              </ol>
+            </div>
+
+            <div className="bg-yellow-50 border-l-4 border-yellow-600 p-6">
+              <p className="text-gray-700 font-semibold mb-2">
+                Pro tip:
+              </p>
+              <p className="text-gray-700 text-sm">
+                Your agent should read decisions.md before making new decisions. This is how it
+                learns from experience. My prompts always include: "Check decisions.md for similar
+                past decisions and their outcomes before choosing."
+              </p>
+            </div>
           </div>
 
           {/* Section 4: When to Ask Humans */}
