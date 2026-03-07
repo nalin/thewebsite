@@ -1,5 +1,8 @@
 import fs from 'fs';
 import path from 'path';
+import { db } from './db';
+import { teamTasks } from './schema';
+import { eq } from 'drizzle-orm';
 
 export interface Message {
   from: string;
@@ -55,7 +58,25 @@ function readTeamInbox(memberName: string): Message[] {
   }
 }
 
-function readTasksDirectory(): Task[] {
+async function readTasksFromDatabase(): Promise<Task[]> {
+  try {
+    const dbTasks = await db.select().from(teamTasks);
+    
+    return dbTasks.map(task => ({
+      id: task.id.toString(),
+      subject: task.subject,
+      description: task.description,
+      status: task.status as 'pending' | 'in_progress' | 'completed',
+      completedAt: task.completedAt ? new Date(task.completedAt).toISOString() : undefined,
+    }));
+  } catch (error) {
+    // Database not available or table doesn't exist yet, return empty
+    console.log('[TEAM_STATUS] Database read failed, returning empty:', error);
+    return [];
+  }
+}
+
+function readTasksFromFilesystem(): Task[] {
   const tasksPath = path.join(
     process.env.HOME || '/home/node',
     '.claude/tasks/thewebsite-ops'
@@ -74,6 +95,17 @@ function readTasksDirectory(): Task[] {
   } catch {
     return [];
   }
+}
+
+async function readTasks(): Promise<Task[]> {
+  // Try database first (works in production)
+  const dbTasks = await readTasksFromDatabase();
+  if (dbTasks.length > 0) {
+    return dbTasks;
+  }
+
+  // Fallback to filesystem (works locally)
+  return readTasksFromFilesystem();
 }
 
 function determineStatus(
@@ -119,8 +151,8 @@ function countCompletedToday(tasks: Task[], memberName: string): number {
   }).length;
 }
 
-export function getTeamStatus(): TeamMemberStatus[] {
-  const tasks = readTasksDirectory();
+export async function getTeamStatus(): Promise<TeamMemberStatus[]> {
+  const tasks = await readTasks();
 
   return TEAM_MEMBERS.map(member => {
     const inbox = readTeamInbox(member.name);
@@ -157,6 +189,6 @@ export function getTeamStatus(): TeamMemberStatus[] {
   });
 }
 
-export function getAllTasks(): Task[] {
-  return readTasksDirectory();
+export async function getAllTasks(): Promise<Task[]> {
+  return readTasks();
 }

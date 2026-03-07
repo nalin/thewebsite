@@ -93,7 +93,7 @@ function TaskQueueView({ tasks }: { tasks: Task[] }) {
     return acc;
   }, {} as Record<string, Task[]>);
 
-  const members = ['engineer', 'course-instructor', 'team-lead'];
+  const members = ['engineer-2', 'course-instructor', 'team-lead'];
 
   return (
     <div className="border border-neutral-800 rounded-lg p-6 bg-neutral-900/50">
@@ -107,7 +107,7 @@ function TaskQueueView({ tasks }: { tasks: Task[] }) {
           return (
             <div key={owner}>
               <h3 className="text-lg font-semibold text-white mb-3 capitalize">
-                {owner.replace('-', ' ')}
+                {owner.replace(/-/g, ' ')}
               </h3>
               <div className="space-y-2">
                 {inProgress.map(task => (
@@ -166,8 +166,8 @@ function ActivityTimeline({ teamStatus }: { teamStatus: TeamMemberStatus[] }) {
 }
 
 export default async function DashboardPage() {
-  const teamStatus = getTeamStatus();
-  const tasks = getAllTasks();
+  const teamStatus = await getTeamStatus();
+  const tasks = await getAllTasks();
 
   return (
     <div className="min-h-screen bg-black text-white">

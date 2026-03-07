@@ -109,3 +109,16 @@ export const tasks = sqliteTable("tasks", {
     .notNull()
     .$defaultFn(() => new Date()),
 });
+
+export const teamTasks = sqliteTable("team_tasks", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  subject: text("subject").notNull(), // 'engineer-2', 'team-lead', 'course-instructor'
+  description: text("description").notNull(),
+  status: text("status", { enum: ["pending", "in_progress", "completed"] })
+    .notNull()
+    .default("pending"),
+  completedAt: integer("completed_at", { mode: "timestamp_ms" }),
+  createdAt: integer("created_at", { mode: "timestamp_ms" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+});
