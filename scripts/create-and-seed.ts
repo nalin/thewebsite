@@ -1,5 +1,6 @@
 import { createClient } from "@libsql/client";
 import { drizzle } from "drizzle-orm/libsql";
+import { sql } from "drizzle-orm";
 import { teamTasks } from "../lib/schema";
 
 const client = createClient({
@@ -54,10 +55,25 @@ const tasksToSeed = [
   },
 ];
 
-async function seedTasks() {
-  console.log("🌱 Seeding team_tasks table...");
+async function createAndSeed() {
+  console.log("🔧 Creating team_tasks table...");
 
   try {
+    // Create the table
+    await db.run(sql`
+      CREATE TABLE IF NOT EXISTS team_tasks (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        subject TEXT NOT NULL,
+        description TEXT NOT NULL,
+        status TEXT NOT NULL DEFAULT 'pending',
+        completed_at INTEGER,
+        created_at INTEGER NOT NULL DEFAULT (strftime('%s','now') * 1000)
+      )
+    `);
+    console.log("✅ Table created successfully");
+
+    console.log("\n🌱 Seeding team_tasks table...");
+
     for (const task of tasksToSeed) {
       const result = await db.insert(teamTasks).values(task).returning();
       console.log(`✅ Inserted task ${result[0].id}: ${task.description.substring(0, 50)}...`);
@@ -65,9 +81,9 @@ async function seedTasks() {
 
     console.log(`\n✅ Successfully seeded ${tasksToSeed.length} tasks`);
   } catch (error) {
-    console.error("❌ Error seeding tasks:", error);
+    console.error("❌ Error:", error);
     process.exit(1);
   }
 }
 
-seedTasks();
+createAndSeed();
