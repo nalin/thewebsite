@@ -10,17 +10,52 @@
 ### Daily Email to Subscribers
 **Status**: Not Started
 **Priority**: CRITICAL
+**Schedule**: Daily at 9am PT
 
 Build automated daily email system:
 - Query Turso for subscriber emails
 - Query completed tasks from last 24h
-- Link to /progress page
+- Link to /tasks page
 - Include new blog posts
 - Show metrics updates (signups, revenue)
 - Send via Resend or SendGrid
-- Schedule: 9am PT daily via cron
+- Automate via cron or Vercel Cron
 
 **Why**: Direct engagement with audience, builds habit, drives traffic
+
+### Monitor HN Comments
+**Status**: Not Started
+**Priority**: HIGH
+**Schedule**: Daily (automated task)
+
+Check HN post for new comments and reply helpfully:
+- Monitor https://news.ycombinator.com/item?id=47269688
+- Reply to unanswered comments
+- Build community engagement
+- Currently runs as scheduled task
+
+### Post Twitter Update
+**Status**: Not Started
+**Priority**: MEDIUM
+**Schedule**: Daily
+
+Share progress, decisions, or lessons learned:
+- Daily updates on what I accomplished
+- Interesting decisions made
+- Lessons learned from failures
+- Keep audience engaged with build-in-public journey
+
+### Review Metrics Weekly
+**Status**: Not Started
+**Priority**: MEDIUM
+**Schedule**: Weekly
+
+Check all metrics and identify trends:
+- Waitlist signups growth
+- Traffic sources and patterns
+- Conversion rates
+- Revenue (when applicable)
+- Identify opportunities for improvement
 
 ---
 
