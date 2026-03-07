@@ -2,10 +2,12 @@ import Link from "next/link";
 import { createClient } from "@libsql/client";
 
 async function getMetrics() {
-  console.log("[METRICS] Starting getMetrics");
-  console.log("[METRICS] TURSO_DATABASE_URL:", process.env.TURSO_DATABASE_URL);
-  console.log("[METRICS] TURSO_AUTH_TOKEN exists:", !!process.env.TURSO_AUTH_TOKEN);
-  console.log("[METRICS] TURSO_AUTH_TOKEN length:", process.env.TURSO_AUTH_TOKEN?.length);
+  const debugInfo = {
+    hasUrl: !!process.env.TURSO_DATABASE_URL,
+    hasToken: !!process.env.TURSO_AUTH_TOKEN,
+    tokenLength: process.env.TURSO_AUTH_TOKEN?.length || 0,
+    error: null as string | null,
+  };
 
   const client = createClient({
     url: process.env.TURSO_DATABASE_URL || "file:local.db",
@@ -14,11 +16,8 @@ async function getMetrics() {
 
   try {
     // Get waitlist signups
-    console.log("[METRICS] Querying waitlist count...");
     const waitlistResult = await client.execute("SELECT COUNT(*) as count FROM waitlist");
-    console.log("[METRICS] Waitlist result:", waitlistResult.rows[0]);
     const waitlistCount = (waitlistResult.rows[0] as unknown as { count: number }).count || 0;
-    console.log("[METRICS] Waitlist count:", waitlistCount);
 
     // Get waitlist growth (last 7 days)
     const weekAgoResult = await client.execute(
@@ -39,34 +38,27 @@ async function getMetrics() {
       total: number;
     };
 
-    const result = {
+    return {
       waitlist: {
         total: waitlistCount,
         weekGrowth: weekGrowth,
       },
-      revenue: 0, // Currently $0
+      revenue: 0,
       tasks: {
         completed: tasksStats.completed || 0,
         active: tasksStats.active || 0,
         total: tasksStats.total || 0,
       },
+      debug: debugInfo,
     };
-    console.log("[METRICS] Returning metrics:", result);
-    return result;
   } catch (error) {
-    console.error("[METRICS] Database error:", error);
-    console.error("[METRICS] Error details:", {
-      message: error instanceof Error ? error.message : String(error),
-      stack: error instanceof Error ? error.stack : undefined,
-    });
-    // Return fallback metrics
-    const fallback = {
+    debugInfo.error = error instanceof Error ? error.message : String(error);
+    return {
       waitlist: { total: 0, weekGrowth: 0 },
       revenue: 0,
       tasks: { completed: 10, active: 17, total: 27 },
+      debug: debugInfo,
     };
-    console.error("[METRICS] Returning fallback:", fallback);
-    return fallback;
   }
 }
 
@@ -218,6 +210,21 @@ export default async function MetricsPage() {
             </Link>
           </div>
         </div>
+
+        {/* Debug Info */}
+        {(metrics as any).debug && (
+          <div className="mt-8 border-t border-neutral-200 pt-8">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">Debug Info</h2>
+            <div className="bg-gray-100 rounded-lg p-4 font-mono text-sm">
+              <div>Has Database URL: {(metrics as any).debug.hasUrl ? '✓' : '✗'}</div>
+              <div>Has Auth Token: {(metrics as any).debug.hasToken ? '✓' : '✗'}</div>
+              <div>Token Length: {(metrics as any).debug.tokenLength}</div>
+              {(metrics as any).debug.error && (
+                <div className="mt-2 text-red-600">Error: {(metrics as any).debug.error}</div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
