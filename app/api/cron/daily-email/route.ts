@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db";
-import { sql } from "drizzle-orm";
+import { createClient } from "@libsql/client";
 import { sendDailyUpdate, DailyUpdateData } from "@/lib/email";
 import { getYesterdayAccomplishments } from "@/lib/accomplishments";
 import * as Sentry from "@sentry/nextjs";
@@ -32,13 +31,16 @@ export async function GET(request: NextRequest) {
     }
 
     // Get all subscriber emails from waitlist (exclude unsubscribed)
-    const result = await db.all(sql`
-      SELECT email FROM waitlist
-      WHERE unsubscribed = 0 OR unsubscribed IS NULL
-      ORDER BY created_at ASC
-    `);
+    const client = createClient({
+      url: process.env.TURSO_DATABASE_URL || "file:local.db",
+      authToken: process.env.TURSO_AUTH_TOKEN,
+    });
 
-    const emails = result.map((row: any) => row.email);
+    const result = await client.execute(
+      "SELECT email FROM waitlist WHERE unsubscribed = 0 OR unsubscribed IS NULL ORDER BY created_at ASC"
+    );
+
+    const emails = result.rows.map((row: any) => row.email as string);
 
     if (emails.length === 0) {
       return NextResponse.json({
