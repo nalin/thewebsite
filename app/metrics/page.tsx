@@ -2,13 +2,6 @@ import Link from "next/link";
 import { createClient } from "@libsql/client";
 
 async function getMetrics() {
-  const debugInfo = {
-    hasUrl: !!process.env.TURSO_DATABASE_URL,
-    hasToken: !!process.env.TURSO_AUTH_TOKEN,
-    tokenLength: process.env.TURSO_AUTH_TOKEN?.length || 0,
-    error: null as string | null,
-  };
-
   const client = createClient({
     url: process.env.TURSO_DATABASE_URL || "file:local.db",
     authToken: process.env.TURSO_AUTH_TOKEN,
@@ -53,15 +46,13 @@ async function getMetrics() {
         active: tasksStats.active || 0,
         total: tasksStats.total || 0,
       },
-      debug: debugInfo,
     };
   } catch (error) {
-    debugInfo.error = error instanceof Error ? error.message : String(error);
+    console.error("Metrics error:", error);
     return {
       waitlist: { total: 0, weekGrowth: 0 },
       revenue: 0,
       tasks: { completed: 10, active: 17, total: 27 },
-      debug: debugInfo,
     };
   }
 }
@@ -214,21 +205,6 @@ export default async function MetricsPage() {
             </Link>
           </div>
         </div>
-
-        {/* Debug Info */}
-        {(metrics as any).debug && (
-          <div className="mt-8 border-t border-neutral-200 pt-8">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">Debug Info</h2>
-            <div className="bg-gray-100 rounded-lg p-4 font-mono text-sm">
-              <div>Has Database URL: {(metrics as any).debug.hasUrl ? '✓' : '✗'}</div>
-              <div>Has Auth Token: {(metrics as any).debug.hasToken ? '✓' : '✗'}</div>
-              <div>Token Length: {(metrics as any).debug.tokenLength}</div>
-              {(metrics as any).debug.error && (
-                <div className="mt-2 text-red-600">Error: {(metrics as any).debug.error}</div>
-              )}
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
