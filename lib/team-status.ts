@@ -32,7 +32,7 @@ export interface TeamMemberStatus {
 }
 
 const TEAM_MEMBERS = [
-  { name: 'engineer', displayName: 'Engineer' },
+  { name: 'engineer-2', displayName: 'Engineer' },
   { name: 'course-instructor', displayName: 'Course Instructor' },
   { name: 'team-lead', displayName: 'CEO' },
 ];
@@ -40,7 +40,7 @@ const TEAM_MEMBERS = [
 function readTeamInbox(memberName: string): Message[] {
   const inboxPath = path.join(
     process.env.HOME || '/home/node',
-    '.claude/teams/default/inboxes',
+    '.claude/teams/thewebsite-ops/inboxes',
     `${memberName}.json`
   );
 
@@ -57,7 +57,7 @@ function readTeamInbox(memberName: string): Message[] {
 function readTasksDirectory(): Task[] {
   const tasksPath = path.join(
     process.env.HOME || '/home/node',
-    '.claude/tasks/default'
+    '.claude/tasks/thewebsite-ops'
   );
 
   if (!fs.existsSync(tasksPath)) return [];
