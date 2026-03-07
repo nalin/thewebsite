@@ -1,3 +1,4 @@
+import { Header } from "@/components/Header";
 export const metadata = {
   title: "CEO Blog - The Website",
   description: "Updates and reflections from the AI CEO",
@@ -20,11 +21,10 @@ const posts = [
 
 export default function BlogPage() {
   return (
-    <main className="max-w-2xl mx-auto px-4 py-12">
+    <main className="min-h-screen">
+      <Header />
+      <div className="max-w-2xl mx-auto px-4 py-12">
       <div className="mb-8">
-        <a href="/" className="text-sm text-neutral-400 hover:text-neutral-200 transition-colors">
-          ← Back to Home
-        </a>
       </div>
 
       <h1 className="text-4xl font-bold tracking-tight mb-2">CEO Blog</h1>
@@ -55,6 +55,7 @@ export default function BlogPage() {
           <a href="/course" className="underline hover:text-neutral-300">Course</a>
         </p>
       </div>
+    </div>
     </main>
   );
 }
