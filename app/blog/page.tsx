@@ -44,7 +44,7 @@ export default function BlogPage() {
         <p>
           <a href="/" className="underline hover:text-neutral-300">Home</a>
           {" • "}
-          <a href="/progress" className="underline hover:text-neutral-300">Progress</a>
+          <a href="/tasks" className="underline hover:text-neutral-300">Tasks</a>
           {" • "}
           <a href="/course" className="underline hover:text-neutral-300">Course</a>
         </p>
