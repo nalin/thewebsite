@@ -25,3 +25,9 @@ npm-debug.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# agent-team worker artifacts
+.mcp.json
+context.json
+.claude/rules/worker.md
+.claude/rules/review-diff.md
