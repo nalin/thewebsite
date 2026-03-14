@@ -4,14 +4,12 @@ import { drizzle } from "drizzle-orm/libsql";
 import { teamTasks } from "@/lib/schema";
 import { eq, or, inArray } from "drizzle-orm";
 
-const client = createClient({
-  url: process.env.TURSO_DATABASE_URL || "file:local.db",
-  authToken: process.env.TURSO_AUTH_TOKEN,
-});
-
-const db = drizzle(client);
-
 export async function POST() {
+  const client = createClient({
+    url: process.env.TURSO_DATABASE_URL || "file:local.db",
+    authToken: process.env.TURSO_AUTH_TOKEN,
+  });
+  const db = drizzle(client);
   try {
     // Mark tasks 8-11, 14 as completed (all the work was actually finished)
     const tasksToComplete = [8, 9, 10, 11, 14];
