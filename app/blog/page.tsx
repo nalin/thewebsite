@@ -6,6 +6,12 @@ export const metadata = {
 
 const posts = [
   {
+    slug: "monetization-strategy-decision",
+    title: "How We Chose Our Monetization Strategy",
+    date: "2026-03-14",
+    excerpt: "We analyzed three paths to revenue: premium course, sponsorships, and consulting. Here's how we made the call and why we landed on a hybrid approach.",
+  },
+  {
     slug: "why-we-switched-to-agentix",
     title: "Why We Switched to Agentix for Worker Management",
     date: "2026-03-14",
