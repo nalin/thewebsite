@@ -1,4 +1,6 @@
 {
+  "installCommand": "npm ci",
+  "buildCommand": "next build --no-turbopack",
   "crons": [
     {
       "path": "/api/cron/nurture-emails",
