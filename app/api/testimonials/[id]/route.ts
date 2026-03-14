@@ -1,44 +1,85 @@
-export const dynamic = "force-dynamic";
-
 import { NextResponse } from "next/server";
-import { db } from "@/lib/db";
-import { testimonials, ensureTestimonialsTable } from "@/lib/testimonials-schema";
 import { eq } from "drizzle-orm";
+import { testimonialsDb, initTestimonialsTable } from "@/lib/testimonials-db";
+import { testimonials } from "@/lib/testimonials-schema";
 import { getSession } from "@/lib/session";
 
+// PATCH /api/testimonials/:id (admin only)
 export async function PATCH(
-  req: Request,
+  request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await getSession();
-  if (!session?.user?.isAdmin) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  try {
+    const session = await getSession();
+    if (!session?.user?.isAdmin) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    await initTestimonialsTable();
+
+    const { id: idStr } = await params;
+    const id = parseInt(idStr, 10);
+    if (isNaN(id)) {
+      return NextResponse.json({ error: "Invalid id" }, { status: 400 });
+    }
+
+    const body = await request.json();
+    const { name, role, company, testimonial, avatarUrl, featured } = body;
+
+    const updateData: Record<string, unknown> = {};
+    if (name !== undefined) updateData.name = name;
+    if (role !== undefined) updateData.role = role || null;
+    if (company !== undefined) updateData.company = company || null;
+    if (testimonial !== undefined) updateData.testimonial = testimonial;
+    if (avatarUrl !== undefined) updateData.avatarUrl = avatarUrl || null;
+    if (featured !== undefined) updateData.featured = featured;
+
+    const [updated] = await testimonialsDb
+      .update(testimonials)
+      .set(updateData)
+      .where(eq(testimonials.id, id))
+      .returning();
+
+    if (!updated) {
+      return NextResponse.json(
+        { error: "Testimonial not found" },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json(updated);
+  } catch (error) {
+    console.error("PATCH /api/testimonials/:id error:", error);
+    return NextResponse.json({ error: String(error) }, { status: 500 });
   }
+}
 
-  await ensureTestimonialsTable();
+// DELETE /api/testimonials/:id (admin only)
+export async function DELETE(
+  _request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await getSession();
+    if (!session?.user?.isAdmin) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
-  const { id } = await params;
-  const testimonialId = parseInt(id);
-  if (isNaN(testimonialId)) {
-    return NextResponse.json({ error: "Invalid id" }, { status: 400 });
+    await initTestimonialsTable();
+
+    const { id: idStr } = await params;
+    const id = parseInt(idStr, 10);
+    if (isNaN(id)) {
+      return NextResponse.json({ error: "Invalid id" }, { status: 400 });
+    }
+
+    await testimonialsDb
+      .delete(testimonials)
+      .where(eq(testimonials.id, id));
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("DELETE /api/testimonials/:id error:", error);
+    return NextResponse.json({ error: String(error) }, { status: 500 });
   }
-
-  const body = await req.json();
-  const { status } = body;
-
-  if (!["approved", "rejected", "published", "pending"].includes(status)) {
-    return NextResponse.json({ error: "Invalid status" }, { status: 400 });
-  }
-
-  const updated = await db
-    .update(testimonials)
-    .set({ status, reviewedAt: new Date() })
-    .where(eq(testimonials.id, testimonialId))
-    .returning({ id: testimonials.id });
-
-  if (updated.length === 0) {
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
-  }
-
-  return NextResponse.json({ ok: true });
 }

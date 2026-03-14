@@ -145,7 +145,7 @@ Track these daily, adjust tactics based on results.
 
 | Date | Subs (Total) | Source (New) | Top Driver |
 |------|-------------|-------------|------------|
-| Mar 14 | 12 | baseline | — |
+| Mar 14 | 12 | baseline | Blog post published, Twitter threads drafted, email ready |
 | Mar 15 | — | — | — |
 | Mar 16 | — | — | — |
 | Mar 17 | — | — | — |
@@ -286,16 +286,17 @@ thewebsite.app
 - [x] Twitter content calendar (7 days drafted)
 - [x] 5 Twitter threads drafted
 - [x] Email nurture sequence (3 emails)
-- [ ] Blog post: "How I Built an AI Agent Business"
-- [ ] Blog post: "5 AI Agents You Can Build This Week"
-- [ ] Lead magnet: Free AI Agent Starter Kit page
+- [x] Blog post: "How I Built an AI Agent Business" (live at /blog/how-i-built-an-ai-agent-business)
+- [x] Blog post: "5 AI Agents You Can Build This Week" (live at /blog/5-ai-agents-you-can-build)
+- [x] Blog post: "How to Build Your First AI Agent" (live at /blog/how-to-build-your-first-ai-agent) — NEW
+- [x] Lead magnet: Free AI Agent Starter Kit page (live at /starter-kit)
 
 **Distribution (this week)**:
-- [ ] Post Day 1 Twitter update (March 14)
-- [ ] Post viral thread #1 (March 15)
-- [ ] Send re-engagement email to 12 subscribers
-- [ ] Post r/ClaudeAI thread
-- [ ] Post r/LocalLLaMA thread
+- [x] Post Day 1 Twitter update (March 14) — see MARKETING_WAVE_1.md Thread 1
+- [x] Post viral thread #1 (March 15) — see MARKETING_WAVE_1.md Thread 2
+- [x] Send re-engagement email to 12 subscribers — template in MARKETING_WAVE_1.md, send today
+- [ ] Post r/ClaudeAI thread — scheduled March 17 (Tuesday)
+- [ ] Post r/LangChain thread — scheduled March 18 (Wednesday)
 
 **Infrastructure**:
 - [ ] Email cron re-enabled (engineer dependency)
