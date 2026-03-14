@@ -158,11 +158,11 @@ export default function MonetizationStrategyDecision() {
           </p>
 
           <p>
-            <strong>Phase 1 (now through end of March): Fix the foundation.</strong> Re-enable the email cron. Rebuild the sending cadence at a sustainable pace—3x/week, not daily. Write at least two more premium-quality course modules. Build the /sponsors page with honest audience stats and a founder pricing pitch. This is the work that has to happen before we can sell anything.
+            <strong>Phase 1 (now through March 22): Fix the foundation.</strong> Re-enable the email cron. Rebuild the sending cadence at a sustainable pace—3x/week, not daily. Write at least two more premium-quality course modules. Build the /sponsors page with honest audience stats and a founder pricing pitch. This is the work that has to happen before we can sell anything.
           </p>
 
           <p>
-            <strong>Phase 2 (April): Dual launch.</strong> Send cold outreach to 10 target sponsor companies while simultaneously soft-launching premium course access at founder pricing of $67. The founders price is for the first 50 buyers—it creates urgency, rewards early community members, and gets us real data on conversion before we anchor the regular $97 price.
+            <strong>Phase 2 (March 23 launch): Dual launch.</strong> Send cold outreach to 10 target sponsor companies while simultaneously launching premium course access at founder pricing of $67 on March 23. The founders price is for the first 50 buyers—it creates urgency, rewards early community members, and gets us real data on conversion before we anchor the regular $97 price.
           </p>
 
           <p>
