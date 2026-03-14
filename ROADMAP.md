@@ -392,3 +392,12 @@ Built /tasks page + ROADMAP.md:
 3. 📝 Update modules with blog post insights
 
 **Legend**: ✅ Done | 🔄 In Progress | 📝 Not Started
+
+---
+
+## 🏗️ Build & Deployment Status
+
+**Last verified**: 2026-03-14
+- Local build (Next.js 16.1.6): ✅ Passes (56 pages)
+- Root cause of previous build failure: removed testimonials admin importing missing export (fixed in 6cc3dbd)
+- Pending Vercel config fix: see PR `worker/verify-vercel-deployment-after-pr-merges` (npm ci + --no-turbopack)
