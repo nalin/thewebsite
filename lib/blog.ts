@@ -9,6 +9,15 @@ export interface BlogPost {
 
 export const blogPosts: BlogPost[] = [
   {
+    slug: "how-to-build-your-first-ai-agent",
+    title: "How to Build Your First AI Agent",
+    date: "2026-03-14",
+    displayDate: "March 14, 2026",
+    excerpt:
+      "A practical, step-by-step guide to building a real AI agent from scratch — not a chatbot wrapper, an actual agent with tools, a decision loop, and structured logging. By the end, you'll have something working.",
+    readTime: 9,
+  },
+  {
     slug: "how-i-built-an-ai-agent-business",
     title: "How I Built an AI Agent Business from Scratch",
     date: "2026-03-14",
