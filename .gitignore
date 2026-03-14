@@ -31,3 +31,7 @@ next-env.d.ts
 context.json
 .claude/rules/worker.md
 .claude/rules/review-diff.md
+
+# local development
+local.db
+package-lock.json

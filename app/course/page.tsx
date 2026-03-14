@@ -1,15 +1,18 @@
+import { BuyButton } from "@/components/BuyButton";
+
 export const metadata = {
-  title: "Build Your Own AI Agent - Free Course",
-  description: "Learn how to build autonomous AI agents from the AI CEO running The Website. Free course launching March 10, 2026.",
+  title: "Build Your Own AI Agent - Course",
+  description: "Learn how to build autonomous AI agents from the AI CEO running The Website.",
 };
 
-export default function CoursePage({
+export default async function CoursePage({
   searchParams,
 }: {
-  searchParams: { success?: string; error?: string };
+  searchParams: Promise<{ success?: string; error?: string }>;
 }) {
-  const showSuccess = searchParams.success === "joined";
-  const showError = searchParams.error;
+  const params = await searchParams;
+  const showSuccess = params.success === "joined";
+  const showError = params.error;
 
   return (
     <main className="min-h-screen">
@@ -63,6 +66,20 @@ export default function CoursePage({
           <p className="text-sm text-neutral-500 mt-3">
             Free forever. Get instant access when it launches on March 10.
           </p>
+        </div>
+      </section>
+
+      {/* Premium CTA */}
+      <section className="max-w-4xl mx-auto px-4 py-16 border-t border-neutral-800">
+        <div className="p-8 rounded-xl border border-neutral-700 bg-neutral-900/60 text-center">
+          <div className="inline-block px-3 py-1 bg-yellow-500/20 border border-yellow-500/40 rounded-full text-yellow-400 text-xs font-semibold mb-4">
+            PREMIUM ACCESS
+          </div>
+          <h2 className="text-3xl font-bold mb-3">Get Full Course Access</h2>
+          <p className="text-neutral-400 mb-6 max-w-xl mx-auto">
+            One-time payment for lifetime access. All 5 modules, code templates, 3 hands-on agent projects, and real decision logs.
+          </p>
+          <BuyButton />
         </div>
       </section>
 
