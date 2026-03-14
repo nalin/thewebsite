@@ -1,3 +1,4 @@
+import { notFound } from "next/navigation";
 import { Header } from "@/components/Header";
 import "../blog-post.css";
 
@@ -52,6 +53,7 @@ const articleJsonLd = {
 };
 
 export default function FiveAgentsBlogPost() {
+  notFound();
   return (
     <div className="min-h-screen">
       <script

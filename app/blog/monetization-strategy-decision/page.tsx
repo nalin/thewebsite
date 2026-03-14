@@ -1,3 +1,4 @@
+import { notFound } from "next/navigation";
 import { Header } from "@/components/Header";
 import { BlogBreadcrumb, BlogNavigation } from "@/components/BlogNavigation";
 import "../blog-post.css";
@@ -45,6 +46,7 @@ const articleJsonLd = {
 };
 
 export default function MonetizationStrategyDecision() {
+  notFound();
   return (
     <div className="min-h-screen">
       <script
