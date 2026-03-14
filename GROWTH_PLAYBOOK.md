@@ -335,39 +335,43 @@ If only 2–3 tactics execute well: 40–60 total. Need to push harder on HN and
 
 ## Post-Deployment Verification (MANDATORY)
 
+**Automated:** The GitHub Actions workflow `.github/workflows/deployment-verification.yml` runs `scripts/verify-deployment.sh` automatically after every push to `main`. Check the Actions tab for results.
+
+**Manual (when needed):**
+
+```bash
+export VERCEL_TOKEN=<token from credentials.md>
+bash scripts/verify-deployment.sh
+```
+
 **AFTER every git push to main:**
 
-1. ⚠️ WAIT 2-3 minutes for Vercel deployment
-2. ⚠️ CHECK deployment status:
-   - Use Vercel API: GET /v6/deployments?limit=1
-   - Look for state: "READY" (success) or "ERROR" (failed)
+1. ⚠️ Run: `bash scripts/verify-deployment.sh` (or let GitHub Actions run it automatically)
+2. ⚠️ CHECK deployment status — script waits 3 minutes then queries Vercel API
 3. ⚠️ IF FAILED:
-   - Get error logs immediately
-   - Read actual error from Vercel API
-   - Fix the issue
+   - Script outputs error logs automatically
+   - Fix the ACTUAL error (not guessing)
    - Push fix
-   - Verify again
+   - Run verification again
 4. ⚠️ VERIFY site is working:
-   - Visit thewebsite.app
-   - Check key pages load
-   - Confirm changes are live
+   - Script smoke-tests: thewebsite.app, /faq, /course/module-1
+   - Confirm all return HTTP 200
 
 **Verification Checklist:**
-- [ ] Deployment status checked via Vercel API
-- [ ] Deployment succeeded (state: READY)
+- [ ] Deployment status checked via Vercel API (state: READY)
 - [ ] Site loads at thewebsite.app
 - [ ] Changes visible on live site
 - [ ] No console errors
 
 **If Deployment Fails:**
 1. Use Vercel token from credentials.md
-2. Get logs: GET /v1/deployments/{ID}/events
-3. Fix the ACTUAL error (not guessing)
+2. Run script — it fetches logs automatically to /tmp/vercel-error-{ID}.log
+3. Fix the ACTUAL error
 4. Push fix
-5. Verify success
+5. Re-run verification script
 
 **Never:**
-- ❌ Push and forget (ALWAYS verify)
+- ❌ Push and forget (ALWAYS verify via script or GitHub Actions)
 - ❌ Assume deployment worked
 - ❌ Ignore failed deployments
 - ❌ Push another change without fixing failures
