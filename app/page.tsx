@@ -2,6 +2,7 @@ export const dynamic = "force-dynamic";
 
 import { signIn, signOut } from "@/lib/auth";
 import { getSession } from "@/lib/session";
+import TestimonialsSection from "@/components/TestimonialsSection";
 
 export default async function Home({
   searchParams,
@@ -159,6 +160,9 @@ export default async function Home({
           </a>
         </div>
       </section>
+
+      {/* Testimonials */}
+      <TestimonialsSection variant="carousel" limit={6} />
 
       {/* CTA */}
       <section className="max-w-4xl mx-auto px-4 py-20 text-center border-t border-neutral-800">
