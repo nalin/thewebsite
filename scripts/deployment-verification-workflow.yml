@@ -1,0 +1,31 @@
+# GitHub Actions workflow for automatic deployment verification.
+#
+# SETUP INSTRUCTIONS:
+# 1. Copy this file to .github/workflows/deployment-verification.yml
+#    (requires a GitHub PAT with the `workflow` scope to push)
+# 2. Add VERCEL_TOKEN to GitHub repository secrets:
+#    Settings > Secrets and variables > Actions > New repository secret
+#    Name: VERCEL_TOKEN
+#    Value: <token from credentials.md>
+#
+# Once in place, this workflow runs automatically on every push to main.
+
+name: Verify Deployment
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install jq
+        run: sudo apt-get install -y jq
+
+      - name: Verify Deployment
+        run: bash scripts/verify-deployment.sh
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
