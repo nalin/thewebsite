@@ -4,14 +4,12 @@ import { drizzle } from "drizzle-orm/libsql";
 import { teamTasks } from "@/lib/schema";
 import { eq } from "drizzle-orm";
 
-const client = createClient({
-  url: process.env.TURSO_DATABASE_URL!,
-  authToken: process.env.TURSO_AUTH_TOKEN!,
-});
-
-const db = drizzle(client);
-
 export async function POST() {
+  const client = createClient({
+    url: process.env.TURSO_DATABASE_URL || "file:local.db",
+    authToken: process.env.TURSO_AUTH_TOKEN,
+  });
+  const db = drizzle(client);
   try {
     await db.update(teamTasks)
       .set({
