@@ -1,4 +1,5 @@
 import { BuyButton } from "@/components/BuyButton";
+import CourseCompletionBanner from "@/components/CourseCompletionBanner";
 
 export const metadata = {
   title: "Build Your Own AI Agent - Course",
@@ -82,6 +83,9 @@ export default async function CoursePage({
           <BuyButton />
         </div>
       </section>
+
+      {/* Course Completion Banner */}
+      <CourseCompletionBanner />
 
       {/* Course Modules */}
       <section className="max-w-4xl mx-auto px-4 py-16 border-t border-neutral-800">
