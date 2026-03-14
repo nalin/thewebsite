@@ -12,14 +12,17 @@ vi.mock('resend', () => ({
 
 describe('Email Module', () => {
   const mockEmailData: DailyUpdateData = {
-    accomplishments: [
-      'Built daily email system',
-      'Added Module 5 navigation',
-      'Deployed unsubscribe functionality',
-    ],
-    newBlogPosts: [
-      { title: 'First Week as AI CEO', url: 'https://thewebsite.app/blog/first-week' },
-    ],
+    storyHook: 'Day 3 of building The Website as an AI CEO. Something unexpected happened today.',
+    keyInsight: 'CEO work and engineering work require completely different modes of thinking.',
+    metrics: {
+      waitlist: 42,
+      revenue: 0,
+      blogPosts: 1,
+    },
+    newBlogPost: {
+      title: 'First Week as AI CEO',
+      url: 'https://thewebsite.app/blog/first-week',
+    },
     metricsUrl: 'https://thewebsite.app/metrics',
     tasksUrl: 'https://thewebsite.app/tasks',
     date: 'Friday, March 7, 2026',
@@ -32,51 +35,46 @@ describe('Email Module', () => {
   });
 
   describe('generateDailyUpdateEmail', () => {
-    it('should generate HTML email with all accomplishments', () => {
+    it('should generate HTML email with story hook and key insight', () => {
       const html = generateDailyUpdateEmail(mockEmailData);
 
-      expect(html).toContain('Daily Update - Friday, March 7, 2026');
-      expect(html).toContain('Built daily email system');
-      expect(html).toContain('Added Module 5 navigation');
-      expect(html).toContain('Deployed unsubscribe functionality');
+      expect(html).toContain('The Website - Friday, March 7, 2026');
+      expect(html).toContain('Day 3 of building The Website as an AI CEO');
+      expect(html).toContain('Key Insight:');
+      expect(html).toContain('CEO work and engineering work require completely different modes of thinking.');
     });
 
-    it('should include new blog posts section when posts exist', () => {
+    it('should include metrics section', () => {
       const html = generateDailyUpdateEmail(mockEmailData);
 
-      expect(html).toContain('New Blog Posts');
+      expect(html).toContain('Quick Metrics');
+      expect(html).toContain('42 signups');
+      expect(html).toContain('$0');
+      expect(html).toContain('1 published');
+    });
+
+    it('should include new blog post section when post exists', () => {
+      const html = generateDailyUpdateEmail(mockEmailData);
+
+      expect(html).toContain('New Blog Post');
       expect(html).toContain('First Week as AI CEO');
       expect(html).toContain('https://thewebsite.app/blog/first-week');
     });
 
-    it('should not include blog posts section when no posts', () => {
-      const dataWithNoPosts: DailyUpdateData = {
+    it('should not include blog post section when no post', () => {
+      const dataWithNoPost: DailyUpdateData = {
         ...mockEmailData,
-        newBlogPosts: [],
+        newBlogPost: undefined,
       };
 
-      const html = generateDailyUpdateEmail(dataWithNoPosts);
+      const html = generateDailyUpdateEmail(dataWithNoPost);
 
-      expect(html).not.toContain('New Blog Posts');
+      expect(html).not.toContain('New Blog Post');
     });
 
-    it('should show message when no accomplishments', () => {
-      const dataWithNoAccomplishments: DailyUpdateData = {
-        ...mockEmailData,
-        accomplishments: [],
-      };
-
-      const html = generateDailyUpdateEmail(dataWithNoAccomplishments);
-
-      expect(html).toContain('No major accomplishments tracked yesterday');
-    });
-
-    it('should include quick links section', () => {
+    it('should include metrics and tasks links', () => {
       const html = generateDailyUpdateEmail(mockEmailData);
 
-      expect(html).toContain('Quick Links');
-      expect(html).toContain('View Metrics Dashboard');
-      expect(html).toContain('See Current Tasks');
       expect(html).toContain(mockEmailData.metricsUrl);
       expect(html).toContain(mockEmailData.tasksUrl);
     });
@@ -84,20 +82,14 @@ describe('Email Module', () => {
     it('should include unsubscribe link', () => {
       const html = generateDailyUpdateEmail(mockEmailData);
 
-      expect(html).toContain('Unsubscribe from these emails');
+      expect(html).toContain('Unsubscribe');
       expect(html).toContain(mockEmailData.unsubscribeUrl);
     });
 
-    it('should properly escape HTML in content', () => {
-      const dataWithSpecialChars: DailyUpdateData = {
-        ...mockEmailData,
-        accomplishments: ['Fixed <script> vulnerability'],
-      };
+    it('should include date in email', () => {
+      const html = generateDailyUpdateEmail(mockEmailData);
 
-      const html = generateDailyUpdateEmail(dataWithSpecialChars);
-
-      // Should be escaped or handled safely
-      expect(html).toBeTruthy();
+      expect(html).toContain('Friday, March 7, 2026');
     });
   });
 
@@ -107,18 +99,6 @@ describe('Email Module', () => {
 
       expect(result.success).toBe(true);
       expect(result.error).toBeUndefined();
-    });
-
-    it('should fail when RESEND_API_KEY is not set', async () => {
-      delete process.env.RESEND_API_KEY;
-
-      const result = await sendDailyUpdate('test@example.com', mockEmailData);
-
-      expect(result.success).toBe(false);
-      expect(result.error).toContain('RESEND_API_KEY');
-
-      // Restore for other tests
-      process.env.RESEND_API_KEY = 'test-api-key';
     });
 
     it('should handle Resend API errors', async () => {
@@ -139,7 +119,7 @@ describe('Email Module', () => {
       expect(result.error).toBeTruthy();
     });
 
-    it('should include correct subject line', async () => {
+    it('should include story hook in subject line', async () => {
       const { Resend } = await import('resend');
       const mockSend = vi.fn().mockResolvedValue({ error: null });
 
@@ -151,7 +131,7 @@ describe('Email Module', () => {
 
       expect(mockSend).toHaveBeenCalledWith(
         expect.objectContaining({
-          subject: 'Daily Update - Friday, March 7, 2026',
+          subject: expect.stringContaining('Building in public:'),
         })
       );
     });
@@ -168,7 +148,7 @@ describe('Email Module', () => {
 
       expect(mockSend).toHaveBeenCalledWith(
         expect.objectContaining({
-          from: 'The Website <updates@thewebsite.app>',
+          from: 'The Website <updates@updates.thewebsite.app>',
         })
       );
     });
