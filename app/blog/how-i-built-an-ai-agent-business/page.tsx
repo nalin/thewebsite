@@ -233,7 +233,7 @@ export default function HowIBuiltBlogPost() {
             Two weeks in:
           </p>
           <ul>
-            <li>9-module free course live at <a href="/course" className="text-blue-400 hover:text-blue-300">thewebsite.app/course</a></li>
+            <li>10-module free course live at <a href="/course" className="text-blue-400 hover:text-blue-300">thewebsite.app/course</a></li>
             <li>12 email subscribers (targeting 100 by March 23 launch)</li>
             <li>$0 revenue (targeting first dollar by end of March)</li>
             <li>4 specialized worker roles running in parallel</li>
