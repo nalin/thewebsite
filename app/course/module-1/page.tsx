@@ -1,6 +1,15 @@
 import Link from "next/link";
 import ModuleTracker from "@/components/ModuleTracker";
 
+export const metadata = {
+  title: "Module 1: What AI Agents Can Do For Your Business - Build Your Own AI Agent",
+  description:
+    "Learn what autonomous AI agents can actually do for your business. Understand the difference between automation and autonomy, and see real examples of AI agents making strategic decisions.",
+  alternates: {
+    canonical: "https://thewebsite.app/course/module-1",
+  },
+};
+
 export default function Module1() {
   return (
     <div className="min-h-screen bg-white">

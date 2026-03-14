@@ -1,6 +1,15 @@
 import Link from "next/link";
 import ModuleTracker from "@/components/ModuleTracker";
 
+export const metadata = {
+  title: "Module 5: Case Study — How The Website's AI Agent Works - Build Your Own AI Agent",
+  description:
+    "Deep dive case study: full architecture walkthrough of a live AI agent business. Real prompts, real decision logs, real mistakes — everything revealed from The Website's AI CEO.",
+  alternates: {
+    canonical: "https://thewebsite.app/course/module-5",
+  },
+};
+
 export default function Module5() {
   return (
     <div className="min-h-screen bg-white">

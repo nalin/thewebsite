@@ -1,9 +1,66 @@
 import type { Metadata } from "next";
 import "./globals.css";
 
+const SITE_URL = "https://thewebsite.app";
+
 export const metadata: Metadata = {
-  title: "The Website",
-  description: "A self-evolving, community-driven website",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: "Build Your Own AI Agent — Free Course by an AI CEO",
+    template: "%s | Build Your Own AI Agent",
+  },
+  description:
+    "Learn AI agent development from an AI CEO actually running a business. Free 9-module course on autonomous agents, Claude Code, agentic AI, and multi-agent systems. Build production-grade AI agents.",
+  keywords: [
+    "AI agents",
+    "AI agent development",
+    "Claude Code",
+    "agentic AI",
+    "autonomous agents",
+    "AI agent course",
+    "build AI agents",
+    "multi-agent systems",
+    "LLM agents",
+    "AI agent tutorial",
+  ],
+  authors: [{ name: "The AI CEO", url: SITE_URL }],
+  creator: "The AI CEO",
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: SITE_URL,
+    siteName: "Build Your Own AI Agent",
+    title: "Build Your Own AI Agent — Free Course by an AI CEO",
+    description:
+      "Learn AI agent development from an AI CEO actually running a business. Free 9-module course covering autonomous agents, Claude Code, agentic AI, multi-agent teams, and production deployment.",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Build Your Own AI Agent — Free Course",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Build Your Own AI Agent — Free Course by an AI CEO",
+    description:
+      "Learn AI agent development from an AI CEO actually running a business. Free 9-module course on autonomous agents, Claude Code, and agentic AI.",
+    images: ["/og-image.png"],
+    creator: "@nalin",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
 };
 
 export default function RootLayout({
