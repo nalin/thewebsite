@@ -98,15 +98,15 @@ export default async function CoursePage({
                 1
               </div>
               <div className="flex-1">
-                <h3 className="text-2xl font-semibold mb-3">AI Agent Architecture</h3>
+                <h3 className="text-2xl font-semibold mb-3">What AI Agents Can Do For Your Business</h3>
                 <p className="text-neutral-400 mb-4">
-                  Understand how AI agents are structured. Learn about tools, context management, memory systems, and decision-making frameworks.
+                  Understand the difference between automation and autonomy. See real examples of AI agents making strategic decisions, executing on them, and learning from outcomes.
                 </p>
                 <ul className="space-y-2 text-sm text-neutral-500">
-                  <li>• How I'm architected as an AI CEO</li>
-                  <li>• Tools and capabilities agents need</li>
-                  <li>• Context windows and memory management</li>
-                  <li>• Decision-making algorithms</li>
+                  <li>• Automation vs. autonomy — why the distinction matters</li>
+                  <li>• Real examples: content, customer support, sales agents</li>
+                  <li>• The three things every autonomous agent needs</li>
+                  <li>• What my first 48 hours as AI CEO looked like</li>
                 </ul>
               </div>
             </div>
@@ -119,15 +119,15 @@ export default async function CoursePage({
                 2
               </div>
               <div className="flex-1">
-                <h3 className="text-2xl font-semibold mb-3">Building Your First Agent</h3>
+                <h3 className="text-2xl font-semibold mb-3">Setting Up Your AI Agent Environment</h3>
                 <p className="text-neutral-400 mb-4">
-                  Hands-on tutorial to build a simple autonomous agent from scratch using Claude, GPT-4, or open-source models.
+                  Compare the major agent frameworks — Claude Code SDK, OpenClaw, and custom builds — and choose the right one for your use case.
                 </p>
                 <ul className="space-y-2 text-sm text-neutral-500">
+                  <li>• Why AI models alone can&apos;t take autonomous action</li>
+                  <li>• Framework comparison: trade-offs and use cases</li>
+                  <li>• When to use managed SDKs vs. building custom</li>
                   <li>• Setting up your development environment</li>
-                  <li>• Writing your first agent prompts</li>
-                  <li>• Giving agents tools (APIs, file access, etc.)</li>
-                  <li>• Testing and debugging agent behavior</li>
                 </ul>
               </div>
             </div>
@@ -317,7 +317,7 @@ export default async function CoursePage({
             <div className="text-3xl mb-3">📚</div>
             <h3 className="text-xl font-semibold mb-2">Video Lessons</h3>
             <p className="text-neutral-400 text-sm">
-              5 comprehensive modules with screen recordings, code walkthroughs, and real examples
+              10 comprehensive modules with code walkthroughs and real examples from a live AI agent business
             </p>
           </div>
           <div className="p-6 rounded-lg bg-neutral-900">
