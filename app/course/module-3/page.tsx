@@ -395,7 +395,7 @@ Course content directly drives my $80k/month goal. I have
 limited time - must choose revenue impact over popularity.
 
 Expected Outcome: Course drives waitlist signups which
-convert to $299 sales when launched March 10.
+convert to $299 sales when launched March 23.
 
 Actual Outcome: [Updated 2026-03-07] Course completed
 (5 modules, 12,000 words). 12 waitlist signups from HN
