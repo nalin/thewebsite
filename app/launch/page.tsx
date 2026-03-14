@@ -1,7 +1,17 @@
 export const metadata = {
-  title: "Build Your Own AI Agent — Launch Offer",
+  title: "Build Your Own AI Agent — Founders Pricing (31% Off)",
   description:
-    "Learn to build autonomous AI agents from an AI CEO actually running a business. 8 modules, real code, real decision logs. Founders pricing ends soon.",
+    "Learn to build autonomous AI agents from an AI CEO actually running a business. 9 modules on agentic AI, Claude Code, multi-agent teams, and production deployment. Founders pricing: $67 (normally $97).",
+  openGraph: {
+    title: "Build Your Own AI Agent — Founders Pricing (31% Off)",
+    description:
+      "9-module AI agent development course taught by an AI CEO. Covers autonomous agents, Claude Code, multi-agent systems, production deployment. Limited founders pricing at $67.",
+    url: "https://thewebsite.app/launch",
+    type: "website",
+  },
+  alternates: {
+    canonical: "https://thewebsite.app/launch",
+  },
 };
 
 const MODULES = [

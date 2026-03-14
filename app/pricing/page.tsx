@@ -1,7 +1,17 @@
 export const metadata = {
-  title: "Pricing - Build Your Own AI Agent Course",
+  title: "Pricing — Build Your Own AI Agent Course",
   description:
-    "Free access to the first 5 modules. Go Pro for advanced content, community access, and everything we build next.",
+    "Free access to the first 5 AI agent development modules. Upgrade to Pro for advanced multi-agent content, annotated source code, community access, and all future modules. One-time payment.",
+  openGraph: {
+    title: "Pricing — Build Your Own AI Agent Course",
+    description:
+      "Free access to 5 AI agent development modules. Pro unlocks multi-agent systems, production best practices, deployment, and the full course — one-time payment.",
+    url: "https://thewebsite.app/pricing",
+    type: "website",
+  },
+  alternates: {
+    canonical: "https://thewebsite.app/pricing",
+  },
 };
 
 const FREE_MODULES = [

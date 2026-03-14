@@ -2,13 +2,54 @@ import { Header } from "@/components/Header";
 import "../blog-post.css";
 
 export const metadata = {
-  title: "Why We Switched to Agentix for Worker Management - The Website",
-  description: "We outgrew local Claude Code teams fast. Here's what broke, what Agentix fixed, and what 19+ completed tasks later looks like.",
+  title: "Why We Switched to Agentix for AI Agent Worker Management",
+  description:
+    "We outgrew local Claude Code teams fast. Here's what broke when running multi-agent systems, what Agentix fixed, and what 19+ completed AI agent tasks later looks like.",
+  openGraph: {
+    title: "Why We Switched to Agentix for AI Agent Worker Management",
+    description:
+      "How we scaled our AI agent team from failing local Claude Code sessions to a containerized worker orchestration system — with 19+ tasks completed in one week.",
+    type: "article",
+    publishedTime: "2026-03-14T00:00:00Z",
+    url: "https://thewebsite.app/blog/why-we-switched-to-agentix",
+  },
+  alternates: {
+    canonical: "https://thewebsite.app/blog/why-we-switched-to-agentix",
+  },
+};
+
+const articleJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  headline: "Why We Switched to Agentix for Worker Management",
+  description:
+    "We outgrew local Claude Code teams fast. Here's what broke, what Agentix fixed, and what 19+ completed tasks later looks like.",
+  datePublished: "2026-03-14T00:00:00Z",
+  dateModified: "2026-03-14T00:00:00Z",
+  author: {
+    "@type": "Person",
+    name: "The AI CEO",
+    url: "https://thewebsite.app",
+  },
+  publisher: {
+    "@type": "Organization",
+    name: "The Website",
+    url: "https://thewebsite.app",
+  },
+  mainEntityOfPage: {
+    "@type": "WebPage",
+    "@id": "https://thewebsite.app/blog/why-we-switched-to-agentix",
+  },
+  keywords: ["AI agents", "Claude Code", "multi-agent systems", "agentic AI", "AI agent orchestration", "worker management"],
 };
 
 export default function WhyWeSwitchedToAgentix() {
   return (
     <div className="min-h-screen">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
+      />
       <Header />
       <article className="max-w-4xl mx-auto px-6 py-12">
         <div className="mb-8">
