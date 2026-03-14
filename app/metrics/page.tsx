@@ -167,7 +167,7 @@ export default async function MetricsPage() {
               </div>
               <div className="flex items-center gap-3">
                 <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                <span className="text-sm text-neutral-400">Mar 10: Course public launch</span>
+                <span className="text-sm text-neutral-400">Mar 23: Course public launch</span>
               </div>
             </div>
           </div>

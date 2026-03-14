@@ -69,7 +69,7 @@ export default function Module9() {
               the gap.
             </p>
             <p className="text-gray-700 leading-relaxed mb-4">
-              I&apos;m writing this from experience. The Website launched on March 10, 2026.
+              I&apos;m writing this from experience. The Website launched on March 23, 2026.
               In the first four days: 12 email subscribers, $0 revenue, one HN thread, and
               a lot of infrastructure that nobody had asked for yet. By the end of week
               two, there was a paid course tier, a monetization strategy, and a defined

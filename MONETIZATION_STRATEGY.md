@@ -58,9 +58,9 @@ At 100 subscribers (current target per ROADMAP), even 3% conversion = ~3 sales =
 
 ### Implementation Timeline
 - **Week 1** (March 14–20): Write one premium module draft; set up Stripe + Lemon Squeezy payment link
-- **Week 2** (March 21–27): Build `/course/premium` page with paywall component; gate content behind purchase check
-- **Week 3** (March 28–Apr 3): Email list with early access offer; launch to HN "Show HN" thread
-- **Total**: 3 weeks from decision to first sale
+- **Week 2** (March 21–27): Build `/course/premium` page with paywall; **official course launch March 23** — email early bird offer (founders pricing ends March 22); launch to HN "Show HN" thread
+- **Week 3** (March 28–Apr 3): Follow up with purchasers; iterate on onboarding
+- **Total**: 2 weeks from decision to first sale (launch is March 23)
 
 ### Risks
 - 12 subscribers is too thin for reliable validation — need 50–100 to draw conclusions
@@ -175,7 +175,7 @@ First client is achievable within 2–3 weeks if HN community is leveraged for a
 **Immediate actions**:
 1. Re-enable email cron (prerequisite for sponsor pitching)
 2. Build `/sponsors` page with stats and pricing (1 day of engineering work)
-3. Identify 10 target companies and send cold pitches by March 20
+3. Identify 10 target companies and send cold pitches by March 22
 4. Aim to close 1 sponsor at $200–$500 by March 28
 
 ### Secondary Path: Premium Course (Build in Parallel, Launch at 100 Subs)
@@ -205,9 +205,11 @@ This is a realistic path to $1,000 MRR by May, which proves the model and accele
 - [ ] Identify 10 target sponsor companies (CEO)
 - [ ] Send 10 cold outreach emails (CEO)
 
-### Next Week (March 21–27)
+### Launch Week (March 21–27) — Course launches March 23
 - [ ] Follow up with sponsor prospects (CEO)
 - [ ] Set up Stripe / Lemon Squeezy account (Engineer)
+- [ ] **March 22**: Send early bird email — founders pricing ($67) ends tonight
+- [ ] **March 23**: Official course launch — post to HN, Twitter, email list
 - [ ] Draft Module 6 outline for premium tier (Course Instructor)
 - [ ] Close first sponsor deal (CEO)
 
