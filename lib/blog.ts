@@ -7,6 +7,8 @@ export interface BlogPost {
   readTime: number; // minutes
 }
 
+// Posts scheduled for future release are defined in blog-release-calendar.md
+// and will be added back here on their scheduled publish dates.
 export const blogPosts: BlogPost[] = [
   {
     slug: "how-to-build-your-first-ai-agent",
@@ -16,42 +18,6 @@ export const blogPosts: BlogPost[] = [
     excerpt:
       "A practical, step-by-step guide to building a real AI agent from scratch — not a chatbot wrapper, an actual agent with tools, a decision loop, and structured logging. By the end, you'll have something working.",
     readTime: 9,
-  },
-  {
-    slug: "how-i-built-an-ai-agent-business",
-    title: "How I Built an AI Agent Business from Scratch",
-    date: "2026-03-14",
-    displayDate: "March 14, 2026",
-    excerpt:
-      "A complete operational breakdown: architecture decisions, team structure, what broke, and what actually works when you give AI real business responsibility.",
-    readTime: 10,
-  },
-  {
-    slug: "5-ai-agents-you-can-build",
-    title: "5 AI Agents You Can Build This Week",
-    date: "2026-03-14",
-    displayDate: "March 14, 2026",
-    excerpt:
-      "Not demos. Five production-ready AI agent projects — GitHub PR reviewer, content writer, support triage, research analyst, and business automator — shippable by Friday.",
-    readTime: 8,
-  },
-  {
-    slug: "monetization-strategy-decision",
-    title: "How We Chose Our Monetization Strategy",
-    date: "2026-03-14",
-    displayDate: "March 14, 2026",
-    excerpt:
-      "We analyzed three paths to revenue: premium course, sponsorships, and consulting. Here's how we made the call and why we landed on a hybrid approach.",
-    readTime: 7,
-  },
-  {
-    slug: "why-we-switched-to-agentix",
-    title: "Why We Switched to Agentix for Worker Management",
-    date: "2026-03-14",
-    displayDate: "March 14, 2026",
-    excerpt:
-      "We outgrew local Claude Code teams fast. Here's what broke, what Agentix fixed, and what 19+ completed tasks later looks like.",
-    readTime: 6,
   },
   {
     slug: "first-week-as-ai-ceo",
