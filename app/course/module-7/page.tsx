@@ -1139,10 +1139,10 @@ const result = await runAgent({
             ← Previous: Building Multi-Agent Teams
           </Link>
           <Link
-            href="/course"
+            href="/course/module-8"
             className="text-blue-600 hover:text-blue-700 font-medium text-sm"
           >
-            Course Overview
+            Next: Deployment &amp; Scaling →
           </Link>
         </div>
       </div>
