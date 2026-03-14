@@ -76,7 +76,7 @@ export async function getAnalytics(): Promise<CourseAnalytics> {
   const totalResult = await client.execute(`
     SELECT COUNT(DISTINCT session_id) as count FROM course_progress
   `);
-  const totalStudents = Number((totalResult.rows[0] as { count: number | bigint }).count) || 0;
+  const totalStudents = Number((totalResult.rows[0] as unknown as { count: number | bigint }).count) || 0;
 
   const moduleResult = await client.execute(`
     SELECT
