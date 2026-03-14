@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { sql } from "drizzle-orm";
 import { unsubscribeByToken } from "@/lib/nurture-emails";
+import { getPreferencesByEmail, unsubscribeAllByToken } from "@/lib/email-preferences";
 
 export async function POST(request: NextRequest) {
   try {
@@ -44,6 +45,16 @@ export async function POST(request: NextRequest) {
       });
     } catch {
       // Table may not exist yet; non-fatal
+    }
+
+    // Also update email_preferences table
+    try {
+      const prefs = await getPreferencesByEmail(email);
+      if (prefs) {
+        await unsubscribeAllByToken(prefs.unsubscribe_token);
+      }
+    } catch {
+      // Non-fatal
     }
 
     return NextResponse.json({
