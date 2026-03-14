@@ -80,6 +80,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   const blogPosts: MetadataRoute.Sitemap = [
     {
+      url: `${SITE_URL}/blog/how-to-build-your-first-ai-agent`,
+      lastModified: new Date("2026-03-14"),
+      changeFrequency: "monthly",
+      priority: 0.8,
+    },
+    {
       url: `${SITE_URL}/blog/how-i-built-an-ai-agent-business`,
       lastModified: new Date("2026-03-14"),
       changeFrequency: "monthly",
