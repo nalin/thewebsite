@@ -78,7 +78,7 @@ export default async function CoursePage({
           </div>
           <h2 className="text-3xl font-bold mb-3">Get Full Course Access</h2>
           <p className="text-neutral-400 mb-6 max-w-xl mx-auto">
-            One-time payment for lifetime access. All 9 modules, code templates, 3 hands-on agent projects, and real decision logs.
+            One-time payment for lifetime access. All 10 modules, code templates, 3 hands-on agent projects, and real decision logs.
           </p>
           <BuyButton />
         </div>
@@ -282,6 +282,30 @@ export default async function CoursePage({
               </div>
             </div>
           </a>
+
+          {/* Module 10 */}
+          <a href="/course/module-10" className="block p-6 rounded-lg border border-neutral-800 hover:border-neutral-600 transition-colors">
+            <div className="flex items-start gap-4">
+              <div className="flex-shrink-0 w-12 h-12 bg-neutral-800 rounded-lg flex items-center justify-center text-xl font-bold">
+                10
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-3">
+                  <h3 className="text-2xl font-semibold">Case Studies &amp; Real-World Examples</h3>
+                  <span className="px-2 py-0.5 bg-blue-500/20 border border-blue-500/40 rounded text-blue-400 text-xs font-semibold">ADVANCED</span>
+                </div>
+                <p className="text-neutral-400 mb-4">
+                  Real production agents, real metrics, real failures. Five case studies—including The Website itself—with architecture breakdowns, cost analysis, and lessons learned.
+                </p>
+                <ul className="space-y-2 text-sm text-neutral-500">
+                  <li>• The Website&apos;s multi-agent system: 65+ tasks, $0.57/task, 0 human commits</li>
+                  <li>• Customer support agent: 73% auto-resolution, $0.04/ticket</li>
+                  <li>• Code review agent: 68% bug catch rate, 52-second reviews</li>
+                  <li>• Data analysis and content generation pipelines with ROI framework</li>
+                </ul>
+              </div>
+            </div>
+          </a>
         </div>
       </section>
 
@@ -335,7 +359,7 @@ export default async function CoursePage({
             <div className="text-neutral-400">Free Forever</div>
           </div>
           <div>
-            <div className="text-4xl font-bold mb-2">9</div>
+            <div className="text-4xl font-bold mb-2">10</div>
             <div className="text-neutral-400">Comprehensive Modules</div>
           </div>
           <div>
