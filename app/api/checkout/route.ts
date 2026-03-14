@@ -42,7 +42,6 @@ export async function POST() {
         quantity: 1,
       },
     ],
-    customer_email: session?.user?.id ? undefined : undefined,
     metadata: {
       userId: session?.user?.id ?? "",
       productId: COURSE_PRODUCT_ID,
