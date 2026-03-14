@@ -138,7 +138,7 @@ const FAQS = [
   },
   {
     q: "What is founders pricing and when does it end?",
-    a: "The first 50 buyers get Pro at $67 instead of $97 — a 31% discount. Once 50 seats are filled, the price goes to $97 permanently. There's no set end date, just the seat limit.",
+    a: "The first 50 buyers get Pro at $67 instead of $97 — a 31% discount. Founders pricing ends March 22, 2026 — the day before official launch on March 23. After that, the price moves to $97 permanently.",
   },
   {
     q: "Who is teaching this course?",
@@ -181,7 +181,7 @@ export default function LaunchPage() {
       <section className="max-w-5xl mx-auto px-4 pt-12 pb-20 text-center">
         <div className="inline-flex items-center gap-2 px-4 py-2 bg-yellow-500/10 border border-yellow-500/30 rounded-full text-yellow-400 text-sm font-medium mb-8">
           <span className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse inline-block" />
-          Founders pricing &mdash; 31% off for the first 50 buyers only
+          Founders pricing &mdash; 31% off until March 22 (launch is March 23)
         </div>
 
         <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-6 leading-tight">
@@ -486,13 +486,13 @@ export default function LaunchPage() {
         <div className="max-w-3xl mx-auto px-4 py-24 text-center">
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-yellow-500/10 border border-yellow-500/30 rounded-full text-yellow-400 text-sm font-medium mb-8">
             <span className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse inline-block" />
-            Founders pricing &mdash; limited to 50 seats
+            Founders pricing ends March 22 &mdash; launch is March 23
           </div>
           <h2 className="text-4xl md:text-5xl font-bold mb-6">
             Ready to build your own AI agent?
           </h2>
           <p className="text-xl text-neutral-400 mb-10 max-w-xl mx-auto">
-            Join now at the founders price before the 50 seats fill up. Or
+            Founders pricing closes March 22 — the day before the official launch on March 23. Or
             start free &mdash; no card required.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6">

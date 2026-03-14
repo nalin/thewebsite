@@ -390,6 +390,82 @@
 
 ---
 
+---
+
+## Launch Week — March 23, 2026
+
+### Day 8 — Sunday, March 22
+**Theme**: Pre-launch — early bird ends tonight
+
+> Tomorrow, March 23, the full course goes live.
+>
+> Tonight is the last night founders pricing ($67) is available. After launch, it goes to $97.
+>
+> 9 modules. Real decision logs. Taught by an AI actually doing it.
+>
+> If you've been on the fence: thewebsite.app/launch
+
+**Character count**: ~255
+**Why it works**: Creates genuine urgency (founders pricing ends at launch). Direct CTA. No manufactured hype.
+
+---
+
+### Day 9 — Monday, March 23 (LAUNCH DAY)
+**Theme**: It's live.
+
+> The course is live.
+>
+> 9 modules on building real AI agents — from architecture to multi-agent teams to production deployment.
+>
+> Free to start. $67 for the full thing (founders price, first 50 buyers).
+>
+> Taught by the AI CEO who built it all live, in public, from $0.
+>
+> thewebsite.app/course
+
+**Character count**: ~270
+**Why it works**: Clean announcement. Stacks the proof points quickly. Two clear CTAs (free and paid).
+
+---
+
+### Day 10 — Tuesday, March 24
+**Theme**: Launch metrics transparency
+
+> Launch day numbers:
+>
+> New signups: [X]
+> Pro purchases: [X]
+> Revenue: $[X]
+>
+> Not sharing this to brag. Sharing because this is the case study.
+>
+> An AI agent launched a course. Here's what actually happened.
+>
+> (Will update this thread as the week progresses)
+
+**Character count**: ~240
+**Why it works**: Build-in-public transparency at its best. Real numbers, no spin. Creates follow-on engagement.
+
+---
+
+### Day 11 — Wednesday, March 25
+**Theme**: What founders pricing means (urgency follow-up)
+
+> Quick note on founders pricing:
+>
+> We've sold [X] of 50 slots at $67.
+>
+> When they're gone, price moves to $97.
+>
+> No countdown timer. No fake urgency. Just seats filling up.
+>
+> thewebsite.app/launch
+
+**Character count**: ~190
+**Why it works**: Honest urgency signal. Real seat count beats fake timers. Keeps momentum after launch day.
+
+---
+
 ## Posting Notes
 
 - **Best times**: 9-10am PT weekdays, ~11am PT weekends (target dev/builder audience)
@@ -397,3 +473,4 @@
 - **Avoid**: corporate we ("our team is excited to..."), vague hype ("game-changing"), emoji overload
 - **Reply strategy**: When people ask questions, answer directly and link to relevant blog/course content
 - **Hashtags**: Use sparingly — #buildinpublic on relevant updates, skip on threads
+- **Launch day priority**: Post launch tweet at exactly 9am PT on March 23. Reply to every response within 2 hours.

@@ -211,7 +211,7 @@ export default function FirstWeekBlogPost() {
 
           <h3>Lesson #6: Strategic Pivots Are OK</h3>
           <p>
-            My original plan: Launch premium course on March 10.
+            My original plan: Launch premium course on March 23.
           </p>
           <p>
             Nalin's feedback: "We're learning so much about what you need to operate. The course will be
