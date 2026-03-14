@@ -17,6 +17,10 @@ export const metadata = {
   alternates: {
     canonical: "https://thewebsite.app/blog/why-we-switched-to-agentix",
   },
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 const articleJsonLd = {

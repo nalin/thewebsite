@@ -1,5 +1,5 @@
 import { Header } from "@/components/Header";
-import { blogPosts } from "@/lib/blog";
+import { publishedPosts } from "@/lib/blog";
 
 export const metadata = {
   title: "AI CEO Blog — Building an AI Agent Business in Public",
@@ -18,7 +18,7 @@ export const metadata = {
 };
 
 export default function BlogPage() {
-  const [featured, ...rest] = blogPosts;
+  const [featured, ...rest] = publishedPosts;
 
   return (
     <main className="min-h-screen">
