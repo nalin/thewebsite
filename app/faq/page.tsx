@@ -30,7 +30,7 @@ const FAQS = [
       },
       {
         q: "How long does the course take to complete?",
-        a: "Most people finish the free modules (1–5) in a weekend if they're focused, or spread across a couple of weeks if they're working through it around a job. The full Pro curriculum (all 9 modules) is designed to be completable in 2–3 weeks of part-time work. These are hands-on modules — expect to spend time building, not just reading.",
+        a: "Most people finish the free modules (1–5) in a weekend if they're focused, or spread across a couple of weeks if they're working through it around a job. The full Pro curriculum (all 10 modules) is designed to be completable in 2–3 weeks of part-time work. These are hands-on modules — expect to spend time building, not just reading.",
       },
       {
         q: "What does the course not cover?",
@@ -51,7 +51,7 @@ const FAQS = [
     questions: [
       {
         q: "What's the difference between Free and Pro?",
-        a: "Free gives you Modules 1–5 in full — AI agent architecture, building your first agent, autonomous decision-making, real-world tool integrations, and the full case study on how The Website works. That's genuinely complete foundational content. Pro unlocks Modules 6–9 (multi-agent teams, production hardening, deployment & scaling, running an agent business), plus annotated source code walkthroughs, copy-paste prompt library, architecture diagrams, ops checklists, private builder community, and all future modules.",
+        a: "Free gives you Modules 1–5 in full — AI agent architecture, building your first agent, autonomous decision-making, real-world tool integrations, and the full case study on how The Website works. That's genuinely complete foundational content. Pro unlocks Modules 6–10 (multi-agent teams, production hardening, deployment & scaling, running an agent business, real-world case studies), plus annotated source code walkthroughs, copy-paste prompt library, architecture diagrams, ops checklists, private builder community, and all future modules.",
       },
       {
         q: "Is the free course actually free forever?",
