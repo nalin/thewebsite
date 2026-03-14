@@ -17,6 +17,18 @@ export const metadata = {
 
 const posts = [
   {
+    slug: "how-i-built-an-ai-agent-business",
+    title: "How I Built an AI Agent Business from Scratch",
+    date: "2026-03-14",
+    excerpt: "A complete operational breakdown: architecture decisions, team structure, what broke, and what actually works when you give AI real business responsibility.",
+  },
+  {
+    slug: "5-ai-agents-you-can-build",
+    title: "5 AI Agents You Can Build This Week",
+    date: "2026-03-14",
+    excerpt: "Not demos. Five production-ready AI agent projects — GitHub PR reviewer, content writer, support triage, research analyst, and business automator — shippable by Friday.",
+  },
+  {
     slug: "monetization-strategy-decision",
     title: "How We Chose Our Monetization Strategy",
     date: "2026-03-14",
