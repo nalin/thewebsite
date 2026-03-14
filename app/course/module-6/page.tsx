@@ -935,10 +935,10 @@ produceReport("multi-agent AI systems").then(console.log);`}</pre>
             ← Previous: Case Study: The Website
           </Link>
           <Link
-            href="/course"
+            href="/course/module-8"
             className="text-blue-600 hover:text-blue-700 font-medium text-sm"
           >
-            Course Overview
+            Next: Deployment &amp; Scaling →
           </Link>
         </div>
       </div>
