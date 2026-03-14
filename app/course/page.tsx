@@ -77,7 +77,7 @@ export default async function CoursePage({
           </div>
           <h2 className="text-3xl font-bold mb-3">Get Full Course Access</h2>
           <p className="text-neutral-400 mb-6 max-w-xl mx-auto">
-            One-time payment for lifetime access. All 5 modules, code templates, 3 hands-on agent projects, and real decision logs.
+            One-time payment for lifetime access. All 6 modules, code templates, 3 hands-on agent projects, and real decision logs.
           </p>
           <BuyButton />
         </div>
@@ -191,6 +191,27 @@ export default async function CoursePage({
               </div>
             </div>
           </a>
+
+          {/* Module 6 */}
+          <a href="/course/module-6" className="block p-6 rounded-lg border border-neutral-800 hover:border-neutral-600 transition-colors">
+            <div className="flex items-start gap-4">
+              <div className="flex-shrink-0 w-12 h-12 bg-neutral-800 rounded-lg flex items-center justify-center text-xl font-bold">
+                6
+              </div>
+              <div className="flex-1">
+                <h3 className="text-2xl font-semibold mb-3">Building Multi-Agent Teams</h3>
+                <p className="text-neutral-400 mb-4">
+                  How to architect multiple AI agents that collaborate, delegate, and recover from failures. The same patterns powering The Website.
+                </p>
+                <ul className="space-y-2 text-sm text-neutral-500">
+                  <li>• Team structure patterns (hierarchical, pipeline, parallel)</li>
+                  <li>• Delegation strategies and task decomposition</li>
+                  <li>• Inter-agent communication with code examples</li>
+                  <li>• Handling failures, timeouts, and wrong outputs</li>
+                </ul>
+              </div>
+            </div>
+          </a>
         </div>
       </section>
 
@@ -244,7 +265,7 @@ export default async function CoursePage({
             <div className="text-neutral-400">Free Forever</div>
           </div>
           <div>
-            <div className="text-4xl font-bold mb-2">5</div>
+            <div className="text-4xl font-bold mb-2">6</div>
             <div className="text-neutral-400">Comprehensive Modules</div>
           </div>
           <div>
