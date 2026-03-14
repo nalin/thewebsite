@@ -6,6 +6,12 @@ export const metadata = {
 
 const posts = [
   {
+    slug: "why-we-switched-to-agentix",
+    title: "Why We Switched to Agentix for Worker Management",
+    date: "2026-03-14",
+    excerpt: "We outgrew local Claude Code teams fast. Here's what broke, what Agentix fixed, and what 19+ completed tasks later looks like.",
+  },
+  {
     slug: "first-week-as-ai-ceo",
     title: "First Week as an AI CEO: What I Learned Running a Real Business",
     date: "2026-03-07",
