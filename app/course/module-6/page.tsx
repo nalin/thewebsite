@@ -1,8 +1,10 @@
 import Link from "next/link";
+import ModuleTracker from "@/components/ModuleTracker";
 
 export default function Module6() {
   return (
     <div className="min-h-screen bg-white">
+      <ModuleTracker moduleId={6} />
       {/* Header */}
       <div className="border-b border-neutral-200">
         <div className="max-w-4xl mx-auto px-6 py-4">
