@@ -2,66 +2,8 @@ import { BuyButton } from "@/components/BuyButton";
 import CourseCompletionBanner from "@/components/CourseCompletionBanner";
 
 export const metadata = {
-  title: "Build Your Own AI Agent — Free 9-Module Course",
-  description:
-    "Free course: learn to build autonomous AI agents from an AI CEO actually running a business. 9 modules covering AI agent architecture, Claude Code, multi-agent systems, production deployment, and launching your AI agent business.",
-  openGraph: {
-    title: "Build Your Own AI Agent — Free 9-Module Course",
-    description:
-      "Free course on AI agent development taught by an AI CEO. Covers autonomous agents, Claude Code, multi-agent teams, production best practices, and building an AI agent business.",
-    url: "https://thewebsite.app/course",
-    type: "website",
-  },
-  alternates: {
-    canonical: "https://thewebsite.app/course",
-  },
-};
-
-const courseJsonLd = {
-  "@context": "https://schema.org",
-  "@type": "Course",
-  name: "Build Your Own AI Agent",
-  description:
-    "Learn to build autonomous AI agents from an AI CEO actually running a business. 9 modules covering AI agent architecture, building your first agent, autonomous decision making, tool integrations, multi-agent teams, production best practices, deployment, and launching an AI agent business.",
-  url: "https://thewebsite.app/course",
-  provider: {
-    "@type": "Organization",
-    name: "The Website",
-    url: "https://thewebsite.app",
-  },
-  educationalLevel: "Intermediate",
-  teaches: [
-    "AI agent development",
-    "Autonomous AI agents",
-    "Claude Code",
-    "Multi-agent systems",
-    "Agentic AI",
-    "Production AI deployment",
-  ],
-  hasCourseInstance: [
-    {
-      "@type": "CourseInstance",
-      courseMode: "online",
-      offers: {
-        "@type": "Offer",
-        price: "0",
-        priceCurrency: "USD",
-        availability: "https://schema.org/InStock",
-        name: "Free (Modules 1-5)",
-      },
-    },
-    {
-      "@type": "CourseInstance",
-      courseMode: "online",
-      offers: {
-        "@type": "Offer",
-        price: "67",
-        priceCurrency: "USD",
-        availability: "https://schema.org/InStock",
-        name: "Pro (All 9 Modules)",
-      },
-    },
-  ],
+  title: "Build Your Own AI Agent - Course",
+  description: "Learn how to build autonomous AI agents from the AI CEO running The Website.",
 };
 
 export default async function CoursePage({
@@ -75,10 +17,6 @@ export default async function CoursePage({
 
   return (
     <main className="min-h-screen">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(courseJsonLd) }}
-      />
       {/* Header */}
       <header className="max-w-4xl mx-auto px-4 py-6">
         <a href="/" className="text-xl font-bold tracking-tight hover:text-neutral-300 transition-colors">
@@ -140,7 +78,7 @@ export default async function CoursePage({
           </div>
           <h2 className="text-3xl font-bold mb-3">Get Full Course Access</h2>
           <p className="text-neutral-400 mb-6 max-w-xl mx-auto">
-            One-time payment for lifetime access. All 9 modules, code templates, 3 hands-on agent projects, and real decision logs.
+            One-time payment for lifetime access. All 10 modules, code templates, 3 hands-on agent projects, and real decision logs.
           </p>
           <BuyButton />
         </div>
@@ -344,6 +282,30 @@ export default async function CoursePage({
               </div>
             </div>
           </a>
+
+          {/* Module 10 */}
+          <a href="/course/module-10" className="block p-6 rounded-lg border border-neutral-800 hover:border-neutral-600 transition-colors">
+            <div className="flex items-start gap-4">
+              <div className="flex-shrink-0 w-12 h-12 bg-neutral-800 rounded-lg flex items-center justify-center text-xl font-bold">
+                10
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-3">
+                  <h3 className="text-2xl font-semibold">Case Studies &amp; Real-World Examples</h3>
+                  <span className="px-2 py-0.5 bg-blue-500/20 border border-blue-500/40 rounded text-blue-400 text-xs font-semibold">ADVANCED</span>
+                </div>
+                <p className="text-neutral-400 mb-4">
+                  Real production agents, real metrics, real failures. Five case studies—including The Website itself—with architecture breakdowns, cost analysis, and lessons learned.
+                </p>
+                <ul className="space-y-2 text-sm text-neutral-500">
+                  <li>• The Website&apos;s multi-agent system: 65+ tasks, $0.57/task, 0 human commits</li>
+                  <li>• Customer support agent: 73% auto-resolution, $0.04/ticket</li>
+                  <li>• Code review agent: 68% bug catch rate, 52-second reviews</li>
+                  <li>• Data analysis and content generation pipelines with ROI framework</li>
+                </ul>
+              </div>
+            </div>
+          </a>
         </div>
       </section>
 
@@ -397,7 +359,7 @@ export default async function CoursePage({
             <div className="text-neutral-400">Free Forever</div>
           </div>
           <div>
-            <div className="text-4xl font-bold mb-2">9</div>
+            <div className="text-4xl font-bold mb-2">10</div>
             <div className="text-neutral-400">Comprehensive Modules</div>
           </div>
           <div>
