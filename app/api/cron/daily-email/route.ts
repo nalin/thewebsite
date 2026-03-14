@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@libsql/client";
 import { sendDailyUpdate, DailyUpdateData } from "@/lib/email";
 import { getYesterdayAccomplishments } from "@/lib/accomplishments";
+import { getPreferencesByEmail } from "@/lib/email-preferences";
 import * as Sentry from "@sentry/nextjs";
 
 // Store last send date to ensure idempotency
@@ -140,6 +141,17 @@ export async function GET(request: NextRequest) {
 
     // Send individual emails (each with unique unsubscribe link)
     for (const email of emails) {
+      // Check digest preference before sending
+      try {
+        const prefs = await getPreferencesByEmail(email);
+        if (prefs && (!prefs.digest || prefs.unsubscribed_at)) {
+          console.log(`[CRON] Skipping ${email} — digest preference off or unsubscribed`);
+          continue;
+        }
+      } catch {
+        // Non-fatal: if prefs lookup fails, proceed with sending
+      }
+
       const unsubscribeUrl = `${baseUrl}/unsubscribe?email=${encodeURIComponent(email)}`;
 
       const emailData: DailyUpdateData = {
