@@ -1,4 +1,5 @@
 import Link from "next/link";
+import ModuleTracker from "@/components/ModuleTracker";
 
 export const metadata = {
   title: "Module 9: Building Your First AI Agent Business - Build Your Own AI Agent",
@@ -9,6 +10,7 @@ export const metadata = {
 export default function Module9() {
   return (
     <div className="min-h-screen bg-white">
+      <ModuleTracker moduleId={9} />
       {/* Header */}
       <div className="border-b border-neutral-200">
         <div className="max-w-4xl mx-auto px-6 py-4">

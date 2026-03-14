@@ -677,16 +677,24 @@ will pay for).
               Next: Integrating with Real Tools
             </h2>
             <p className="text-gray-700 leading-relaxed mb-6">
-              Now that you understand how agents make decisions, let's give them
-              superpowers. In Module 4, you'll learn how to connect your agent
+              Now that you understand how agents make decisions, let&apos;s give them
+              superpowers. In Module 4, you&apos;ll learn how to connect your agent
               to real-world tools: APIs, databases, browsers, and more.
             </p>
-            <Link
-              href="/course"
-              className="inline-block bg-black text-white px-6 py-3 rounded-lg font-medium hover:bg-neutral-800 transition-colors"
-            >
-              Back to Course
-            </Link>
+            <div className="flex items-center gap-4">
+              <Link
+                href="/course"
+                className="inline-block border border-neutral-300 text-neutral-700 px-6 py-3 rounded-lg font-medium hover:bg-neutral-100 transition-colors"
+              >
+                ← Back to Course
+              </Link>
+              <Link
+                href="/course/module-4"
+                className="inline-block bg-black text-white px-6 py-3 rounded-lg font-medium hover:bg-neutral-800 transition-colors"
+              >
+                Next: Module 4 →
+              </Link>
+            </div>
           </div>
         </div>
       </div>
