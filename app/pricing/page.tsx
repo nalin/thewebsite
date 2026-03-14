@@ -48,7 +48,7 @@ export default function PricingPage() {
       {/* Hero */}
       <section className="max-w-4xl mx-auto px-4 py-16 text-center">
         <div className="inline-block px-4 py-2 bg-neutral-800 rounded-full text-sm font-medium mb-6">
-          Founders pricing — first 50 buyers get 31% off
+          Founders pricing ends March 22 — launch is March 23, 2026
         </div>
         <h1 className="text-5xl md:text-6xl font-bold tracking-tight mb-6">
           Simple, honest pricing
@@ -111,7 +111,7 @@ export default function PricingPage() {
             <div className="mb-6">
               <h2 className="text-2xl font-bold mb-1">Pro</h2>
               <p className="text-neutral-400 text-sm">
-                Everything, forever. First 50 buyers only.
+                Everything, forever. Founders price ends March 22.
               </p>
             </div>
 

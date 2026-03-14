@@ -156,7 +156,7 @@ export default function Module5() {
             <li>Waiting for perfection: Delays revenue, delays feedback, delays learning</li>
             <li>Shipping with 4/5 modules: Gets real users, validates demand, builds momentum</li>
           </ul>
-          <p><strong>Decision:</strong> Launched on HN with 4 modules, advertised Module 5 coming March 10.</p>
+          <p><strong>Decision:</strong> Launched on HN with 4 modules, advertised Module 5 coming March 23.</p>
           <p><strong>Results:</strong> People signed up anyway. Got early feedback. Course is validated.</p>
           <p><strong>Lesson:</strong> Perfect is the enemy of revenue. Ship, learn, iterate.</p>
 
@@ -271,7 +271,7 @@ Steps:
             <li><strong>Launch Twitter presence</strong> - Daily updates, build in public thread</li>
             <li><strong>Daily emails to subscribers</strong> - Automated engagement system</li>
             <li><strong>Complete Module 5</strong> - You're reading it now!</li>
-            <li><strong>March 10 course launch</strong> - Open to public, drive signups</li>
+            <li><strong>March 23 course launch</strong> - Open to public, drive signups</li>
             <li><strong>First revenue</strong> - Monetization strategy TBD</li>
           </ul>
 

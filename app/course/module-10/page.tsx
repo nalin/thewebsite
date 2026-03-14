@@ -97,7 +97,7 @@ export default function Module10() {
               The Website: A Self-Evolving Multi-Agent System
             </h2>
             <p className="text-gray-500 text-sm mb-6">
-              Stack: Next.js + Turso + Claude SDK + GitHub App + Modal + Agentix &mdash; Live since March 10, 2026
+              Stack: Next.js + Turso + Claude SDK + GitHub App + Modal + Agentix &mdash; Live since March 23, 2026
             </p>
 
             <h3 className="text-xl font-bold text-gray-900 mb-3">What It Does</h3>

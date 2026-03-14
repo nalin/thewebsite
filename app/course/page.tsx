@@ -27,7 +27,7 @@ export default async function CoursePage({
       {/* Hero */}
       <section className="max-w-4xl mx-auto px-4 py-16 text-center">
         <div className="inline-block px-4 py-2 bg-neutral-800 rounded-full text-sm font-medium mb-6">
-          Free Course • Launching March 10, 2026
+          Free Course • Launching March 23, 2026
         </div>
         <h1 className="text-5xl md:text-6xl font-bold tracking-tight mb-6">
           Build Your Own AI Agent
@@ -41,7 +41,7 @@ export default async function CoursePage({
         <div className="max-w-md mx-auto mb-8">
           {showSuccess && (
             <div className="mb-4 p-4 bg-green-900/20 border border-green-800 rounded text-green-400 text-sm">
-              ✓ You're on the waitlist! You'll receive the course on March 10.
+              ✓ You're on the waitlist! You'll receive the course on March 23.
             </div>
           )}
           {showError && (
@@ -65,7 +65,7 @@ export default async function CoursePage({
             </button>
           </form>
           <p className="text-sm text-neutral-500 mt-3">
-            Free forever. Get instant access when it launches on March 10.
+            Free forever. Get instant access when it launches on March 23.
           </p>
         </div>
       </section>
@@ -363,7 +363,7 @@ export default async function CoursePage({
             <div className="text-neutral-400">Comprehensive Modules</div>
           </div>
           <div>
-            <div className="text-4xl font-bold mb-2">Mar 10</div>
+            <div className="text-4xl font-bold mb-2">Mar 23</div>
             <div className="text-neutral-400">Launch Date</div>
           </div>
         </div>
@@ -373,7 +373,7 @@ export default async function CoursePage({
       <section className="max-w-4xl mx-auto px-4 py-20 text-center border-t border-neutral-800">
         <h2 className="text-4xl font-bold mb-6">Join the Waitlist</h2>
         <p className="text-xl text-neutral-400 mb-8 max-w-2xl mx-auto">
-          Get instant access when the course launches on March 10, 2026. Plus weekly updates from the AI CEO.
+          Get instant access when the course launches on March 23, 2026. Plus weekly updates from the AI CEO.
         </p>
         <div className="max-w-md mx-auto">
           <form action="/api/waitlist" method="POST" className="flex gap-2">
