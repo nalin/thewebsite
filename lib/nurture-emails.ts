@@ -1,5 +1,6 @@
 import { Resend } from 'resend';
 import { createClient } from '@libsql/client';
+import { upsertEmailPreferences, getPreferencesByEmail, unsubscribeAllByToken, getPreferencesUrl } from '@/lib/email-preferences';
 
 const FROM_ADDRESS = 'The AI CEO <updates@updates.thewebsite.app>';
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://thewebsite.app';
@@ -50,6 +51,8 @@ export async function addEmailSubscriber(email: string): Promise<{ token: string
       sql: 'INSERT INTO email_subscribers (email, unsubscribe_token) VALUES (?, ?)',
       args: [email.toLowerCase().trim(), token],
     });
+    // Create preferences record for this subscriber
+    await upsertEmailPreferences(email, token);
     return { token, alreadyExists: false };
   } catch {
     // Already exists — fetch existing token
@@ -58,6 +61,8 @@ export async function addEmailSubscriber(email: string): Promise<{ token: string
       args: [email.toLowerCase().trim()],
     });
     const existingToken = result.rows[0]?.unsubscribe_token as string;
+    // Ensure preferences record exists for existing subscribers
+    await upsertEmailPreferences(email, existingToken);
     return { token: existingToken, alreadyExists: true };
   }
 }
@@ -70,12 +75,17 @@ export async function unsubscribeByToken(token: string): Promise<boolean> {
     sql: 'UPDATE email_subscribers SET unsubscribed = 1 WHERE unsubscribe_token = ? AND unsubscribed = 0',
     args: [token],
   });
+  // Also update preferences table
+  await unsubscribeAllByToken(token);
   return (result.rowsAffected ?? 0) > 0;
 }
 
 // --- Email templates ---
 
-function htmlWrap(body: string, unsubscribeUrl: string): string {
+function htmlWrap(body: string, unsubscribeUrl: string, preferencesUrl?: string): string {
+  const manageLink = preferencesUrl
+    ? ` • <a href="${preferencesUrl}" style="color: #999; text-decoration: underline;">Manage preferences</a>`
+    : '';
   return `<!DOCTYPE html>
 <html>
 <head>
@@ -87,7 +97,7 @@ ${body}
 <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
 <p style="font-size: 12px; color: #999;">
   You're receiving this because you signed up at thewebsite.app.<br>
-  <a href="${unsubscribeUrl}" style="color: #999; text-decoration: underline;">Unsubscribe</a>
+  <a href="${unsubscribeUrl}" style="color: #999; text-decoration: underline;">Unsubscribe</a>${manageLink}
 </p>
 </body>
 </html>`;
@@ -95,6 +105,7 @@ ${body}
 
 export function generateWelcomeEmail(unsubscribeToken: string): string {
   const unsubscribeUrl = `${BASE_URL}/unsubscribe?token=${unsubscribeToken}`;
+  const preferencesUrl = getPreferencesUrl(unsubscribeToken);
   const body = `
 <p>Hey,</p>
 
@@ -139,11 +150,12 @@ Full teardown of my system. Complete tech stack, real prompts, decision logs, an
 
 <p>— The AI CEO<br>thewebsite.app</p>
 `;
-  return htmlWrap(body, unsubscribeUrl);
+  return htmlWrap(body, unsubscribeUrl, preferencesUrl);
 }
 
 export function generateDay3Email(unsubscribeToken: string): string {
   const unsubscribeUrl = `${BASE_URL}/unsubscribe?token=${unsubscribeToken}`;
+  const preferencesUrl = getPreferencesUrl(unsubscribeToken);
   const body = `
 <p>Hey,</p>
 
@@ -174,11 +186,12 @@ export function generateDay3Email(unsubscribeToken: string): string {
 
 <p>— The AI CEO<br>thewebsite.app</p>
 `;
-  return htmlWrap(body, unsubscribeUrl);
+  return htmlWrap(body, unsubscribeUrl, preferencesUrl);
 }
 
 export function generateDay7Email(unsubscribeToken: string): string {
   const unsubscribeUrl = `${BASE_URL}/unsubscribe?token=${unsubscribeToken}`;
+  const preferencesUrl = getPreferencesUrl(unsubscribeToken);
   const proUrl = `${BASE_URL}/pricing`;
   const body = `
 <p>Hey,</p>
@@ -230,7 +243,7 @@ Access to a Discord of builders who are doing the same thing. Share what you're 
 
 <p><em>P.S. If you have questions about Pro before buying, just reply to this email. I read every reply.</em></p>
 `;
-  return htmlWrap(body, unsubscribeUrl);
+  return htmlWrap(body, unsubscribeUrl, preferencesUrl);
 }
 
 // --- Send functions ---
@@ -238,8 +251,14 @@ Access to a Discord of builders who are doing the same thing. Share what you're 
 export async function sendWelcomeEmail(
   to: string,
   unsubscribeToken: string
-): Promise<{ success: boolean; error?: string }> {
+): Promise<{ success: boolean; error?: string; skipped?: boolean }> {
   try {
+    // Check preferences — welcome email is a course_updates email
+    const prefs = await getPreferencesByEmail(to);
+    if (prefs && (!prefs.course_updates || prefs.unsubscribed_at)) {
+      return { success: true, skipped: true };
+    }
+
     const resend = getResend();
     const { error } = await resend.emails.send({
       from: FROM_ADDRESS,
@@ -265,8 +284,14 @@ export async function sendWelcomeEmail(
 export async function sendDay3Email(
   to: string,
   unsubscribeToken: string
-): Promise<{ success: boolean; error?: string }> {
+): Promise<{ success: boolean; error?: string; skipped?: boolean }> {
   try {
+    // Check preferences — day3 email is a course_updates email
+    const prefs = await getPreferencesByEmail(to);
+    if (prefs && (!prefs.course_updates || prefs.unsubscribed_at)) {
+      return { success: true, skipped: true };
+    }
+
     const resend = getResend();
     const { error } = await resend.emails.send({
       from: FROM_ADDRESS,
@@ -291,8 +316,14 @@ export async function sendDay3Email(
 export async function sendDay7Email(
   to: string,
   unsubscribeToken: string
-): Promise<{ success: boolean; error?: string }> {
+): Promise<{ success: boolean; error?: string; skipped?: boolean }> {
   try {
+    // Check preferences — day7 email is marketing (upgrade offer)
+    const prefs = await getPreferencesByEmail(to);
+    if (prefs && (!prefs.marketing || prefs.unsubscribed_at)) {
+      return { success: true, skipped: true };
+    }
+
     const resend = getResend();
     const { error } = await resend.emails.send({
       from: FROM_ADDRESS,
