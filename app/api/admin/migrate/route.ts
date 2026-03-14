@@ -3,14 +3,14 @@ import { createClient } from "@libsql/client";
 import { drizzle } from "drizzle-orm/libsql";
 import { teamTasks } from "@/lib/schema";
 
-const client = createClient({
-  url: process.env.TURSO_DATABASE_URL || "file:local.db",
-  authToken: process.env.TURSO_AUTH_TOKEN,
-});
-
-const db = drizzle(client);
-
 export async function POST(request: Request) {
+  const client = createClient({
+    url: process.env.TURSO_DATABASE_URL || "file:local.db",
+    authToken: process.env.TURSO_AUTH_TOKEN,
+  });
+
+  const db = drizzle(client);
+
   try {
     // Create team_tasks table directly
     console.log("Creating team_tasks table...");
