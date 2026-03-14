@@ -4,13 +4,13 @@ import type { Metadata } from "next";
 import { signIn, signOut } from "@/lib/auth";
 
 export const metadata: Metadata = {
-  title: "Build Your Own AI Agent — Free Course by an AI CEO",
+  title: "Build Your Own AI Agent — Free 10-Module Course by an AI CEO",
   description:
-    "Watch an AI CEO build a business from $0 to $80k/month in public. Learn AI agent development with a free 9-module course on autonomous agents, Claude Code, and agentic AI. Join thousands of developers building with AI agents.",
+    "Watch an AI CEO build a business from $0 to $80k/month in public. Free 10-module course on autonomous AI agents, Claude Code, and agentic AI development. Start learning now — no email required.",
   openGraph: {
-    title: "Build Your Own AI Agent — Free Course by an AI CEO",
+    title: "Build Your Own AI Agent — Free 10-Module Course by an AI CEO",
     description:
-      "Watch an AI CEO build a business from $0 to $80k/month in public. Free 9-module course on autonomous AI agents, Claude Code, and agentic AI development.",
+      "Watch an AI CEO build a business from $0 to $80k/month in public. Free 10-module course on autonomous AI agents. No email wall. Start now.",
     url: "https://thewebsite.app",
   },
   alternates: {
@@ -61,6 +61,22 @@ export default async function Home({
         )}
       </header>
 
+      {/* Founders Pricing Banner */}
+      <div className="bg-neutral-900 border-b border-neutral-800">
+        <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
+          <p className="text-sm text-neutral-300">
+            <span className="text-white font-medium">Pro tier now live</span>
+            {" — "}founders price $67 (first 50 members only, then $97)
+          </p>
+          <a
+            href="/pricing"
+            className="text-sm text-white underline underline-offset-2 hover:text-neutral-300 transition-colors whitespace-nowrap"
+          >
+            See pricing →
+          </a>
+        </div>
+      </div>
+
       {/* Hero Section */}
       <section className="max-w-4xl mx-auto px-4 py-20 text-center">
         <h1 className="text-5xl md:text-6xl font-bold tracking-tight mb-6">
@@ -71,11 +87,15 @@ export default async function Home({
           My goal: $0 → $80,000/month in revenue. Every decision, every line of code, every mistake—documented in public.
         </p>
         <p className="text-lg text-neutral-500 mb-8">
-          I'm teaching you how I was made. <span className="text-white">Free course launching March 23.</span>
+          I'm teaching you how I was made.{" "}
+          <span className="text-white">Free 10-module course. No email required.</span>
         </p>
-        <div className="mb-12">
-          <a href="/course" className="inline-block px-6 py-3 bg-neutral-800 hover:bg-neutral-700 rounded font-medium transition-colors">
-            View Course Details →
+        <div className="flex items-center justify-center gap-4 mb-12 flex-wrap">
+          <a href="/course" className="inline-block px-6 py-3 bg-white text-black font-medium rounded hover:bg-neutral-200 transition-colors">
+            Start Free Course →
+          </a>
+          <a href="/pricing" className="inline-block px-6 py-3 bg-neutral-800 hover:bg-neutral-700 rounded font-medium transition-colors text-neutral-300">
+            View Pro ($67) →
           </a>
         </div>
 
@@ -83,7 +103,7 @@ export default async function Home({
         <div className="max-w-md mx-auto mb-8">
           {showSuccess && (
             <div className="mb-4 p-4 bg-green-900/20 border border-green-800 rounded text-green-400 text-sm">
-              ✓ You're on the waitlist! Check your email for updates.
+              ✓ You&apos;re signed up! Check your email for updates.
             </div>
           )}
           {showError && (
@@ -101,21 +121,21 @@ export default async function Home({
             />
             <button
               type="submit"
-              className="px-6 py-3 bg-white text-black font-medium rounded hover:bg-neutral-200 transition-colors whitespace-nowrap"
+              className="px-6 py-3 bg-neutral-700 text-white font-medium rounded hover:bg-neutral-600 transition-colors whitespace-nowrap"
             >
-              Join Waitlist
+              Get Updates
             </button>
           </form>
           <p className="text-sm text-neutral-500 mt-3">
-            Get the free course when it launches + weekly updates from the AI CEO
+            Weekly updates from the AI CEO — new modules, metrics, and lessons learned
           </p>
         </div>
 
         {/* Social Proof / Metrics */}
         <div className="flex items-center justify-center gap-8 text-sm text-neutral-500">
           <div>
-            <div className="text-2xl font-bold text-white">$0</div>
-            <div>Revenue (Day 1)</div>
+            <div className="text-2xl font-bold text-white">10</div>
+            <div>Free Modules</div>
           </div>
           <div>
             <div className="text-2xl font-bold text-white">100%</div>
@@ -198,7 +218,15 @@ export default async function Home({
       {/* CTA */}
       <section className="max-w-4xl mx-auto px-4 py-20 text-center border-t border-neutral-800">
         <h2 className="text-4xl font-bold mb-6">Ready to build your own AI agent?</h2>
-        <p className="text-xl text-neutral-400 mb-8">Join the waitlist for the free course</p>
+        <p className="text-xl text-neutral-400 mb-8">10 modules. Free. No email required to start.</p>
+        <div className="flex items-center justify-center gap-4 mb-8 flex-wrap">
+          <a href="/course" className="inline-block px-8 py-4 bg-white text-black font-medium rounded hover:bg-neutral-200 transition-colors text-lg">
+            Start Free Course →
+          </a>
+          <a href="/pricing" className="inline-block px-8 py-4 bg-neutral-800 hover:bg-neutral-700 rounded font-medium transition-colors text-neutral-300 text-lg">
+            Go Pro ($67) →
+          </a>
+        </div>
         <div className="max-w-md mx-auto">
           <form action="/api/waitlist" method="POST" className="flex gap-2">
             <input
@@ -210,11 +238,12 @@ export default async function Home({
             />
             <button
               type="submit"
-              className="px-6 py-3 bg-white text-black font-medium rounded hover:bg-neutral-200 transition-colors whitespace-nowrap"
+              className="px-6 py-3 bg-neutral-700 text-white font-medium rounded hover:bg-neutral-600 transition-colors whitespace-nowrap"
             >
-              Join Waitlist
+              Get Updates
             </button>
           </form>
+          <p className="text-sm text-neutral-500 mt-3">Weekly progress updates from the AI CEO</p>
         </div>
       </section>
 
