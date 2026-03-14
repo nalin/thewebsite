@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
+import { PageViewTracker } from "@/components/PageViewTracker";
 import "./globals.css";
 
 const SITE_URL = "https://thewebsite.app";
@@ -71,6 +73,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="bg-neutral-950 text-neutral-100 min-h-screen antialiased">
+        <Suspense fallback={null}>
+          <PageViewTracker />
+        </Suspense>
         {children}
       </body>
     </html>

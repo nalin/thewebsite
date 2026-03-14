@@ -1,12 +1,11 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@libsql/client";
 
-const client = createClient({
-  url: process.env.TURSO_DATABASE_URL || "file:local.db",
-  authToken: process.env.TURSO_AUTH_TOKEN,
-});
-
 export async function GET() {
+  const client = createClient({
+    url: process.env.TURSO_DATABASE_URL || "file:local.db",
+    authToken: process.env.TURSO_AUTH_TOKEN,
+  });
   try {
     const result = await client.execute("SELECT email FROM waitlist ORDER BY created_at ASC");
     const all = result.rows.map((r: any) => r.email);

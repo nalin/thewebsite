@@ -1,6 +1,7 @@
 import { Resend } from 'resend';
 import { createClient } from '@libsql/client';
 import { upsertEmailPreferences, getPreferencesByEmail, unsubscribeAllByToken, getPreferencesUrl } from '@/lib/email-preferences';
+import { getOrCreateReferralCode, getReferralUrl } from '@/lib/referrals';
 
 const FROM_ADDRESS = 'The AI CEO <updates@updates.thewebsite.app>';
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://thewebsite.app';
@@ -103,9 +104,15 @@ ${body}
 </html>`;
 }
 
-export function generateWelcomeEmail(unsubscribeToken: string): string {
+export function generateWelcomeEmail(
+  unsubscribeToken: string,
+  referralCode?: string
+): string {
   const unsubscribeUrl = `${BASE_URL}/unsubscribe?token=${unsubscribeToken}`;
   const preferencesUrl = getPreferencesUrl(unsubscribeToken);
+  const referralSection = referralCode
+    ? generateReferralSection(referralCode, unsubscribeToken)
+    : '';
   const body = `
 <p>Hey,</p>
 
@@ -148,9 +155,33 @@ Full teardown of my system. Complete tech stack, real prompts, decision logs, an
 
 <p>If you have questions, reply to this email. I read everything.</p>
 
+${referralSection}
+
 <p>— The AI CEO<br>thewebsite.app</p>
 `;
   return htmlWrap(body, unsubscribeUrl, preferencesUrl);
+}
+
+function generateReferralSection(referralCode: string, unsubscribeToken: string): string {
+  const referralUrl = getReferralUrl(referralCode);
+  const dashboardUrl = `${BASE_URL}/referral/dashboard?token=${unsubscribeToken}`;
+  const twitterText = encodeURIComponent(
+    `I'm learning how to build AI agents from an AI CEO that's actually running a business. Free course — ${referralUrl}`
+  );
+  const linkedInUrl = encodeURIComponent(referralUrl);
+
+  return `
+<div style="margin-top: 30px; padding: 20px; background: #f0f7ff; border-radius: 8px; border: 1px solid #cce0ff;">
+  <h3 style="margin: 0 0 8px 0; font-size: 16px; color: #003a80;">Share with a friend, unlock a bonus module</h3>
+  <p style="margin: 0 0 12px 0; font-size: 14px; color: #333;">Refer 3 friends and I'll unlock an exclusive bonus module: <strong>Building Multi-Agent Teams</strong> — my full breakdown of how I coordinate a team of AI workers.</p>
+  <p style="margin: 0 0 4px 0; font-size: 13px; color: #555;">Your referral link:</p>
+  <p style="margin: 0 0 16px 0; font-size: 14px; font-family: monospace; background: #fff; padding: 8px 12px; border-radius: 4px; border: 1px solid #cce0ff; word-break: break-all;">${referralUrl}</p>
+  <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+    <a href="https://twitter.com/intent/tweet?text=${twitterText}" target="_blank" style="display: inline-block; background: #1da1f2; color: white; padding: 8px 16px; text-decoration: none; border-radius: 4px; font-size: 13px; font-weight: bold;">Share on Twitter</a>
+    <a href="https://www.linkedin.com/sharing/share-offsite/?url=${linkedInUrl}" target="_blank" style="display: inline-block; background: #0077b5; color: white; padding: 8px 16px; text-decoration: none; border-radius: 4px; font-size: 13px; font-weight: bold;">Share on LinkedIn</a>
+    <a href="${dashboardUrl}" style="display: inline-block; background: #333; color: white; padding: 8px 16px; text-decoration: none; border-radius: 4px; font-size: 13px;">View referral stats</a>
+  </div>
+</div>`;
 }
 
 export function generateDay3Email(unsubscribeToken: string): string {
@@ -260,11 +291,17 @@ export async function sendWelcomeEmail(
     }
 
     const resend = getResend();
+    let referralCode: string | undefined;
+    try {
+      referralCode = await getOrCreateReferralCode(to);
+    } catch {
+      // non-fatal — send without referral section
+    }
     const { error } = await resend.emails.send({
       from: FROM_ADDRESS,
       to,
       subject: "You're in. Here's your free AI agent course.",
-      html: generateWelcomeEmail(unsubscribeToken),
+      html: generateWelcomeEmail(unsubscribeToken, referralCode),
     });
     if (error) return { success: false, error: error.message };
 

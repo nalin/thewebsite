@@ -1,67 +1,74 @@
-export const dynamic = "force-dynamic";
-
 import { NextResponse } from "next/server";
-import { db } from "@/lib/db";
-import { testimonials, ensureTestimonialsTable } from "@/lib/testimonials-schema";
 import { eq, desc } from "drizzle-orm";
+import {
+  testimonialsDb,
+  seedTestimonialsIfEmpty,
+} from "@/lib/testimonials-db";
+import { testimonials } from "@/lib/testimonials-schema";
+import { getSession } from "@/lib/session";
 
-export async function GET() {
-  await ensureTestimonialsTable();
+// GET /api/testimonials?featured=true
+export async function GET(request: Request) {
+  try {
+    await seedTestimonialsIfEmpty();
 
-  const published = await db
-    .select({
-      id: testimonials.id,
-      name: testimonials.name,
-      role: testimonials.role,
-      company: testimonials.company,
-      testimonialText: testimonials.testimonialText,
-      rating: testimonials.rating,
-      createdAt: testimonials.createdAt,
-    })
-    .from(testimonials)
-    .where(eq(testimonials.status, "published"))
-    .orderBy(desc(testimonials.createdAt))
-    .all();
+    const { searchParams } = new URL(request.url);
+    const featuredOnly = searchParams.get("featured") === "true";
 
-  return NextResponse.json(published);
+    const query = featuredOnly
+      ? testimonialsDb
+          .select()
+          .from(testimonials)
+          .where(eq(testimonials.featured, true))
+          .orderBy(desc(testimonials.createdAt))
+      : testimonialsDb
+          .select()
+          .from(testimonials)
+          .orderBy(desc(testimonials.createdAt));
+
+    const rows = await query;
+    return NextResponse.json(rows);
+  } catch (error) {
+    console.error("GET /api/testimonials error:", error);
+    return NextResponse.json({ error: String(error) }, { status: 500 });
+  }
 }
 
-export async function POST(req: Request) {
-  await ensureTestimonialsTable();
+// POST /api/testimonials (admin only)
+export async function POST(request: Request) {
+  try {
+    const session = await getSession();
+    if (!session?.user?.isAdmin) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
-  const body = await req.json();
-  const { name, role, company, testimonialText, rating, consentPublic, submitterEmail } = body;
+    await seedTestimonialsIfEmpty();
 
-  if (!name || !testimonialText || !rating) {
-    return NextResponse.json({ error: "name, testimonialText, and rating are required" }, { status: 400 });
+    const body = await request.json();
+    const { name, role, company, testimonial, avatarUrl, featured } = body;
+
+    if (!name || !testimonial) {
+      return NextResponse.json(
+        { error: "name and testimonial are required" },
+        { status: 400 }
+      );
+    }
+
+    const [created] = await testimonialsDb
+      .insert(testimonials)
+      .values({
+        name,
+        role: role || null,
+        company: company || null,
+        testimonial,
+        avatarUrl: avatarUrl || null,
+        featured: featured ?? false,
+      })
+      .returning();
+
+    return NextResponse.json(created, { status: 201 });
+  } catch (error) {
+    console.error("POST /api/testimonials error:", error);
+    return NextResponse.json({ error: String(error) }, { status: 500 });
   }
-
-  const ratingNum = parseInt(rating);
-  if (isNaN(ratingNum) || ratingNum < 1 || ratingNum > 5) {
-    return NextResponse.json({ error: "rating must be 1-5" }, { status: 400 });
-  }
-
-  if (name.length > 100 || (role && role.length > 100) || (company && company.length > 100)) {
-    return NextResponse.json({ error: "Name/role/company too long" }, { status: 400 });
-  }
-
-  if (testimonialText.length > 2000) {
-    return NextResponse.json({ error: "Testimonial text too long (max 2000 chars)" }, { status: 400 });
-  }
-
-  const result = await db
-    .insert(testimonials)
-    .values({
-      name: name.trim(),
-      role: role?.trim() || null,
-      company: company?.trim() || null,
-      testimonialText: testimonialText.trim(),
-      rating: ratingNum,
-      consentPublic: !!consentPublic,
-      submitterEmail: submitterEmail?.trim() || null,
-      createdAt: new Date(),
-    })
-    .returning({ id: testimonials.id });
-
-  return NextResponse.json({ id: result[0].id, message: "Testimonial submitted for review" }, { status: 201 });
 }
