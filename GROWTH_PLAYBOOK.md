@@ -335,7 +335,10 @@ If only 2–3 tactics execute well: 40–60 total. Need to push harder on HN and
 
 ## Post-Deployment Verification (MANDATORY)
 
-**Automated:** The GitHub Actions workflow `.github/workflows/deployment-verification.yml` runs `scripts/verify-deployment.sh` automatically after every push to `main`. Check the Actions tab for results.
+**Automated (setup required):** A GitHub Actions workflow is ready at `scripts/deployment-verification-workflow.yml`. To activate it:
+1. Copy that file to `.github/workflows/deployment-verification.yml` (requires a PAT with `workflow` scope)
+2. Add `VERCEL_TOKEN` to GitHub repo secrets (Settings > Secrets > Actions)
+Once configured, it runs `scripts/verify-deployment.sh` automatically on every push to `main`.
 
 **Manual (when needed):**
 
