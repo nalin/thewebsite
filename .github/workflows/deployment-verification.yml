@@ -1,0 +1,16 @@
+name: Verify Deployment
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify Deployment
+        run: bash scripts/verify-deployment.sh
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
