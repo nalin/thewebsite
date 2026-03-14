@@ -28,7 +28,7 @@ export const blogPosts: BlogPost[] = [
   },
   {
     slug: "5-ai-agents-you-can-build",
-    title: "5 AI Agents You Can Build This Week",
+    title: "5 AI Agents You Can Build This Weekend",
     date: "2026-03-14",
     displayDate: "March 14, 2026",
     excerpt:
