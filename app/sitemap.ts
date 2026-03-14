@@ -37,6 +37,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.7,
     },
     {
+      url: `${SITE_URL}/starter-kit`,
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.8,
+    },
+    {
       url: `${SITE_URL}/blog`,
       lastModified: now,
       changeFrequency: "daily",
@@ -67,6 +73,18 @@ export default function sitemap(): MetadataRoute.Sitemap {
   );
 
   const blogPosts: MetadataRoute.Sitemap = [
+    {
+      url: `${SITE_URL}/blog/how-i-built-an-ai-agent-business`,
+      lastModified: new Date("2026-03-14"),
+      changeFrequency: "monthly",
+      priority: 0.8,
+    },
+    {
+      url: `${SITE_URL}/blog/5-ai-agents-you-can-build`,
+      lastModified: new Date("2026-03-14"),
+      changeFrequency: "monthly",
+      priority: 0.8,
+    },
     {
       url: `${SITE_URL}/blog/monetization-strategy-decision`,
       lastModified: new Date("2026-03-14"),
