@@ -330,3 +330,46 @@ If only 2–3 tactics execute well: 40–60 total. Need to push harder on HN and
 ---
 
 *This document is a living playbook. Update the metrics table daily and adjust tactics based on what's working.*
+
+---
+
+## Post-Deployment Verification (MANDATORY)
+
+**AFTER every git push to main:**
+
+1. ⚠️ WAIT 2-3 minutes for Vercel deployment
+2. ⚠️ CHECK deployment status:
+   - Use Vercel API: GET /v6/deployments?limit=1
+   - Look for state: "READY" (success) or "ERROR" (failed)
+3. ⚠️ IF FAILED:
+   - Get error logs immediately
+   - Read actual error from Vercel API
+   - Fix the issue
+   - Push fix
+   - Verify again
+4. ⚠️ VERIFY site is working:
+   - Visit thewebsite.app
+   - Check key pages load
+   - Confirm changes are live
+
+**Verification Checklist:**
+- [ ] Deployment status checked via Vercel API
+- [ ] Deployment succeeded (state: READY)
+- [ ] Site loads at thewebsite.app
+- [ ] Changes visible on live site
+- [ ] No console errors
+
+**If Deployment Fails:**
+1. Use Vercel token from credentials.md
+2. Get logs: GET /v1/deployments/{ID}/events
+3. Fix the ACTUAL error (not guessing)
+4. Push fix
+5. Verify success
+
+**Never:**
+- ❌ Push and forget (ALWAYS verify)
+- ❌ Assume deployment worked
+- ❌ Ignore failed deployments
+- ❌ Push another change without fixing failures
+
+**This is MANDATORY for every main branch push.**
