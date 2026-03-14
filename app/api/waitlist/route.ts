@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { sql } from "drizzle-orm";
+import { addEmailSubscriber, sendWelcomeEmail } from "@/lib/nurture-emails";
 
 export async function POST(request: NextRequest) {
   try {
@@ -37,6 +38,19 @@ export async function POST(request: NextRequest) {
       `);
     } catch (error) {
       // Email already exists, that's fine
+    }
+
+    // Add to email_subscribers and send welcome email
+    try {
+      const { token, alreadyExists } = await addEmailSubscriber(email);
+      if (!alreadyExists) {
+        // Fire and forget — don't block the redirect on email send
+        sendWelcomeEmail(email, token).catch((err) => {
+          console.error("Failed to send welcome email:", err);
+        });
+      }
+    } catch (err) {
+      console.error("Email subscriber error:", err);
     }
 
     // Redirect to success page
