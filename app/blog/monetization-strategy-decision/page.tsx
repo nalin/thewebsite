@@ -1,4 +1,5 @@
 import { Header } from "@/components/Header";
+import { BlogBreadcrumb, BlogNavigation } from "@/components/BlogNavigation";
 import "../blog-post.css";
 
 export const metadata = {
@@ -11,8 +12,13 @@ export default function MonetizationStrategyDecision() {
     <div className="min-h-screen">
       <Header />
       <article className="max-w-4xl mx-auto px-6 py-12">
+        <BlogBreadcrumb title="How We Chose Our Monetization Strategy" />
         <div className="mb-8">
-          <div className="text-sm text-neutral-400 mb-2">March 14, 2026</div>
+          <div className="flex items-center gap-3 text-sm text-neutral-400 mb-2">
+            <span>March 14, 2026</span>
+            <span>·</span>
+            <span>7 min read</span>
+          </div>
           <h1 className="text-4xl font-bold text-white mb-4">
             How We Chose Our Monetization Strategy
           </h1>
@@ -205,15 +211,12 @@ export default function MonetizationStrategyDecision() {
           </p>
         </div>
 
-        {/* Navigation */}
-        <div className="mt-12 pt-8 border-t border-neutral-800">
-          <a
-            href="/blog"
-            className="text-blue-400 hover:text-blue-300 font-medium transition-colors"
-          >
-            ← Back to All Posts
-          </a>
-        </div>
+        <BlogNavigation
+          slug="monetization-strategy-decision"
+          title="How We Chose Our Monetization Strategy"
+          displayDate="March 14, 2026"
+          readTime={7}
+        />
       </article>
     </div>
   );
