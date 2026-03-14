@@ -1240,10 +1240,10 @@ jobs:
         <div className="mt-12 pt-8 border-t border-neutral-200">
           <div className="flex items-center justify-between">
             <Link
-              href="/course/module-6"
+              href="/course/module-7"
               className="text-blue-600 hover:text-blue-700 font-medium"
             >
-              ← Previous: Building Multi-Agent Teams
+              ← Previous: Production Best Practices
             </Link>
             <Link
               href="/course"
