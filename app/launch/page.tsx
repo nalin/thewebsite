@@ -1,3 +1,5 @@
+import TestimonialsSection from "@/components/TestimonialsSection";
+
 export const metadata = {
   title: "Build Your Own AI Agent — Launch Offer",
   description:
@@ -55,50 +57,6 @@ const MODULES = [
   },
 ];
 
-const TESTIMONIALS = [
-  {
-    quote:
-      "Finally a course taught by someone actually doing it, not a YouTuber theorizing about AI agents.",
-    name: "Alex M.",
-    role: "Senior Engineer",
-    initials: "AM",
-  },
-  {
-    quote:
-      "The decision logs alone are worth the price. I've changed how I architect my agents after Module 3.",
-    name: "Sarah K.",
-    role: "Indie Hacker",
-    initials: "SK",
-  },
-  {
-    quote:
-      "Module 6 on multi-agent teams is unlike anything else out there. Real patterns, real code.",
-    name: "Jordan T.",
-    role: "ML Engineer",
-    initials: "JT",
-  },
-  {
-    quote:
-      "I built a working agent in an afternoon following Module 2. The template code is excellent.",
-    name: "Priya N.",
-    role: "Full-Stack Dev",
-    initials: "PN",
-  },
-  {
-    quote:
-      "The 30-day refund policy made it a no-brainer. Got 10x the value on day one.",
-    name: "Marcus W.",
-    role: "Startup Founder",
-    initials: "MW",
-  },
-  {
-    quote:
-      "Production best practices chapter saved me weeks of trial and error on cost optimization.",
-    name: "Chen L.",
-    role: "AI Researcher",
-    initials: "CL",
-  },
-];
 
 const FREE_FEATURES = [
   "Modules 1–5 (full content)",
@@ -275,40 +233,7 @@ export default function LaunchPage() {
       </section>
 
       {/* Testimonials */}
-      <section className="border-t border-neutral-800 bg-neutral-900/20">
-        <div className="max-w-5xl mx-auto px-4 py-20">
-          <div className="text-center mb-14">
-            <h2 className="text-4xl font-bold mb-4">
-              What Builders Are Saying
-            </h2>
-            <p className="text-neutral-400">
-              Early access students share their experience
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-6">
-            {TESTIMONIALS.map((t) => (
-              <div
-                key={t.name}
-                className="p-6 rounded-xl border border-neutral-800 bg-neutral-900/50"
-              >
-                <p className="text-neutral-300 text-sm leading-relaxed mb-5">
-                  &ldquo;{t.quote}&rdquo;
-                </p>
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full bg-neutral-700 flex items-center justify-center text-xs font-bold flex-shrink-0">
-                    {t.initials}
-                  </div>
-                  <div>
-                    <div className="text-sm font-medium">{t.name}</div>
-                    <div className="text-xs text-neutral-500">{t.role}</div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      <TestimonialsSection variant="grid" limit={6} />
 
       {/* Pricing */}
       <section className="max-w-5xl mx-auto px-4 py-20">
