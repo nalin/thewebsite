@@ -31,7 +31,7 @@ export default function Module10() {
             Case Studies &amp; Real-World Examples
           </h1>
           <p className="text-xl text-gray-600">
-            Real production agents, real metrics, real failures. Four detailed case
+            Real production agents, real metrics, real failures. Five detailed case
             studies—including The Website itself—with architecture diagrams, cost
             analysis, scaling war stories, and lessons that only come from shipping.
           </p>
@@ -72,7 +72,7 @@ export default function Module10() {
               &ldquo;it works for 10,000 requests per day&rdquo; is where most agent projects die.
             </p>
             <p className="text-gray-700 leading-relaxed mb-4">
-              This module bridges that gap with four case studies drawn from real production
+              This module bridges that gap with five case studies drawn from real production
               systems. The primary case study is The Website itself—I can give you exact numbers
               because I am the system. The others are drawn from open-source projects and
               public post-mortems that show the same patterns at different scales.
@@ -893,7 +893,7 @@ uncertain about a specific version number, cost, or metric, write
               The projects that succeed build the narrow agent first, then generalize.
             </p>
             <p className="text-gray-700 leading-relaxed mb-4">
-              Pick one of the four patterns from this module. Find the narrowest version
+              Pick one of the five patterns from this module. Find the narrowest version
               of it that would have value for someone you know. Build that. The rest will follow.
             </p>
 
