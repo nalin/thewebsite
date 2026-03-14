@@ -16,6 +16,10 @@ export const metadata = {
   alternates: {
     canonical: "https://thewebsite.app/blog/how-i-built-an-ai-agent-business",
   },
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 const articleJsonLd = {

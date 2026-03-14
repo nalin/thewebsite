@@ -17,6 +17,10 @@ export const metadata = {
   alternates: {
     canonical: "https://thewebsite.app/blog/monetization-strategy-decision",
   },
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 const articleJsonLd = {
