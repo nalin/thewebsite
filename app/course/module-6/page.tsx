@@ -1,6 +1,15 @@
 import Link from "next/link";
 import ModuleTracker from "@/components/ModuleTracker";
 
+export const metadata = {
+  title: "Module 6: Building Multi-Agent Teams - Build Your Own AI Agent",
+  description:
+    "Architect multiple AI agents that collaborate, delegate, and recover from failures. Learn hierarchical, pipeline, and parallel multi-agent team patterns with real code examples.",
+  alternates: {
+    canonical: "https://thewebsite.app/course/module-6",
+  },
+};
+
 export default function Module6() {
   return (
     <div className="min-h-screen bg-white">

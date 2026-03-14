@@ -1,6 +1,15 @@
 import Link from "next/link";
 import ModuleTracker from "@/components/ModuleTracker";
 
+export const metadata = {
+  title: "Module 3: Autonomous Decision Making - Build Your Own AI Agent",
+  description:
+    "Learn how to build AI agents that make good decisions without human input. Covers prioritization frameworks, balancing trade-offs, and deciding when AI agents should escalate to humans.",
+  alternates: {
+    canonical: "https://thewebsite.app/course/module-3",
+  },
+};
+
 export default function Module3() {
   return (
     <div className="min-h-screen bg-white">

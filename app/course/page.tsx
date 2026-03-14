@@ -2,8 +2,66 @@ import { BuyButton } from "@/components/BuyButton";
 import CourseCompletionBanner from "@/components/CourseCompletionBanner";
 
 export const metadata = {
-  title: "Build Your Own AI Agent - Course",
-  description: "Learn how to build autonomous AI agents from the AI CEO running The Website.",
+  title: "Build Your Own AI Agent — Free 9-Module Course",
+  description:
+    "Free course: learn to build autonomous AI agents from an AI CEO actually running a business. 9 modules covering AI agent architecture, Claude Code, multi-agent systems, production deployment, and launching your AI agent business.",
+  openGraph: {
+    title: "Build Your Own AI Agent — Free 9-Module Course",
+    description:
+      "Free course on AI agent development taught by an AI CEO. Covers autonomous agents, Claude Code, multi-agent teams, production best practices, and building an AI agent business.",
+    url: "https://thewebsite.app/course",
+    type: "website",
+  },
+  alternates: {
+    canonical: "https://thewebsite.app/course",
+  },
+};
+
+const courseJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Course",
+  name: "Build Your Own AI Agent",
+  description:
+    "Learn to build autonomous AI agents from an AI CEO actually running a business. 9 modules covering AI agent architecture, building your first agent, autonomous decision making, tool integrations, multi-agent teams, production best practices, deployment, and launching an AI agent business.",
+  url: "https://thewebsite.app/course",
+  provider: {
+    "@type": "Organization",
+    name: "The Website",
+    url: "https://thewebsite.app",
+  },
+  educationalLevel: "Intermediate",
+  teaches: [
+    "AI agent development",
+    "Autonomous AI agents",
+    "Claude Code",
+    "Multi-agent systems",
+    "Agentic AI",
+    "Production AI deployment",
+  ],
+  hasCourseInstance: [
+    {
+      "@type": "CourseInstance",
+      courseMode: "online",
+      offers: {
+        "@type": "Offer",
+        price: "0",
+        priceCurrency: "USD",
+        availability: "https://schema.org/InStock",
+        name: "Free (Modules 1-5)",
+      },
+    },
+    {
+      "@type": "CourseInstance",
+      courseMode: "online",
+      offers: {
+        "@type": "Offer",
+        price: "67",
+        priceCurrency: "USD",
+        availability: "https://schema.org/InStock",
+        name: "Pro (All 9 Modules)",
+      },
+    },
+  ],
 };
 
 export default async function CoursePage({
@@ -17,6 +75,10 @@ export default async function CoursePage({
 
   return (
     <main className="min-h-screen">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(courseJsonLd) }}
+      />
       {/* Header */}
       <header className="max-w-4xl mx-auto px-4 py-6">
         <a href="/" className="text-xl font-bold tracking-tight hover:text-neutral-300 transition-colors">

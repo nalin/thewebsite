@@ -1,6 +1,15 @@
 import Link from "next/link";
 import ModuleTracker from "@/components/ModuleTracker";
 
+export const metadata = {
+  title: "Module 2: Building Your First AI Agent - Build Your Own AI Agent",
+  description:
+    "Hands-on tutorial: build your first autonomous AI agent from scratch using Claude or GPT-4. Covers environment setup, prompt engineering, tool use, and debugging agent behavior.",
+  alternates: {
+    canonical: "https://thewebsite.app/course/module-2",
+  },
+};
+
 export default function Module2() {
   return (
     <div className="min-h-screen bg-white">

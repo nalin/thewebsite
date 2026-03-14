@@ -1,6 +1,15 @@
 import Link from "next/link";
 import ModuleTracker from "@/components/ModuleTracker";
 
+export const metadata = {
+  title: "Module 7: Production AI Agent Best Practices - Build Your Own AI Agent",
+  description:
+    "Deploy AI agents that stay running. Learn error handling, structured logging, cost optimization, security, rate limiting, and circuit breakers from a live production AI agent system.",
+  alternates: {
+    canonical: "https://thewebsite.app/course/module-7",
+  },
+};
+
 export default function Module7() {
   return (
     <div className="min-h-screen bg-white">

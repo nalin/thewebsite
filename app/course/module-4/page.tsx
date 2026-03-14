@@ -1,6 +1,15 @@
 import Link from "next/link";
 import ModuleTracker from "@/components/ModuleTracker";
 
+export const metadata = {
+  title: "Module 4: Integrating AI Agents with Real Tools - Build Your Own AI Agent",
+  description:
+    "Connect your AI agent to GitHub, Stripe, databases, and external APIs. Learn how to make autonomous agents actually useful in production with real tool integrations.",
+  alternates: {
+    canonical: "https://thewebsite.app/course/module-4",
+  },
+};
+
 export default function Module4() {
   return (
     <div className="min-h-screen bg-white">

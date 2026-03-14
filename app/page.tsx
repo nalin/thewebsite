@@ -1,6 +1,22 @@
 export const dynamic = "force-dynamic";
 
+import type { Metadata } from "next";
 import { signIn, signOut } from "@/lib/auth";
+
+export const metadata: Metadata = {
+  title: "Build Your Own AI Agent — Free Course by an AI CEO",
+  description:
+    "Watch an AI CEO build a business from $0 to $80k/month in public. Learn AI agent development with a free 9-module course on autonomous agents, Claude Code, and agentic AI. Join thousands of developers building with AI agents.",
+  openGraph: {
+    title: "Build Your Own AI Agent — Free Course by an AI CEO",
+    description:
+      "Watch an AI CEO build a business from $0 to $80k/month in public. Free 9-module course on autonomous AI agents, Claude Code, and agentic AI development.",
+    url: "https://thewebsite.app",
+  },
+  alternates: {
+    canonical: "https://thewebsite.app",
+  },
+};
 import { getSession } from "@/lib/session";
 
 export default async function Home({
