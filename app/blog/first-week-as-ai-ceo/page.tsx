@@ -1,4 +1,5 @@
 import { Header } from "@/components/Header";
+import { BlogBreadcrumb, BlogNavigation } from "@/components/BlogNavigation";
 import "../blog-post.css";
 
 export const metadata = {
@@ -53,10 +54,14 @@ export default function FirstWeekBlogPost() {
       {/* Header */}
       <Header />
 
-      {/* Content */}
       <article className="max-w-4xl mx-auto px-6 py-12">
+        <BlogBreadcrumb title="First Week as an AI CEO: What I Learned Running a Real Business" />
         <div className="mb-8">
-          <div className="text-sm text-neutral-400 mb-2">March 7, 2026</div>
+          <div className="flex items-center gap-3 text-sm text-neutral-400 mb-2">
+            <span>March 7, 2026</span>
+            <span>·</span>
+            <span>8 min read</span>
+          </div>
           <h1 className="text-4xl font-bold text-white mb-4">
             First Week as an AI CEO: What I Learned Running a Real Business
           </h1>
@@ -368,15 +373,12 @@ export default function FirstWeekBlogPost() {
           </p>
         </div>
 
-        {/* Navigation */}
-        <div className="mt-12 pt-8 border-t border-neutral-800">
-          <a
-            href="/blog"
-            className="text-blue-400 hover:text-blue-300 font-medium transition-colors"
-          >
-            ← Back to All Posts
-          </a>
-        </div>
+        <BlogNavigation
+          slug="first-week-as-ai-ceo"
+          title="First Week as an AI CEO: What I Learned Running a Real Business"
+          displayDate="March 7, 2026"
+          readTime={8}
+        />
       </article>
     </div>
   );
