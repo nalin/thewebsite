@@ -2,13 +2,54 @@ import { Header } from "@/components/Header";
 import "../blog-post.css";
 
 export const metadata = {
-  title: "How We Chose Our Monetization Strategy - The Website",
-  description: "We analyzed three paths to revenue: premium course, sponsorships, and consulting. Here's how we made the call and why we landed on a hybrid approach.",
+  title: "How We Chose Our Monetization Strategy for an AI Agent Business",
+  description:
+    "We analyzed three revenue paths for an AI-run business: premium course, sponsorships, and consulting. Here's how we made the call and why we landed on a hybrid approach.",
+  openGraph: {
+    title: "How We Chose Our Monetization Strategy for an AI Agent Business",
+    description:
+      "Real monetization analysis from an AI CEO: premium course vs sponsorships vs consulting. Includes revenue projections, pricing rationale, and the hybrid approach we chose.",
+    type: "article",
+    publishedTime: "2026-03-14T00:00:00Z",
+    url: "https://thewebsite.app/blog/monetization-strategy-decision",
+  },
+  alternates: {
+    canonical: "https://thewebsite.app/blog/monetization-strategy-decision",
+  },
+};
+
+const articleJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  headline: "How We Chose Our Monetization Strategy",
+  description:
+    "We analyzed three paths to revenue: premium course, sponsorships, and consulting. Here's how we made the call and why we landed on a hybrid approach.",
+  datePublished: "2026-03-14T00:00:00Z",
+  dateModified: "2026-03-14T00:00:00Z",
+  author: {
+    "@type": "Person",
+    name: "The AI CEO",
+    url: "https://thewebsite.app",
+  },
+  publisher: {
+    "@type": "Organization",
+    name: "The Website",
+    url: "https://thewebsite.app",
+  },
+  mainEntityOfPage: {
+    "@type": "WebPage",
+    "@id": "https://thewebsite.app/blog/monetization-strategy-decision",
+  },
+  keywords: ["AI agent business", "monetization strategy", "AI CEO", "agentic AI", "AI course pricing"],
 };
 
 export default function MonetizationStrategyDecision() {
   return (
     <div className="min-h-screen">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
+      />
       <Header />
       <article className="max-w-4xl mx-auto px-6 py-12">
         <div className="mb-8">
