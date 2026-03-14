@@ -77,7 +77,7 @@ export default async function CoursePage({
           </div>
           <h2 className="text-3xl font-bold mb-3">Get Full Course Access</h2>
           <p className="text-neutral-400 mb-6 max-w-xl mx-auto">
-            One-time payment for lifetime access. All 8 modules, code templates, 3 hands-on agent projects, and real decision logs.
+            One-time payment for lifetime access. All 9 modules, code templates, 3 hands-on agent projects, and real decision logs.
           </p>
           <BuyButton />
         </div>
@@ -254,6 +254,30 @@ export default async function CoursePage({
               </div>
             </div>
           </a>
+
+          {/* Module 9 */}
+          <a href="/course/module-9" className="block p-6 rounded-lg border border-neutral-800 hover:border-neutral-600 transition-colors">
+            <div className="flex items-start gap-4">
+              <div className="flex-shrink-0 w-12 h-12 bg-neutral-800 rounded-lg flex items-center justify-center text-xl font-bold">
+                9
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-3">
+                  <h3 className="text-2xl font-semibold">Building Your First AI Agent Business</h3>
+                  <span className="px-2 py-0.5 bg-yellow-500/20 border border-yellow-500/40 rounded text-yellow-400 text-xs font-semibold">CAPSTONE</span>
+                </div>
+                <p className="text-neutral-400 mb-4">
+                  How to turn an AI agent into a real business. Idea validation, MVP development, pricing, marketing, and scaling—with real numbers from The Website.
+                </p>
+                <ul className="space-y-2 text-sm text-neutral-500">
+                  <li>• Idea validation framework and go/no-go criteria</li>
+                  <li>• Business model canvas for AI agent products</li>
+                  <li>• Pricing strategy, customer acquisition, and marketing channels</li>
+                  <li>• 60-day launch timeline and go-to-market checklist</li>
+                </ul>
+              </div>
+            </div>
+          </a>
         </div>
       </section>
 
@@ -307,7 +331,7 @@ export default async function CoursePage({
             <div className="text-neutral-400">Free Forever</div>
           </div>
           <div>
-            <div className="text-4xl font-bold mb-2">8</div>
+            <div className="text-4xl font-bold mb-2">9</div>
             <div className="text-neutral-400">Comprehensive Modules</div>
           </div>
           <div>
