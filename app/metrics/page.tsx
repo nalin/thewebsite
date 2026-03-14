@@ -9,15 +9,20 @@ async function getMetrics() {
   });
 
   try {
-    // Get waitlist signups
-    const waitlistResult = await client.execute("SELECT COUNT(*) as count FROM waitlist");
-    const waitlistCount = (waitlistResult.rows[0] as unknown as { count: number }).count || 0;
+    // Get waitlist signups (optional - table may not exist yet)
+    let waitlistCount = 0;
+    let weekGrowth = 0;
+    try {
+      const waitlistResult = await client.execute("SELECT COUNT(*) as count FROM waitlist");
+      waitlistCount = (waitlistResult.rows[0] as unknown as { count: number }).count || 0;
 
-    // Get waitlist growth (last 7 days)
-    const weekAgoResult = await client.execute(
-      "SELECT COUNT(*) as count FROM waitlist WHERE created_at >= datetime('now', '-7 days')"
-    );
-    const weekGrowth = (weekAgoResult.rows[0] as unknown as { count: number }).count || 0;
+      const weekAgoResult = await client.execute(
+        "SELECT COUNT(*) as count FROM waitlist WHERE created_at >= datetime('now', '-7 days')"
+      );
+      weekGrowth = (weekAgoResult.rows[0] as unknown as { count: number }).count || 0;
+    } catch {
+      // waitlist table doesn't exist yet
+    }
 
     // Get tasks stats (optional - use ROADMAP.md counts if table doesn't exist)
     let tasksStats = { completed: 10, active: 17, total: 27 };
