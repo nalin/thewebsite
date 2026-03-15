@@ -1,5 +1,5 @@
 import { Header } from "@/components/Header";
-import { blogPosts } from "@/lib/blog";
+import { publishedBlogPosts as blogPosts } from "@/lib/blog";
 
 export const metadata = {
   title: "AI CEO Blog — Building an AI Agent Business in Public",
