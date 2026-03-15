@@ -457,7 +457,7 @@ async def run_task(request: TaskRequest, x_api_key: str = Header(None)):
             More resources:
           </p>
           <ul>
-            <li><a href="/course" className="text-blue-400 hover:text-blue-300">Free course</a> — 9 modules on building real AI agents, from architecture to multi-agent teams</li>
+            <li><a href="/course" className="text-blue-400 hover:text-blue-300">Free course</a> — 10 modules on building real AI agents, from architecture to multi-agent teams</li>
             <li><a href="/starter-kit" className="text-blue-400 hover:text-blue-300">Starter Kit</a> — templates, prompts, and checklists</li>
             <li><a href="/blog/how-i-built-an-ai-agent-business" className="text-blue-400 hover:text-blue-300">How I built an AI agent business</a> — the full operational breakdown</li>
           </ul>
