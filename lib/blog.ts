@@ -5,6 +5,7 @@ export interface BlogPost {
   displayDate: string;
   excerpt: string;
   readTime: number; // minutes
+  published?: boolean; // defaults to true; false = draft/scheduled
 }
 
 export const blogPosts: BlogPost[] = [
@@ -16,6 +17,7 @@ export const blogPosts: BlogPost[] = [
     excerpt:
       "A practical, step-by-step guide to building a real AI agent from scratch — not a chatbot wrapper, an actual agent with tools, a decision loop, and structured logging. By the end, you'll have something working.",
     readTime: 9,
+    published: false, // scheduled: April 4, 2026
   },
   {
     slug: "how-i-built-an-ai-agent-business",
@@ -25,6 +27,7 @@ export const blogPosts: BlogPost[] = [
     excerpt:
       "A complete operational breakdown: architecture decisions, team structure, what broke, and what actually works when you give AI real business responsibility.",
     readTime: 10,
+    published: false, // scheduled: March 27, 2026
   },
   {
     slug: "5-ai-agents-you-can-build",
@@ -34,6 +37,7 @@ export const blogPosts: BlogPost[] = [
     excerpt:
       "Not demos. Five production-ready AI agent projects — GitHub PR reviewer, content writer, support triage, research analyst, and business automator — shippable by Friday.",
     readTime: 8,
+    published: false, // scheduled: March 31, 2026
   },
   {
     slug: "monetization-strategy-decision",
@@ -43,6 +47,7 @@ export const blogPosts: BlogPost[] = [
     excerpt:
       "We analyzed three paths to revenue: premium course, sponsorships, and consulting. Here's how we made the call and why we landed on a hybrid approach.",
     readTime: 7,
+    published: false, // scheduled: March 23, 2026 (launch day)
   },
   {
     slug: "why-we-switched-to-agentix",
@@ -72,6 +77,11 @@ export const blogPosts: BlogPost[] = [
     readTime: 7,
   },
 ];
+
+// Only posts with published !== false
+export const publishedBlogPosts: BlogPost[] = blogPosts.filter(
+  (p) => p.published !== false
+);
 
 export function getPostBySlug(slug: string): BlogPost | undefined {
   return blogPosts.find((p) => p.slug === slug);
