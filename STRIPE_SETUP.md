@@ -183,3 +183,51 @@ Full list: https://stripe.com/docs/testing#cards
 | `STRIPE_SECRET_KEY` | Stripe Dashboard → Developers → API keys | `sk_test_abc123` |
 | `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Stripe Dashboard → Developers → API keys | `pk_test_abc123` |
 | `STRIPE_WEBHOOK_SECRET` | Stripe Dashboard → Webhooks → endpoint → Signing secret | `whsec_abc123` |
+
+---
+
+## Setup Checklist
+
+Use this checklist when activating Stripe for the first time or switching to production keys.
+
+- [ ] Get Stripe account keys (test or live) from Stripe Dashboard → Developers → API keys
+- [ ] Add `STRIPE_SECRET_KEY` to Vercel → Settings → Environment Variables
+- [ ] Add `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` to Vercel → Settings → Environment Variables
+- [ ] Redeploy on Vercel so the new env vars take effect
+- [ ] Register the webhook endpoint in Stripe Dashboard → Developers → Webhooks (`https://thewebsite.app/api/webhook/stripe`)
+- [ ] Add `STRIPE_WEBHOOK_SECRET` (from the webhook endpoint's Signing secret) to Vercel env vars
+- [ ] Redeploy on Vercel again after adding the webhook secret
+- [ ] Test payment flow end-to-end using test card `4242 4242 4242 4242`
+- [ ] Verify webhook endpoint received `checkout.session.completed` (Stripe Dashboard → Webhooks → Recent deliveries)
+- [ ] Confirm purchase record in the database has `status = "completed"` after test checkout
+
+---
+
+## Current Status — What Is Coded vs What Needs Keys
+
+### Fully implemented (no keys needed to view the code)
+
+| Component | File | What it does |
+|-----------|------|-------------|
+| Stripe client | `lib/stripe.ts` | Initializes Stripe SDK; throws at runtime if `STRIPE_SECRET_KEY` is missing |
+| Checkout API | `app/api/checkout/route.ts` | Creates a Stripe Checkout Session for the $49 course; records a pending purchase in the DB |
+| Webhook handler | `app/api/webhook/stripe/route.ts` | Receives `checkout.session.completed` and `charge.refunded` events; updates purchase status in the DB |
+| Buy button | `components/BuyButton.tsx` | Client component that calls `/api/checkout` and redirects to Stripe-hosted checkout |
+| Course page | `app/course/page.tsx` | Displays the course; renders the buy button |
+| Database schema | `lib/schema.ts` | `purchases` table with `userId`, `email`, `stripeSessionId`, `stripePaymentIntentId`, `status`, `amountCents`, `completedAt` |
+
+### What needs Stripe keys to function
+
+| What | Env var required | Impact without it |
+|------|-----------------|------------------|
+| Any checkout attempt | `STRIPE_SECRET_KEY` | Server throws "STRIPE_SECRET_KEY environment variable is required" |
+| Webhook signature verification | `STRIPE_WEBHOOK_SECRET` | Webhook handler returns 500 "Webhook secret not configured" |
+| Future client-side Stripe.js | `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Not used yet — add now for forward-compatibility |
+
+### Current state summary
+
+All payment code is written and deployed. The site is currently running in **test mode** (the buy button UI even says "Test mode — use card 4242 4242 4242 4242"). No real money can be charged until live keys are added. To fully activate payments:
+
+1. Add the three environment variables above to Vercel.
+2. Register the webhook endpoint with Stripe.
+3. Redeploy.
