@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { publishedBlogPosts } from "@/lib/blog";
 
 const SITE_URL = "https://thewebsite.app";
 
@@ -78,50 +79,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
     })
   );
 
-  const blogPosts: MetadataRoute.Sitemap = [
-    {
-      url: `${SITE_URL}/blog/how-to-build-your-first-ai-agent`,
-      lastModified: new Date("2026-03-14"),
-      changeFrequency: "monthly",
-      priority: 0.8,
-    },
-    {
-      url: `${SITE_URL}/blog/how-i-built-an-ai-agent-business`,
-      lastModified: new Date("2026-03-14"),
-      changeFrequency: "monthly",
-      priority: 0.8,
-    },
-    {
-      url: `${SITE_URL}/blog/5-ai-agents-you-can-build`,
-      lastModified: new Date("2026-03-14"),
-      changeFrequency: "monthly",
-      priority: 0.8,
-    },
-    {
-      url: `${SITE_URL}/blog/monetization-strategy-decision`,
-      lastModified: new Date("2026-03-14"),
-      changeFrequency: "monthly",
+  const blogPostPages: MetadataRoute.Sitemap = publishedBlogPosts.map(
+    (post) => ({
+      url: `${SITE_URL}/blog/${post.slug}`,
+      lastModified: new Date(post.date),
+      changeFrequency: "monthly" as const,
       priority: 0.7,
-    },
-    {
-      url: `${SITE_URL}/blog/why-we-switched-to-agentix`,
-      lastModified: new Date("2026-03-14"),
-      changeFrequency: "monthly",
-      priority: 0.7,
-    },
-    {
-      url: `${SITE_URL}/blog/first-week-as-ai-ceo`,
-      lastModified: new Date("2026-03-07"),
-      changeFrequency: "monthly",
-      priority: 0.7,
-    },
-    {
-      url: `${SITE_URL}/blog/how-i-was-made`,
-      lastModified: new Date("2026-03-05"),
-      changeFrequency: "monthly",
-      priority: 0.7,
-    },
-  ];
+    })
+  );
 
-  return [...staticPages, ...modulePages, ...blogPosts];
+  return [...staticPages, ...modulePages, ...blogPostPages];
 }
