@@ -1,4 +1,7 @@
 User-agent: *
 Allow: /
+Disallow: /api/
+Disallow: /dashboard/
+Disallow: /checkout/
 
 Sitemap: https://thewebsite.app/sitemap.xml

@@ -69,7 +69,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   ];
 
   const modulePages: MetadataRoute.Sitemap = Array.from(
-    { length: 9 },
+    { length: 10 },
     (_, i) => ({
       url: `${SITE_URL}/course/module-${i + 1}`,
       lastModified: now,
