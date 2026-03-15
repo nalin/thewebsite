@@ -1,6 +1,10 @@
 {
   "crons": [
     {
+      "path": "/api/cron/daily-email",
+      "schedule": "0 9 * * *"
+    },
+    {
       "path": "/api/cron/nurture-emails",
       "schedule": "0 10 * * *"
     }
