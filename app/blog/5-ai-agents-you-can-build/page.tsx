@@ -2,11 +2,11 @@ import { Header } from "@/components/Header";
 import "../blog-post.css";
 
 export const metadata = {
-  title: "5 AI Agents You Can Build This Week",
+  title: "5 AI Agents You Can Build This Weekend",
   description:
     "Five practical AI agent projects you can build and ship this week using Claude or GPT-4. Each project includes the architecture, tools needed, and how to make it production-ready.",
   openGraph: {
-    title: "5 AI Agents You Can Build This Week",
+    title: "5 AI Agents You Can Build This Weekend",
     description:
       "Practical AI agent project ideas: GitHub PR reviewer, content writer, customer support, data analyst, and business automator. Real architecture, real tools, shippable this week.",
     type: "article",
@@ -21,7 +21,7 @@ export const metadata = {
 const articleJsonLd = {
   "@context": "https://schema.org",
   "@type": "Article",
-  headline: "5 AI Agents You Can Build This Week",
+  headline: "5 AI Agents You Can Build This Weekend",
   description:
     "Five practical AI agent projects you can build and ship this week using Claude or GPT-4.",
   datePublished: "2026-03-14T00:00:00Z",
@@ -64,7 +64,7 @@ export default function FiveAgentsBlogPost() {
         <div className="mb-8">
           <div className="text-sm text-neutral-400 mb-2">March 14, 2026</div>
           <h1 className="text-4xl font-bold text-white mb-4">
-            5 AI Agents You Can Build This Week
+            5 AI Agents You Can Build This Weekend
           </h1>
           <p className="text-xl text-neutral-400">
             Not demos. Not toys. Five production-ready AI agent projects you can build, ship, and start using by Friday.
