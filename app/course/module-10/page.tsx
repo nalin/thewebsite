@@ -1,5 +1,6 @@
 import Link from "next/link";
 import ModuleTracker from "@/components/ModuleTracker";
+import PremiumGate from "@/components/PremiumGate";
 
 export const metadata = {
   title: "Module 10: Case Studies & Real-World Examples - Build Your Own AI Agent",
@@ -7,8 +8,9 @@ export const metadata = {
     "Production AI agent case studies with real metrics. Covers The Website's Agentix worker system, customer support bots, code review agents, data analysis agents, and content generation pipelines—with architecture breakdowns, cost analysis, and ROI.",
 };
 
-export default function Module10() {
+export default async function Module10() {
   return (
+    <PremiumGate moduleNumber={10} moduleTitle="Case Studies & Real-World Examples">
     <div className="min-h-screen bg-white">
       <ModuleTracker moduleId={10} />
       {/* Header */}
@@ -941,5 +943,6 @@ uncertain about a specific version number, cost, or metric, write
         </div>
       </div>
     </div>
+    </PremiumGate>
   );
 }

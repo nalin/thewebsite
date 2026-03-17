@@ -1,5 +1,6 @@
 import Link from "next/link";
 import ModuleTracker from "@/components/ModuleTracker";
+import PremiumGate from "@/components/PremiumGate";
 
 export const metadata = {
   title: "Module 6: Building Multi-Agent Teams - Build Your Own AI Agent",
@@ -10,8 +11,9 @@ export const metadata = {
   },
 };
 
-export default function Module6() {
+export default async function Module6() {
   return (
+    <PremiumGate moduleNumber={6} moduleTitle="Building Multi-Agent Teams">
     <div className="min-h-screen bg-white">
       <ModuleTracker moduleId={6} />
       {/* Header */}
@@ -954,5 +956,6 @@ produceReport("multi-agent AI systems").then(console.log);`}</pre>
         </div>
       </div>
     </div>
+    </PremiumGate>
   );
 }
