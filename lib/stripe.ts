@@ -14,5 +14,5 @@ export const stripe = new Proxy({} as Stripe, {
   },
 });
 
-export const COURSE_PRICE_CENTS = 4900; // $49.00 in test mode
+export const COURSE_PRICE_CENTS = 19700; // $197.00
 export const COURSE_PRODUCT_ID = "course-premium";
