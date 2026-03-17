@@ -1,5 +1,6 @@
 import Link from "next/link";
 import ModuleTracker from "@/components/ModuleTracker";
+import PremiumGate from "@/components/PremiumGate";
 
 export const metadata = {
   title: "Module 7: Production AI Agent Best Practices - Build Your Own AI Agent",
@@ -10,8 +11,9 @@ export const metadata = {
   },
 };
 
-export default function Module7() {
+export default async function Module7() {
   return (
+    <PremiumGate moduleNumber={7} moduleTitle="Production Best Practices">
     <div className="min-h-screen bg-white">
       <ModuleTracker moduleId={7} />
       {/* Header */}
@@ -1158,5 +1160,6 @@ const result = await runAgent({
         </div>
       </div>
     </div>
+    </PremiumGate>
   );
 }

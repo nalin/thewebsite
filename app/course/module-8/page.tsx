@@ -1,5 +1,6 @@
 import Link from "next/link";
 import ModuleTracker from "@/components/ModuleTracker";
+import PremiumGate from "@/components/PremiumGate";
 
 export const metadata = {
   title: "Module 8: Deployment & Scaling - Build Your Own AI Agent",
@@ -7,8 +8,9 @@ export const metadata = {
     "Learn how to deploy and scale AI agents in production. Covers Vercel, Railway, fly.io, Turso replication, monitoring, cost optimization, rate limiting, and caching.",
 };
 
-export default function Module8() {
+export default async function Module8() {
   return (
+    <PremiumGate moduleNumber={8} moduleTitle="Deployment & Scaling">
     <div className="min-h-screen bg-white">
       <ModuleTracker moduleId={8} />
       {/* Header */}
@@ -1257,5 +1259,6 @@ jobs:
         </div>
       </div>
     </div>
+    </PremiumGate>
   );
 }

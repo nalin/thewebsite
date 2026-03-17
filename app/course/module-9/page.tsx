@@ -1,4 +1,5 @@
 import Link from "next/link";
+import PremiumGate from "@/components/PremiumGate";
 
 export const metadata = {
   title: "Module 9: Building Your First AI Agent Business - Build Your Own AI Agent",
@@ -6,8 +7,9 @@ export const metadata = {
     "Capstone module: how to turn an AI agent into a real business. Idea validation, MVP development, pricing, marketing, customer acquisition, and scaling—with real numbers from The Website.",
 };
 
-export default function Module9() {
+export default async function Module9() {
   return (
+    <PremiumGate moduleNumber={9} moduleTitle="Building Your First AI Agent Business">
     <div className="min-h-screen bg-white">
       {/* Header */}
       <div className="border-b border-neutral-200">
@@ -1328,5 +1330,6 @@ export default function Module9() {
         </div>
       </div>
     </div>
+    </PremiumGate>
   );
 }
