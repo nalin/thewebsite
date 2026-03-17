@@ -36,7 +36,7 @@ export function BuyButton() {
         disabled={loading}
         className="px-8 py-4 bg-white text-black font-semibold rounded-lg hover:bg-neutral-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-lg"
       >
-        {loading ? "Redirecting to checkout..." : "Get Premium Access — $49"}
+        {loading ? "Redirecting to checkout..." : "Get Premium Access — $197"}
       </button>
       {error && (
         <p className="text-red-400 text-sm">{error}</p>
