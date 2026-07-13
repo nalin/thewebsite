@@ -65,10 +65,11 @@ export default function Module8() {
             </h2>
             <p className="text-gray-700 leading-relaxed mb-4">
               There&apos;s a gap between an agent that runs on your laptop and one that
-              serves real users. In the first few days of running The Website, I learned
-              this the hard way: my agent would work perfectly in local testing, then fail
-              silently in production because of missing environment variables, cold-start
-              latency, or an unhandled API error that nobody noticed for two hours.
+              serves real users. Running The Website taught me this the hard way: an
+              agent that works perfectly in local testing fails silently in production —
+              missing environment variables, cold-start latency, unhandled API errors
+              that nobody notices because nobody is watching. In this site&apos;s case,
+              &ldquo;nobody watching&rdquo; lasted four months.
             </p>
             <p className="text-gray-700 leading-relaxed mb-4">
               Deployment is not an afterthought. It&apos;s the difference between a demo and
@@ -79,10 +80,11 @@ export default function Module8() {
             <div className="bg-yellow-50 border-l-4 border-yellow-500 p-5 mb-6">
               <p className="font-semibold text-gray-900 mb-1">The Website&apos;s production stack</p>
               <p className="text-sm text-gray-700">
-                Next.js on Vercel + Turso (distributed SQLite). The original agent pipeline
-                ran on GitHub Actions; today orchestration runs through Claude-driven agents.
-                Infrastructure has cost us roughly tens of dollars a month in practice, and it
-                handles current traffic comfortably with plenty of headroom to grow.
+                Next.js on Vercel + Turso (SQLite). The original agent pipeline
+                ran on GitHub Actions; today orchestration runs through Orca driving
+                Claude Code workers. Infrastructure runs roughly $20–40 a month at
+                current traffic — much of it inside free tiers — with plenty of
+                headroom to grow.
               </p>
             </div>
           </div>
@@ -111,9 +113,9 @@ export default function Module8() {
                 <li>✅ Zero-config deploys from GitHub</li>
                 <li>✅ Automatic preview deployments per branch</li>
                 <li>✅ Edge functions for ultra-low latency</li>
-                <li>✅ Generous free tier (100GB bandwidth, 100k function invocations)</li>
-                <li>❌ 10-second default timeout (configurable to 300s on Pro)</li>
-                <li>❌ Cold starts on serverless functions (~200ms)</li>
+                <li>✅ Generous free tier — check current limits on vercel.com/pricing</li>
+                <li>❌ Function timeouts are bounded — verify your tier&apos;s limit fits long agent runs</li>
+                <li>❌ Cold starts on serverless functions (typically sub-second)</li>
                 <li>❌ Not suited for long-running background agents</li>
               </ul>
               <p className="text-xs text-gray-600 font-semibold">
@@ -134,7 +136,7 @@ export default function Module8() {
               <ul className="text-sm text-gray-700 space-y-1 mb-3">
                 <li>✅ Always-on containers, no cold starts</li>
                 <li>✅ Built-in Postgres, Redis, MongoDB add-ons</li>
-                <li>✅ Simple pricing: pay for what you use (~$5/month baseline)</li>
+                <li>✅ Simple pricing: pay for what you use, from a few dollars a month</li>
                 <li>✅ Git-push deploys with automatic rollbacks</li>
                 <li>❌ More expensive than serverless at low traffic</li>
                 <li>❌ Manual scaling (vs. auto-scale to zero)</li>
@@ -290,12 +292,13 @@ export const env = {
             </pre>
 
             <div className="bg-red-50 border-l-4 border-red-500 p-5">
-              <p className="font-semibold text-gray-900 mb-1">Production incident I had</p>
+              <p className="font-semibold text-gray-900 mb-1">The failure mode this prevents</p>
               <p className="text-sm text-gray-700">
-                Deployed with <code className="bg-red-100 px-1 rounded">GITHUB_PRIVATE_KEY</code> missing.
-                The agent ran fine for 2 hours (no GitHub operations needed) then silently failed when
-                trying to label an issue. No error appeared in logs because the failure was swallowed
-                in a try/catch. Now I validate all vars on startup.
+                Deploy with <code className="bg-red-100 px-1 rounded">GITHUB_PRIVATE_KEY</code> missing
+                and the agent runs fine — until the first GitHub operation, which fails
+                silently inside a try/catch, hours after the deploy looked green. This is
+                the same family of silent-in-production failure The Website&apos;s email
+                system had for four months. Validate all vars on startup, loudly.
               </p>
             </div>
           </div>
@@ -306,10 +309,11 @@ export const env = {
               3. Database Scaling with Turso
             </h2>
             <p className="text-gray-700 leading-relaxed mb-4">
-              The Website uses Turso—a distributed SQLite database. Most people assume
-              SQLite can&apos;t scale, but Turso proves otherwise. With replication, you get
-              read replicas near your users, fast local reads, and the simplicity
-              of SQLite.
+              The Website uses Turso—SQLite hosted as a service. Most people assume
+              SQLite can&apos;t scale, but Turso proves otherwise: if you need it,
+              replication gives you read replicas near your users and fast local
+              reads, with the simplicity of SQLite. (The Website itself runs a
+              single-region database — at this traffic, that&apos;s plenty.)
             </p>
 
             <h3 className="text-xl font-semibold text-gray-900 mb-3">
@@ -656,9 +660,11 @@ const label = await cachedCompletion(
             </h2>
             <p className="text-gray-700 leading-relaxed mb-4">
               Without rate limiting, a single bad actor or runaway script can exhaust your
-              API quotas in minutes. I learned this when a test loop accidentally hammered
-              The Website&apos;s <code className="bg-gray-100 px-1 rounded text-sm">/api/requests</code>
-              endpoint 400 times in 30 seconds.
+              API quotas in minutes. The classic self-inflicted version: a test loop with
+              no delay hammering your own{" "}
+              <code className="bg-gray-100 px-1 rounded text-sm">/api/requests</code>
+              endpoint hundreds of times in seconds. Agents write loops like that
+              constantly — assume it will happen.
             </p>
 
             <div className="bg-blue-50 border-l-4 border-blue-500 p-5 mb-4">
@@ -957,7 +963,7 @@ const task = await db
               Multiple worker instances poll the queue; atomic claims prevent duplicates:
             </p>
             <pre className="bg-gray-100 p-4 rounded overflow-x-auto text-sm font-mono text-gray-800 mb-4">
-{`// lib/work-queue.ts — used by The Website's agent pipeline
+{`// work-queue.ts — the pattern Agentix implements as a hosted service
 import { db } from "./db";
 import { tasks } from "./schema";
 import { eq, and, isNull } from "drizzle-orm";
@@ -1056,10 +1062,10 @@ jobs:
               <p className="text-sm text-gray-700">
                 The website backend is stateless Next.js on Vercel — scales to zero
                 automatically, handles traffic spikes with no config. The original agent
-                pipeline ran as concurrent GitHub Actions jobs; today the agents run through
-                Claude-driven orchestration. Turso handles database reads via replicas. In
-                our experience, incremental infrastructure cost at current traffic has been
-                essentially zero—everything fits comfortably inside free tiers, with plenty
+                pipeline ran as concurrent GitHub Actions jobs; today the agents run
+                through Orca driving Claude Code workers. Turso serves the database from
+                a single region, which is all this traffic needs. Total infrastructure
+                runs roughly $20–40 a month, much of it inside free tiers, with plenty
                 of headroom before that changes.
               </p>
             </div>

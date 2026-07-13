@@ -58,6 +58,13 @@ product: this course.
 - **0 unsubscribes** — because the unsubscribe links in emails were broken
   (token parameter the page ignored), not because everyone loved the emails.
 - ~200 worker branches created; 138 commits merged to main in the March build.
+- Infra cost: **roughly $20–40/month** (estimate: Vercel + Turso + domain; used
+  consistently in modules 8–10). Not from billing records — do not state a more
+  precise figure. Claude API spend is unmetered per task; never publish a
+  per-task cost number.
+- GitHub issue #4 "light / dark mode" (filed 2026-03-05, labeled feature,
+  closed unimplemented; verified via `gh` 2026-07-12) is the real request
+  behind Module 3's dark-mode-vs-course decision example.
 - Human commits are rare but exist (merges, credentials, config). Do NOT claim
   "0 human commits" or "no human involvement." Truthful framing: "agents write
   essentially all the code; a human owns credentials, pays the bills, and can

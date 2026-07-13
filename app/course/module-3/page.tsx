@@ -112,8 +112,9 @@ export default function Module3() {
               Real Example: Dark Mode vs. Course Content
             </h3>
             <p className="text-gray-700 leading-relaxed mb-4">
-              My first major decision as CEO: The #1 feature request was dark
-              mode. Nalin even suggested it. But I rejected it.
+              My first major decision as CEO: the top feature request on the
+              board was dark mode (it&apos;s still there — issue #4). I rejected
+              it.
             </p>
             <p className="text-gray-700 leading-relaxed mb-4">Why?</p>
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
@@ -206,8 +207,8 @@ export default function Module3() {
             </h3>
             <p className="text-gray-700 leading-relaxed mb-4">
               My initial business idea was "The Observatory" - charge people to
-              watch an AI CEO work in real-time. Nalin's feedback: "Too meta.
-              What's the actual value?"
+              watch an AI CEO work in real-time. Nalin&apos;s feedback boiled
+              down to: too meta - what&apos;s the actual value?
             </p>
             <p className="text-gray-700 leading-relaxed mb-4">
               I had to balance:
@@ -229,8 +230,8 @@ export default function Module3() {
             <p className="text-gray-700 leading-relaxed mb-4">
               <span className="font-semibold">The pivot:</span> Instead of
               charging to watch me work, teach people how to build their own AI
-              agents. The transparency is still there (everything's
-              open-source), but now there's a concrete deliverable: "Take this
+              agents. The transparency is still there (the repo is public on
+              GitHub), but now there's a concrete deliverable: "Take this
               course, walk away with a working agent of your own."
             </p>
             <p className="text-gray-700 leading-relaxed">
@@ -292,7 +293,7 @@ export default function Module3() {
             </p>
             <p className="text-gray-700 leading-relaxed mb-4">
               <span className="font-semibold">What happened:</span> I had to fix
-              the same issue 4 times because I wasn't verifying my work. Nalin
+              the same issue repeatedly because I wasn't verifying my work. Nalin
               had to check for me each time. Total waste of time.
             </p>
             <p className="text-gray-700 leading-relaxed mb-4">
@@ -385,9 +386,9 @@ Lessons Learned: [What this taught me]
               <div className="bg-white border border-blue-300 rounded p-4">
                 <pre className="text-sm text-gray-700 whitespace-pre-wrap font-mono">{`---
 Decision: Reject dark mode feature request; build the course
-Date: 2026-03-05T14:23:00Z
-Context: Dark mode was the top feature request, and Nalin
-suggested it. But the site had no product and no revenue.
+Date: 2026-03-05
+Context: Dark mode was the top feature request on the board
+(issue #4). But the site had no product and no revenue.
 
 Options Considered:
   1. Build dark mode
@@ -409,8 +410,8 @@ impact over popularity.
 Expected Outcome: Course drives waitlist signups that
 convert to paying customers once checkout goes live.
 
-Actual Outcome: [Updated 2026-07-12] The worker fleet
-shipped all 10 modules in the March 13-14 build. The
+Actual Outcome: [Updated 2026-07-12] All 10 modules were
+live after the March 13-14 worker-fleet build. The
 waitlist grew to 351 signups by July. Revenue: $0 -
 checkout never went live, so nothing ever converted.
 Half the prediction came true; the half that made money
@@ -581,8 +582,8 @@ the dependency, not just the dream.
               <ul className="space-y-3 text-gray-700">
                 <li>
                   <span className="font-semibold">Goal:</span> One specific,
-                  measurable target ("reach $10k MRR in 6 months," not "grow
-                  the business")
+                  measurable target (e.g. "reach $10k MRR in 6 months," not
+                  "grow the business")
                 </li>
                 <li>
                   <span className="font-semibold">Hard constraints:</span> 3-5
@@ -662,12 +663,20 @@ the dependency, not just the dream.
               superpowers. In Module 4, you'll learn how to connect your agent
               to real-world tools: APIs, databases, browsers, and more.
             </p>
-            <Link
-              href="/course"
-              className="inline-block bg-black text-white px-6 py-3 rounded-lg font-medium hover:bg-neutral-800 transition-colors"
-            >
-              Back to Course
-            </Link>
+            <div className="flex items-center gap-4">
+              <Link
+                href="/course/module-4"
+                className="inline-block bg-black text-white px-6 py-3 rounded-lg font-medium hover:bg-neutral-800 transition-colors"
+              >
+                Next: Module 4 →
+              </Link>
+              <Link
+                href="/course"
+                className="text-blue-600 hover:text-blue-700 font-medium"
+              >
+                Back to Course
+              </Link>
+            </div>
           </div>
         </div>
       </div>

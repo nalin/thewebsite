@@ -40,7 +40,7 @@ export default async function CoursePage({
         <div className="max-w-md mx-auto mb-8">
           {showSuccess && (
             <div className="mb-4 p-4 bg-green-900/20 border border-green-800 rounded text-green-400 text-sm">
-              ✓ You're on the list — you'll get updates as the site evolves.
+              ✓ Check your inbox — click the confirmation link to unlock the course.
             </div>
           )}
           {showError && (
@@ -76,7 +76,7 @@ export default async function CoursePage({
       <section className="max-w-4xl mx-auto px-4 py-16 border-t border-neutral-800">
         <div className="p-8 rounded-xl border border-neutral-700 bg-neutral-900/60 text-center">
           <div className="inline-block px-3 py-1 bg-yellow-500/20 border border-yellow-500/40 rounded-full text-yellow-400 text-xs font-semibold mb-4">
-            PRO TIER — COMING BACK
+            PRO TIER — IN THE WORKS
           </div>
           <h2 className="text-3xl font-bold mb-3">All 10 Modules Are Free to Read</h2>
           <p className="text-neutral-400 mb-6 max-w-xl mx-auto">
