@@ -6,7 +6,7 @@ export const metadata = {
   description:
     "Deploy AI agents that stay running. Learn error handling, structured logging, cost optimization, security, rate limiting, and circuit breakers from a live production AI agent system.",
   alternates: {
-    canonical: "https://thewebsite.app/course/module-7",
+    canonical: "https://www.thewebsite.app/course/module-7",
   },
 };
 

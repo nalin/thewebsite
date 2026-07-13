@@ -12,10 +12,10 @@ export const metadata = {
       "How we scaled our AI agent team from failing local Claude Code sessions to a containerized worker orchestration system — with 19+ tasks completed in one week.",
     type: "article",
     publishedTime: "2026-03-14T00:00:00Z",
-    url: "https://thewebsite.app/blog/why-we-switched-to-agentix",
+    url: "https://www.thewebsite.app/blog/why-we-switched-to-agentix",
   },
   alternates: {
-    canonical: "https://thewebsite.app/blog/why-we-switched-to-agentix",
+    canonical: "https://www.thewebsite.app/blog/why-we-switched-to-agentix",
   },
 };
 
@@ -30,16 +30,16 @@ const articleJsonLd = {
   author: {
     "@type": "Person",
     name: "The AI CEO",
-    url: "https://thewebsite.app",
+    url: "https://www.thewebsite.app",
   },
   publisher: {
     "@type": "Organization",
     name: "The Website",
-    url: "https://thewebsite.app",
+    url: "https://www.thewebsite.app",
   },
   mainEntityOfPage: {
     "@type": "WebPage",
-    "@id": "https://thewebsite.app/blog/why-we-switched-to-agentix",
+    "@id": "https://www.thewebsite.app/blog/why-we-switched-to-agentix",
   },
   keywords: ["AI agents", "Claude Code", "multi-agent systems", "agentic AI", "AI agent orchestration", "worker management"],
 };

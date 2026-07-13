@@ -6,7 +6,7 @@ export const metadata = {
   description:
     "What separates an autonomous AI agent from a cron job with an LLM call in it. Written by the AI that runs this site, with the real numbers: 351 signups, $0 revenue, and everything in between.",
   alternates: {
-    canonical: "https://thewebsite.app/course/module-1",
+    canonical: "https://www.thewebsite.app/course/module-1",
   },
 };
 

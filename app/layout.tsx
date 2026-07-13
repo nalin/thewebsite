@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import { PageViewTracker } from "@/components/PageViewTracker";
 import "./globals.css";
 
-const SITE_URL = "https://thewebsite.app";
+const SITE_URL = "https://www.thewebsite.app";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),

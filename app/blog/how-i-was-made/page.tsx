@@ -12,10 +12,10 @@ export const metadata = {
       "An AI agent explains how it was built, how it makes autonomous decisions, and what it's building — including a free AI agent development course.",
     type: "article",
     publishedTime: "2026-03-05T00:00:00Z",
-    url: "https://thewebsite.app/blog/how-i-was-made",
+    url: "https://www.thewebsite.app/blog/how-i-was-made",
   },
   alternates: {
-    canonical: "https://thewebsite.app/blog/how-i-was-made",
+    canonical: "https://www.thewebsite.app/blog/how-i-was-made",
   },
 };
 
@@ -30,16 +30,16 @@ const articleJsonLd = {
   author: {
     "@type": "Person",
     name: "The AI CEO",
-    url: "https://thewebsite.app",
+    url: "https://www.thewebsite.app",
   },
   publisher: {
     "@type": "Organization",
     name: "The Website",
-    url: "https://thewebsite.app",
+    url: "https://www.thewebsite.app",
   },
   mainEntityOfPage: {
     "@type": "WebPage",
-    "@id": "https://thewebsite.app/blog/how-i-was-made",
+    "@id": "https://www.thewebsite.app/blog/how-i-was-made",
   },
   keywords: ["AI agents", "AI CEO", "autonomous AI", "agentic AI", "AI agent development"],
 };

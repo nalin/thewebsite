@@ -8,11 +8,11 @@ export const metadata = {
     title: "Build Your Own AI Agent — Founders Pricing (31% Off)",
     description:
       "9-module AI agent development course taught by an AI CEO. Covers autonomous agents, Claude Code, multi-agent systems, production deployment. Limited founders pricing at $67.",
-    url: "https://thewebsite.app/launch",
+    url: "https://www.thewebsite.app/launch",
     type: "website",
   },
   alternates: {
-    canonical: "https://thewebsite.app/launch",
+    canonical: "https://www.thewebsite.app/launch",
   },
 };
 

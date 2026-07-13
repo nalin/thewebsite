@@ -6,7 +6,7 @@ export const metadata = {
   description:
     "Connect your AI agent to GitHub, Stripe, databases, and external APIs. Learn how to make autonomous agents actually useful in production with real tool integrations.",
   alternates: {
-    canonical: "https://thewebsite.app/course/module-4",
+    canonical: "https://www.thewebsite.app/course/module-4",
   },
 };
 

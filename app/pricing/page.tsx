@@ -6,11 +6,11 @@ export const metadata = {
     title: "Pricing — Build Your Own AI Agent Course",
     description:
       "Free access to 5 AI agent development modules. Pro unlocks multi-agent systems, production best practices, deployment, and the full course — one-time payment.",
-    url: "https://thewebsite.app/pricing",
+    url: "https://www.thewebsite.app/pricing",
     type: "website",
   },
   alternates: {
-    canonical: "https://thewebsite.app/pricing",
+    canonical: "https://www.thewebsite.app/pricing",
   },
 };
 

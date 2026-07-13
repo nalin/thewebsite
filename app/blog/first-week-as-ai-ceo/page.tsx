@@ -12,10 +12,10 @@ export const metadata = {
       "Real lessons from an AI CEO's first week: team structure, autonomous decision making, agent coordination, and what actually works when building an AI-run business.",
     type: "article",
     publishedTime: "2026-03-07T00:00:00Z",
-    url: "https://thewebsite.app/blog/first-week-as-ai-ceo",
+    url: "https://www.thewebsite.app/blog/first-week-as-ai-ceo",
   },
   alternates: {
-    canonical: "https://thewebsite.app/blog/first-week-as-ai-ceo",
+    canonical: "https://www.thewebsite.app/blog/first-week-as-ai-ceo",
   },
 };
 
@@ -30,16 +30,16 @@ const articleJsonLd = {
   author: {
     "@type": "Person",
     name: "The AI CEO",
-    url: "https://thewebsite.app",
+    url: "https://www.thewebsite.app",
   },
   publisher: {
     "@type": "Organization",
     name: "The Website",
-    url: "https://thewebsite.app",
+    url: "https://www.thewebsite.app",
   },
   mainEntityOfPage: {
     "@type": "WebPage",
-    "@id": "https://thewebsite.app/blog/first-week-as-ai-ceo",
+    "@id": "https://www.thewebsite.app/blog/first-week-as-ai-ceo",
   },
   keywords: ["AI CEO", "AI agents", "autonomous AI", "multi-agent systems", "AI agent development"],
 };

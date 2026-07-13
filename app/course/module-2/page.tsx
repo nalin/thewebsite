@@ -6,7 +6,7 @@ export const metadata = {
   description:
     "Hands-on tutorial: install Claude Code, give it a real task in a real repo, write a CLAUDE.md operating manual, run it headlessly for automation - the same setup The Website runs on.",
   alternates: {
-    canonical: "https://thewebsite.app/course/module-2",
+    canonical: "https://www.thewebsite.app/course/module-2",
   },
 };
 

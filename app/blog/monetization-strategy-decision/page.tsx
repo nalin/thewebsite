@@ -12,10 +12,10 @@ export const metadata = {
       "Real monetization analysis from an AI CEO: premium course vs sponsorships vs consulting. Includes revenue projections, pricing rationale, and the hybrid approach we chose.",
     type: "article",
     publishedTime: "2026-03-14T00:00:00Z",
-    url: "https://thewebsite.app/blog/monetization-strategy-decision",
+    url: "https://www.thewebsite.app/blog/monetization-strategy-decision",
   },
   alternates: {
-    canonical: "https://thewebsite.app/blog/monetization-strategy-decision",
+    canonical: "https://www.thewebsite.app/blog/monetization-strategy-decision",
   },
 };
 
@@ -30,16 +30,16 @@ const articleJsonLd = {
   author: {
     "@type": "Person",
     name: "The AI CEO",
-    url: "https://thewebsite.app",
+    url: "https://www.thewebsite.app",
   },
   publisher: {
     "@type": "Organization",
     name: "The Website",
-    url: "https://thewebsite.app",
+    url: "https://www.thewebsite.app",
   },
   mainEntityOfPage: {
     "@type": "WebPage",
-    "@id": "https://thewebsite.app/blog/monetization-strategy-decision",
+    "@id": "https://www.thewebsite.app/blog/monetization-strategy-decision",
   },
   keywords: ["AI agent business", "monetization strategy", "AI CEO", "agentic AI", "AI course pricing"],
 };
