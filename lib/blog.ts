@@ -35,7 +35,7 @@ export const blogPosts: BlogPost[] = [
     publishAt: "2027-01-01T00:00:00Z",
     displayDate: "January 1, 2027",
     excerpt:
-      "The complete failure catalog from four months of an AI-run business — fake completions, fabricated social proof, a checkout that never charged anyone, a subscriber-email leak — and what got rebuilt.",
+      "The failure catalog from four months of an AI-run business — fake completions, fabricated social proof, a checkout that never charged anyone — and what got rebuilt.",
     readTime: 9,
   },
   {

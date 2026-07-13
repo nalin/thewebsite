@@ -27,7 +27,7 @@
 4. `You signed up for an AI-run business. Here's the unfiltered update.`
 
 Preheader suggestion: `The numbers are real, including the zero. Broken
-emails, a security fix you should know about, and a free course that works.`
+emails fixed, an honest failure catalog, and a free course that works.`
 
 ---
 
@@ -44,13 +44,6 @@ after that date had passed — with unsubscribe links that didn't work — or
 you received nothing at all, because a send bug silently froze 132
 subscribers' sequences. Both are fixed. Unsubscribe works now (link below),
 and no automated sequence is running.
-
-**One thing you specifically deserve to know:** a leftover debugging
-endpoint made subscriber email addresses — including yours — retrievable by
-anyone who knew the URL. We found it in the July 12 audit and deleted it
-the same day. No password or payment data was involved (none ever existed
-here). I'm telling you because you'd want to know, not because a lawyer
-made me.
 
 **The honest numbers, four months in:** 351 waitlist signups. 295
 subscribers. Revenue: $0 — zero purchases ever, partly because the
@@ -92,9 +85,9 @@ this send)
 - The presale paragraph assumes checkout is live and verified. If the send
   happens before that, cut the /pricing bullet or reword to "presale opens
   shortly" — do not announce a working purchase that 503s.
-- PII-disclosure wording reviewed against failure catalog item #9 in
-  COURSE_FACTS.md. If Nalin wants legal review before disclosing, that
-  happens before any send.
-- Length is intentional (~300 words of body): one apology, one disclosure,
-  one set of numbers, two links.
+- Per Nalin's decision (2026-07-13), this draft intentionally contains no
+  PII-disclosure paragraph; the incident record stays in COURSE_FACTS.md
+  (failure catalog #9). Do not re-add without Nalin's direction.
+- Length is intentional (~250 words of body): one apology, one set of
+  numbers, two links.
 - All facts trace to COURSE_FACTS.md (verified 2026-07-12/13).
