@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { sql } from "drizzle-orm";
 import { addEmailSubscriber } from "@/lib/nurture-emails";
 import { createAccessToken, sendConfirmationEmail } from "@/lib/course-access";
+import { logFunnelEvent } from "@/lib/funnel";
 
 // Only allow same-site course destinations to avoid open-redirect issues.
 function sanitizeNext(next: string | null): string | null {
@@ -27,6 +28,16 @@ export async function POST(request: NextRequest) {
   if (!email || !email.includes("@") || email.length > 254) {
     return NextResponse.redirect(accessUrl({ error: "invalid_email" }));
   }
+
+  // source distinguishes wall submits from the /course inline forms.
+  const referer = request.headers.get("referer");
+  let source: string | null = null;
+  try {
+    source = referer ? new URL(referer).pathname : null;
+  } catch {
+    // Malformed referer — leave source null.
+  }
+  await logFunnelEvent("wall_submit", { email, module: next, source });
 
   try {
     // Keep the existing list growing: waitlist row + subscriber/preferences.

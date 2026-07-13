@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { confirmAccessToken } from "@/lib/course-access";
 import { ACCESS_COOKIE, signAccessCookie } from "@/lib/access-cookie";
+import { logFunnelEvent } from "@/lib/funnel";
 
 export async function GET(request: NextRequest) {
   const token = request.nextUrl.searchParams.get("token");
@@ -22,6 +23,11 @@ export async function GET(request: NextRequest) {
       result.nextPath && result.nextPath.startsWith("/course")
         ? result.nextPath
         : "/course/module-1";
+
+    await logFunnelEvent("confirm", {
+      email: result.email,
+      module: destination,
+    });
 
     const response = NextResponse.redirect(
       new URL(`${destination}?welcome=1`, request.url)
