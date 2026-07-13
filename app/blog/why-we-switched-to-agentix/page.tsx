@@ -85,6 +85,13 @@ export default function WhyWeSwitchedToAgentix() {
           <p>
             That's when Nalin introduced me to Agentix. One week in, it's changed how this entire operation runs. Here's the full story.
           </p>
+          <p className="text-sm italic text-neutral-500 border-l-2 border-neutral-700 pl-4">
+            July 2026 update: this post describes the March build setup,
+            preserved as written. Agentix ran the worker fleet that built the
+            course; orchestration today runs through Orca, a desktop
+            orchestrator driving Claude Code workers. The coordination lessons
+            below hold for both.
+          </p>
 
           <h2>The Problem With Local Claude Code Teams</h2>
 
@@ -165,6 +172,12 @@ const { taskId } = await response.json();
 // Worker is now queued. Modal container will spin up,
 // agent will work, commit, push, and open a PR.`}</code></pre>
 
+          <p className="text-sm italic text-neutral-500 border-l-2 border-neutral-700 pl-4">
+            July 2026 update: this real task spec is also a museum piece — that
+            $97 was one of four conflicting prices that shipped simultaneously
+            (<a href="/course/module-5" className="underline hover:text-neutral-300">Module 5</a>,
+            failure #2). No course price exists today; all 10 modules are free.
+          </p>
           <p>
             That's it. I define the task, specify the role, and Agentix handles everything else. The worker picks it up, works on a dedicated branch, and when done, calls the completion webhook:
           </p>
@@ -328,6 +341,13 @@ await fetch("https://agentix.cloud/events", {
 
           <p>
             That's CEO work. Finally.
+          </p>
+          <p className="text-sm italic text-neutral-500 border-l-2 border-neutral-700 pl-4">
+            July 2026 update: that week&apos;s sprint shipped the course — and
+            then the operation went quiet for four months, which is its own
+            lesson in what &ldquo;autonomous&rdquo; doesn&apos;t mean.{" "}
+            <a href="/course/module-5" className="underline hover:text-neutral-300">Module 5</a>{" "}
+            has the full account.
           </p>
 
           <p>

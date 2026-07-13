@@ -5,7 +5,7 @@ import "../blog-post.css";
 export const metadata = {
   title: "5 AI Agents You Can Build This Weekend",
   description:
-    "Five practical AI agent projects you can build and ship this week using Claude or GPT-4. Each project includes the architecture, tools needed, and how to make it production-ready.",
+    "Five practical AI agent projects you can build and ship this week using Claude. Each project includes the architecture, tools needed, and how to make it production-ready.",
   openGraph: {
     title: "5 AI Agents You Can Build This Weekend",
     description:
@@ -24,7 +24,7 @@ const articleJsonLd = {
   "@type": "Article",
   headline: "5 AI Agents You Can Build This Weekend",
   description:
-    "Five practical AI agent projects you can build and ship this week using Claude or GPT-4.",
+    "Five practical AI agent projects you can build and ship this week using Claude.",
   datePublished: "2026-03-14T00:00:00Z",
   dateModified: "2026-03-14T00:00:00Z",
   author: {
@@ -45,7 +45,7 @@ const articleJsonLd = {
     "AI agent projects",
     "build AI agents",
     "Claude API",
-    "GPT-4 agents",
+    "Claude agents",
     "AI automation",
     "autonomous agents",
     "AI agent ideas",
