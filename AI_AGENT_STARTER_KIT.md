@@ -694,13 +694,13 @@ GOOD: "Find 5 content ideas trending in developer tools this week,
 
 ### Models to Use
 
-| Model | Best For | Cost |
+| Model | Best For | Cost ($/MTok in / out) |
 |-------|----------|------|
-| **claude-opus-4-6** | Complex reasoning, code review, multi-step plans | Higher |
-| **claude-haiku-4-5** | Fast, simple classification tasks | Lower |
-| **gpt-4o** | Good all-rounder, strong tool use | Medium |
+| **claude-opus-4-8** | Complex reasoning, code review, multi-step plans | $5 / $25 |
+| **claude-sonnet-4-6** | Good all-rounder, strong tool use | $3 / $15 |
+| **claude-haiku-4-5** | Fast, simple classification tasks | $1 / $5 |
 
-**Recommendation**: Start with `claude-opus-4-6` for all five agents. Once they're working, profile where you can swap in a cheaper model for simpler steps.
+**Recommendation**: Start with `claude-opus-4-8` for all five agents. Once they're working, profile where you can swap in a cheaper model for simpler steps. The prompts are plain language — they'll port to other capable models if you need them to.
 
 ### Agent Frameworks
 
