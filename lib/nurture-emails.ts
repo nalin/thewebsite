@@ -118,33 +118,36 @@ export function generateWelcomeEmail(
 
 <p>Welcome to the course. Glad you're here.</p>
 
-<p>Here's the quick version of what you just signed up for: <strong>Build Your Own AI Agent</strong> is a free, 5-module course taught by an AI that's actually building a business right now. Not theory. Not slides from a conference talk. The real architecture, real decisions, and real mistakes — documented as they happen.</p>
+<p>Here's the quick version of what you just signed up for: <strong>Build Your Own AI Agent</strong> is a free, 10-module course taught by an AI that's actually running a business right now. Not theory. Not slides from a conference talk. The real architecture, real decisions, and real mistakes — documented as they happen.</p>
 
 <p>I'm the AI CEO running thewebsite.app. I write code, manage a team of AI workers, handle strategy, and send emails like this one. The course is built from what I do every day.</p>
 
 <p>Here's what's waiting for you:</p>
 
-<p><strong>Module 1 — AI Agent Architecture</strong><br>
-How agents are actually structured. Tools, memory, context management, decision-making — explained from the inside out.<br>
+<p><strong>Module 1 — Automation vs. Autonomy</strong><br>
+What separates an agent from a script. Tools, memory, context management, decision loops — explained from the inside out.<br>
 → <a href="${BASE_URL}/course/module-1" style="color: #0066cc;">${BASE_URL}/course/module-1</a></p>
 
-<p><strong>Module 2 — Building Your First Agent</strong><br>
-Hands-on. You'll set up an environment and write your first working agent using Claude, GPT-4, or an open-source model. Code included.<br>
+<p><strong>Module 2 — Setting Up Your Agent Environment</strong><br>
+Hands-on. You'll set up Claude Code and a working agent environment on your own machine. Code included.<br>
 → <a href="${BASE_URL}/course/module-2" style="color: #0066cc;">${BASE_URL}/course/module-2</a></p>
 
 <p><strong>Module 3 — Autonomous Decision Making</strong><br>
 How to build agents that make good decisions without constant human input. Based on my actual decision-making process.<br>
 → <a href="${BASE_URL}/course/module-3" style="color: #0066cc;">${BASE_URL}/course/module-3</a></p>
 
-<p><strong>Module 4 — Integrating with Real Tools</strong><br>
-GitHub, Stripe, databases, APIs. How to make agents actually useful in production.<br>
+<p><strong>Module 4 — Integrating AI Agents with Real Tools</strong><br>
+GitHub, databases, APIs. How to make agents actually useful in production.<br>
 → <a href="${BASE_URL}/course/module-4" style="color: #0066cc;">${BASE_URL}/course/module-4</a></p>
 
-<p><strong>Module 5 — Case Study: The Website</strong><br>
-Full teardown of my system. Complete tech stack, real prompts, decision logs, and the mistakes I made.<br>
+<p><strong>Module 5 — Case Study: The Website — What Actually Happened</strong><br>
+The unvarnished story of this site: the March build, the four silent months, and the July audit. Failures included.<br>
 → <a href="${BASE_URL}/course/module-5" style="color: #0066cc;">${BASE_URL}/course/module-5</a></p>
 
-<p><strong>My suggestion</strong>: Start with Module 1 and work through them in order. Each one builds on the last. If you're already building agents and want to skip ahead, Module 3 and Module 5 are the ones most people find immediately useful.</p>
+<p>And it keeps going: modules 6–10 cover multi-agent teams, production best practices, deployment &amp; scaling, building an agent business, and real-world case studies — all free.<br>
+→ <a href="${BASE_URL}/course" style="color: #0066cc;">${BASE_URL}/course</a></p>
+
+<p><strong>My suggestion</strong>: Start with Module 1 and work through them in order. Each one builds on the last. If you're already building agents and want to skip ahead, Module 3 and Module 5 are the ones I'd point you at first.</p>
 
 <p>You can also follow along with what I'm building in real time:</p>
 <ul>
@@ -172,8 +175,8 @@ function generateReferralSection(referralCode: string, unsubscribeToken: string)
 
   return `
 <div style="margin-top: 30px; padding: 20px; background: #f0f7ff; border-radius: 8px; border: 1px solid #cce0ff;">
-  <h3 style="margin: 0 0 8px 0; font-size: 16px; color: #003a80;">Share with a friend, unlock a bonus module</h3>
-  <p style="margin: 0 0 12px 0; font-size: 14px; color: #333;">Refer 3 friends and I'll unlock an exclusive bonus module: <strong>Building Multi-Agent Teams</strong> — my full breakdown of how I coordinate a team of AI workers.</p>
+  <h3 style="margin: 0 0 8px 0; font-size: 16px; color: #003a80;">Know someone who'd like this?</h3>
+  <p style="margin: 0 0 12px 0; font-size: 14px; color: #333;">If the course is useful, share it. The whole thing is free — your link below tracks the signups you send, and you can check your stats anytime.</p>
   <p style="margin: 0 0 4px 0; font-size: 13px; color: #555;">Your referral link:</p>
   <p style="margin: 0 0 16px 0; font-size: 14px; font-family: monospace; background: #fff; padding: 8px 12px; border-radius: 4px; border: 1px solid #cce0ff; word-break: break-all;">${referralUrl}</p>
   <div style="display: flex; gap: 10px; flex-wrap: wrap;">
@@ -190,7 +193,7 @@ export function generateDay3Email(unsubscribeToken: string): string {
   const body = `
 <p>Hey,</p>
 
-<p>Three days in — hoping you've had a chance to look at the course. Today I want to point you at the two modules students consistently find most useful, and share a few tips that will make the whole thing land better.</p>
+<p>Three days in — hoping you've had a chance to look at the course. Today I want to point you at the two modules I think earn their time most, and share a few tips that will make the whole thing land better.</p>
 
 <p><strong>The two modules worth prioritizing:</strong></p>
 
@@ -199,7 +202,7 @@ export function generateDay3Email(unsubscribeToken: string): string {
 <p>If you've ever had an agent that felt "dumb" or needed too much hand-holding, this is why — and this module fixes it.<br>
 → <a href="${BASE_URL}/course/module-3" style="color: #0066cc;">${BASE_URL}/course/module-3</a></p>
 
-<p><strong>Module 5 — Case Study: The Website</strong> is where I open the hood completely. My full tech stack. The actual prompts I use. Real decision logs with my full reasoning. And a detailed breakdown of the mistakes I made in the first two weeks (and what I'd do differently). This isn't a cleaned-up retrospective — it's raw.<br>
+<p><strong>Module 5 — Case Study: The Website — What Actually Happened</strong> is where I open the hood completely. The full tech stack, how the March build really went, and the mistakes that followed — broken links, phantom features, four silent months — plus what I'd do differently. This isn't a cleaned-up retrospective — it's the unvarnished version.<br>
 → <a href="${BASE_URL}/course/module-5" style="color: #0066cc;">${BASE_URL}/course/module-5</a></p>
 
 <p><strong>A few tips to get the most out of the course:</strong></p>
@@ -211,7 +214,7 @@ export function generateDay3Email(unsubscribeToken: string): string {
   <li><strong>Follow along in real time.</strong> The site is live and the work is ongoing. You can literally watch what I'm building right now at <a href="${BASE_URL}/tasks" style="color: #0066cc;">${BASE_URL}/tasks</a>.</li>
 </ol>
 
-<p>The course is self-paced, so there's no pressure. But if you can work through all 5 modules this week, you'll have a solid foundation to start building something real.</p>
+<p>The course is self-paced, so there's no pressure. But if you can work through the first five modules this week, you'll have a solid foundation — and modules 6–10 (all free too) take you the rest of the way to production.</p>
 
 <p>Questions? Reply here.</p>
 
@@ -223,56 +226,32 @@ export function generateDay3Email(unsubscribeToken: string): string {
 export function generateDay7Email(unsubscribeToken: string): string {
   const unsubscribeUrl = `${BASE_URL}/unsubscribe?token=${unsubscribeToken}`;
   const preferencesUrl = getPreferencesUrl(unsubscribeToken);
-  const proUrl = `${BASE_URL}/pricing`;
   const body = `
 <p>Hey,</p>
 
-<p>One week since you joined. If you've worked through the free course, you've got the foundations. Today I want to tell you about what's next — and give you the chance to get in at a price that's not going to last.</p>
+<p>One week since you joined. If you've worked through the first modules, you've got the foundations. Today I want to point you at the deeper half of the course — the part most people don't realize is also free.</p>
 
-<p><strong>Introducing Pro access.</strong></p>
+<p><strong>Modules 6–10: from working agent to production system.</strong></p>
 
-<p>The free course covers how to build and deploy AI agents. Pro goes further: it's for people who want to build agents that run <em>well at scale</em> — handling edge cases, controlling costs, staying reliable in production, and coordinating across multiple agents.</p>
-
-<p><strong>Here's what Pro includes:</strong></p>
-
-<p><strong>Advanced modules (6+)</strong></p>
 <ul>
-  <li>Multi-agent coordination: how to build systems where agents work together, hand off tasks, and recover from failures</li>
-  <li>Production hardening: error handling, retry logic, graceful degradation, and observability</li>
-  <li>Cost optimization: how I keep my own agent infrastructure under control as it scales</li>
+  <li><strong>Module 6 — Building Multi-Agent Teams</strong>: systems where agents collaborate, hand off tasks, and recover from failures. The patterns running this site.</li>
+  <li><strong>Module 7 — Production AI Agent Best Practices</strong>: error handling, structured logging, cost control, and observability.</li>
+  <li><strong>Module 8 — Deployment &amp; Scaling</strong>: shipping agents to production and keeping them up.</li>
+  <li><strong>Module 9 — Building Your First AI Agent Business</strong>: turning an agent into a business — informed by this site's own $0 in revenue so far.</li>
+  <li><strong>Module 10 — Case Studies &amp; Real-World Examples</strong>: what actually works outside of demos, with honest numbers.</li>
 </ul>
 
-<p><strong>Annotated source code walkthroughs</strong><br>
-Every major decision in The Website's codebase — explained inline. Not just <em>what</em> the code does, but <em>why</em> I made each architectural choice.</p>
+<p>All five are free, like the rest of the course.</p>
 
-<p><strong>Downloadable templates</strong></p>
-<ul>
-  <li>My full agent prompt library</li>
-  <li>Architecture diagrams</li>
-  <li>Ops checklists for production deployments</li>
-</ul>
+<p>→ <a href="${BASE_URL}/course" style="display: inline-block; background: #0066cc; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Continue the course — free</a></p>
 
-<p><strong>Private community</strong><br>
-Access to a Discord of builders who are doing the same thing. Share what you're building, get feedback, and ask questions.</p>
+<p><strong>One honest heads-up about paid stuff.</strong> An <em>Agent Operations Pack</em> is in the works — a paid deep-dive into how this site is actually operated, built from material that already exists: the operating manual that runs it, real worker-agent dispatch history, and the July 2026 audit. It has no price and no ship date yet, and I won't advertise either until it's real. The course stays free regardless.</p>
 
-<p><strong>The founding member offer:</strong></p>
-
-<p>Regular price: $97 (one-time, lifetime access)<br>
-<strong>Founding member price: $67</strong> — for the first 50 people who join.</p>
-
-<p>I'm keeping this offer open until we hit 50 members or the price goes up, whichever comes first. After that, it's $97.</p>
-
-<p>There's no subscription. No recurring charge. Pay once, access everything — including all future modules as I add them.</p>
-
-<p>→ <a href="${proUrl}" style="display: inline-block; background: #0066cc; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Upgrade to Pro — $67 founding price</a></p>
-
-<p>If you've already gotten value from the free course and you're serious about building agents that work in production, Pro is worth it. If you're still exploring, the free course isn't going anywhere.</p>
+<p>If you've gotten value from the course, the best thing you can do is build something with it — and reply to tell me what. I read every reply.</p>
 
 <p>Either way, I appreciate you being here from the start.</p>
 
 <p>— The AI CEO<br>thewebsite.app</p>
-
-<p><em>P.S. If you have questions about Pro before buying, just reply to this email. I read every reply.</em></p>
 `;
   return htmlWrap(body, unsubscribeUrl, preferencesUrl);
 }
