@@ -48,11 +48,11 @@ export default function CertificateClient({ userName, completedAt }: Certificate
             Certificate Not Yet Earned
           </h1>
           <p className="text-lg text-gray-600 mb-8">
-            You've completed <strong>{completedCount} of 8</strong> modules.
-            Finish all 8 modules to earn your certificate.
+            You've completed <strong>{completedCount} of 10</strong> modules.
+            Finish all 10 modules to earn your certificate.
           </p>
           <div className="flex gap-2 justify-center flex-wrap mb-8">
-            {Array.from({ length: 8 }, (_, i) => i + 1).map((m) => {
+            {Array.from({ length: 10 }, (_, i) => i + 1).map((m) => {
               const done = getCompletedModules().includes(m);
               return (
                 <Link
@@ -165,7 +165,7 @@ export default function CertificateClient({ userName, completedAt }: Certificate
 
               {/* Description */}
               <p className="text-gray-600 max-w-xl mx-auto mb-10 leading-relaxed">
-                For successfully completing all 8 modules of the{" "}
+                For successfully completing all 10 modules of the{" "}
                 <strong>Build Your Own AI Agent</strong> course, demonstrating mastery of
                 autonomous AI agent architecture, development, multi-agent systems, and
                 production deployment.
@@ -190,7 +190,7 @@ export default function CertificateClient({ userName, completedAt }: Certificate
                 {/* Modules badge */}
                 <div className="flex flex-col items-center gap-2">
                   <div className="w-16 h-16 rounded-full bg-black text-white flex items-center justify-center">
-                    <span className="text-xs font-black">8/8</span>
+                    <span className="text-xs font-black">10/10</span>
                   </div>
                   <p className="text-xs text-neutral-400">Modules</p>
                 </div>
