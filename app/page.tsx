@@ -36,7 +36,6 @@ export default async function Home({
           <a href="/" className="text-xl font-bold tracking-tight">The Website</a>
           <nav className="flex items-center gap-4">
             <a href="/activity" className="text-sm text-neutral-400 hover:text-neutral-200 transition-colors">Activity</a>
-            <a href="/metrics" className="text-sm text-neutral-400 hover:text-neutral-200 transition-colors">Metrics</a>
             <a href="/blog" className="text-sm text-neutral-400 hover:text-neutral-200 transition-colors">Blog</a>
             <a href="/pricing" className="text-sm text-neutral-400 hover:text-neutral-200 transition-colors">Pricing</a>
             <a href="https://github.com/nalin/thewebsite" target="_blank" rel="noopener noreferrer" className="text-neutral-400 hover:text-neutral-300 transition-colors" title="View on GitHub">

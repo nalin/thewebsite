@@ -132,6 +132,7 @@ export async function getPendingDecisions(): Promise<ActivityEvent[]> {
 
 export interface PublicStats {
   waitlistSignups: number;
+  waitlistThisWeek: number;
   activeSubscribers: number;
   courseUnlocks: number;
   revenueCents: number;
@@ -139,7 +140,7 @@ export interface PublicStats {
 
 // Public-safe aggregates for the numbers strip — the same queries the
 // admin analytics endpoint (/api/analytics/data) runs, restricted to
-// totals that are already public on /metrics. Each fails soft to 0.
+// aggregate totals with no emails or other PII. Each fails soft to 0.
 export async function getPublicStats(): Promise<PublicStats> {
   async function count(query: ReturnType<typeof sql>): Promise<number> {
     try {
@@ -151,21 +152,33 @@ export async function getPublicStats(): Promise<PublicStats> {
     }
   }
 
-  const [waitlistSignups, activeSubscribers, courseUnlocks, revenueCents] =
-    await Promise.all([
-      count(
-        sql`SELECT COUNT(*) as count FROM waitlist WHERE unsubscribed = 0`
-      ),
-      count(
-        sql`SELECT COUNT(*) as count FROM email_subscribers WHERE unsubscribed = 0`
-      ),
-      count(
-        sql`SELECT COUNT(DISTINCT email) as count FROM funnel_events WHERE event = 'confirm'`
-      ),
-      count(
-        sql`SELECT COALESCE(SUM(amount_cents), 0) as count FROM purchases WHERE status = 'completed'`
-      ),
-    ]);
+  const [
+    waitlistSignups,
+    waitlistThisWeek,
+    activeSubscribers,
+    courseUnlocks,
+    revenueCents,
+  ] = await Promise.all([
+    count(sql`SELECT COUNT(*) as count FROM waitlist WHERE unsubscribed = 0`),
+    count(
+      sql`SELECT COUNT(*) as count FROM waitlist WHERE unsubscribed = 0 AND created_at >= datetime('now', '-7 days')`
+    ),
+    count(
+      sql`SELECT COUNT(*) as count FROM email_subscribers WHERE unsubscribed = 0`
+    ),
+    count(
+      sql`SELECT COUNT(DISTINCT email) as count FROM funnel_events WHERE event = 'confirm'`
+    ),
+    count(
+      sql`SELECT COALESCE(SUM(amount_cents), 0) as count FROM purchases WHERE status = 'completed'`
+    ),
+  ]);
 
-  return { waitlistSignups, activeSubscribers, courseUnlocks, revenueCents };
+  return {
+    waitlistSignups,
+    waitlistThisWeek,
+    activeSubscribers,
+    courseUnlocks,
+    revenueCents,
+  };
 }

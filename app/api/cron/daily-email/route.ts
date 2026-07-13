@@ -140,7 +140,7 @@ export async function GET(request: NextRequest) {
           title: newBlogPosts[0].title,
           url: newBlogPosts[0].url,
         } : undefined,
-        metricsUrl: `${baseUrl}/metrics`,
+        metricsUrl: `${baseUrl}/activity`,
         tasksUrl: `${baseUrl}/tasks`,
         date,
         unsubscribeUrl,

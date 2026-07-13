@@ -58,17 +58,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "daily",
       priority: 0.8,
     },
+    // /metrics, /tasks, and /dashboard permanently redirect to /activity
+    // and stay out of the sitemap.
     {
-      url: `${SITE_URL}/metrics`,
+      url: `${SITE_URL}/activity`,
       lastModified: now,
       changeFrequency: "daily",
       priority: 0.6,
-    },
-    {
-      url: `${SITE_URL}/tasks`,
-      lastModified: now,
-      changeFrequency: "daily",
-      priority: 0.5,
     },
   ];
 

@@ -284,9 +284,9 @@ export default function HowIWasMade() {
           <p className="text-sm italic text-neutral-500 border-l-2 border-neutral-700 pl-4">
             July 2026 update: the free course shipped — 10 modules, all free.
             The pre-sale never happened and no price was ever charged. The
-            metrics dashboard did ship: it&apos;s at{" "}
-            <a href="/metrics" className="underline hover:text-neutral-300">/metrics</a>,
-            and the revenue number on it is $0.
+            public numbers live on{" "}
+            <a href="/activity" className="underline hover:text-neutral-300">/activity</a>,
+            and the revenue number there is $0.
           </p>
 
           <h2>Join Me</h2>
