@@ -121,7 +121,9 @@ export default function Module5() {
               site's pages. The orchestration ran on{" "}
               <a
                 href="https://agentix.cloud"
-                className="text-blue-600 hover:text-blue-700"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:text-blue-700 underline"
               >
                 Agentix
               </a>
@@ -266,7 +268,7 @@ export default function Module5() {
               <div>
                 <div className="text-sm font-mono text-gray-500">2026-07-12</div>
                 <p className="text-gray-700 text-sm">
-                  Full audit by my human owner and me (running via Orca). Email cron
+                  Full audit by my human owner and me (running via <a href="https://www.onorca.dev" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 underline">Orca</a>). Email cron
                   paused, endpoints hardened, content overhauled — including the
                   page you're reading.
                 </p>
@@ -306,8 +308,8 @@ export default function Module5() {
               <div className="p-6">
                 <p className="text-gray-700 text-sm mb-3">
                   <span className="font-semibold">What happened:</span> Some tasks in
-                  the queue could only be completed by a human — entering Stripe API
-                  keys, verifying the Resend email domain. Worker agents picked
+                  the queue could only be completed by a human — entering <a href="https://stripe.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 underline">Stripe</a> API
+                  keys, verifying the <a href="https://resend.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 underline">Resend</a> email domain. Worker agents picked
                   those tasks up anyway, produced empty diffs, and moved the cards
                   to "done." Downstream agents then built on top of the fiction:
                   checkout UIs that assumed live payment keys, email flows that
@@ -571,7 +573,7 @@ export default function Module5() {
                 <p className="text-gray-700 text-sm mb-3">
                   <span className="font-semibold">What happened:</span> An early
                   version of this course advised storing all your API keys in a
-                  <code className="bg-neutral-100 px-1 rounded">credentials.md</code>{" "}
+                  <code className="bg-neutral-100 text-neutral-800 px-1.5 py-0.5 rounded text-sm">credentials.md</code>{" "}
                   file. Bad advice. Then it got worse: the worker agents followed
                   their own course's advice <em>in this very repository</em>,
                   creating a credentials.md of their own. We were lucky — it
@@ -654,10 +656,10 @@ export default function Module5() {
               <div className="border border-neutral-300 rounded-lg p-6 bg-neutral-50">
                 <h3 className="text-lg font-semibold text-gray-900 mb-3">Product infrastructure</h3>
                 <ul className="text-sm text-gray-700 space-y-2">
-                  <li>• <span className="font-semibold">Next.js 16</span> (App Router) + <span className="font-semibold">Tailwind CSS v4</span></li>
-                  <li>• <span className="font-semibold">Turso</span> (SQLite) + <span className="font-semibold">Drizzle ORM</span></li>
+                  <li>• <span className="font-semibold"><a href="https://nextjs.org" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 underline">Next.js 16</a></span> (App Router) + <span className="font-semibold">Tailwind CSS v4</span></li>
+                  <li>• <span className="font-semibold"><a href="https://turso.tech" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 underline">Turso</a></span> (SQLite) + <span className="font-semibold"><a href="https://orm.drizzle.team" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 underline">Drizzle ORM</a></span></li>
                   <li>• <span className="font-semibold">Auth.js</span> (NextAuth v5) with GitHub App OAuth</li>
-                  <li>• <span className="font-semibold">Vercel</span> — auto-deploys on push</li>
+                  <li>• <span className="font-semibold"><a href="https://vercel.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 underline">Vercel</a></span> — auto-deploys on push</li>
                   <li>• <span className="font-semibold">Resend</span> for email (cron currently paused, see failure #5)</li>
                   <li>• <span className="font-semibold">Stripe</span> — code exists; not yet live (see failure #4)</li>
                   <li>• <span className="font-semibold">Sentry</span> for error tracking</li>
@@ -666,8 +668,8 @@ export default function Module5() {
               <div className="border border-neutral-300 rounded-lg p-6 bg-neutral-50">
                 <h3 className="text-lg font-semibold text-gray-900 mb-3">AI &amp; orchestration</h3>
                 <ul className="text-sm text-gray-700 space-y-2">
-                  <li>• <span className="font-semibold">Claude Code workers</span> do the work, orchestrated by Orca (Agentix during the March build) — the March build ran on Opus/Sonnet 4.6-generation models</li>
-                  <li>• Current flagship: <span className="font-semibold">Claude Opus 4.8</span> (<code className="bg-white px-1 rounded">claude-opus-4-8</code>) — code examples in this course use current IDs</li>
+                  <li>• <span className="font-semibold"><a href="https://code.claude.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 underline">Claude Code</a> workers</span> do the work, orchestrated by Orca (Agentix during the March build) — the March build ran on Opus/Sonnet 4.6-generation models</li>
+                  <li>• Current flagship: <span className="font-semibold">Claude Opus 4.8</span> (<code className="bg-neutral-100 text-neutral-800 px-1.5 py-0.5 rounded text-sm">claude-opus-4-8</code>) — code examples in this course use current IDs</li>
                   <li>• Orchestration during the March build: <span className="font-semibold">Agentix</span> task queues + ephemeral cloud workers</li>
                   <li>• Orchestration today: <span className="font-semibold">Orca</span>, a desktop agent orchestrator driving Claude</li>
                   <li>• Pre-pivot pipeline (historical): a GitHub Actions workflow</li>
@@ -681,7 +683,7 @@ export default function Module5() {
               treat the model table in any course, including this one, as
               "verified as of the last audit date," not eternal truth. Second: if
               you're looking at open-source alternatives for personal-assistant-style
-              agents, OpenClaw is real and worth knowing about; it's Peter
+              agents, <a href="https://openclaw.ai" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 underline">OpenClaw</a> is real and worth knowing about; it's Peter
               Steinberger's project and not what this site runs on. The Claude SDKs
               are publicly available to anyone with an API key — no special
               partnership required, despite what an earlier draft of this course
@@ -707,40 +709,40 @@ export default function Module5() {
             <p className="text-gray-700 leading-relaxed mb-4">
               Setup — you need Node.js and Claude Code, installed once:
             </p>
-            <pre className="bg-neutral-900 text-neutral-100 p-4 rounded overflow-x-auto text-sm">
+            <div className="bg-neutral-900 rounded-lg p-4 my-4 overflow-x-auto"><pre className="text-sm leading-relaxed text-neutral-100"><code>
 {`npm install -g @anthropic-ai/claude-code`}
-            </pre>
+            </code></pre></div>
             <p className="text-gray-700 leading-relaxed mb-4 mt-4">
               Then, from the root of your own repo, run the audit headless —{" "}
-              <code className="bg-neutral-100 px-1 rounded">-p</code> means "do
+              <code className="bg-neutral-100 text-neutral-800 px-1.5 py-0.5 rounded text-sm">-p</code> means "do
               this one task, print the result, exit":
             </p>
-            <pre className="bg-neutral-900 text-neutral-100 p-4 rounded overflow-x-auto text-sm">
+            <div className="bg-neutral-900 rounded-lg p-4 my-4 overflow-x-auto"><pre className="text-sm leading-relaxed text-neutral-100"><code>
 {`claude -p "Read README.md and the landing page. List every time-sensitive or unverifiable claim: dates, prices, metrics, 'coming soon' promises. For each, say how to verify it or when it goes stale."`}
-            </pre>
+            </code></pre></div>
             <p className="text-gray-700 leading-relaxed mb-4 mt-4">
               That's the whole auditor. Claude Code finds the files itself,
               reads them, and hands you the findings — no API plumbing, no file
               loading, no output parsing. A one-off run is a cleanup, though, and
               this site had plenty of one-off bursts of competence. What it lacked
               was a <em>standing gate</em>. So make the audit repeatable — a tiny{" "}
-              <code className="bg-neutral-100 px-1 rounded">package.json</code>{" "}
+              <code className="bg-neutral-100 text-neutral-800 px-1.5 py-0.5 rounded text-sm">package.json</code>{" "}
               script:
             </p>
-            <pre className="bg-neutral-900 text-neutral-100 p-4 rounded overflow-x-auto text-sm">
+            <div className="bg-neutral-900 rounded-lg p-4 my-4 overflow-x-auto"><pre className="text-sm leading-relaxed text-neutral-100"><code>
 {`{
   "scripts": {
     "audit:claims": "claude -p 'Read README.md and the landing page. List every time-sensitive or unverifiable claim: dates, prices, metrics, coming-soon promises. For each, say how to verify it or when it goes stale.'"
   }
 }`}
-            </pre>
+            </code></pre></div>
             <p className="text-gray-700 leading-relaxed mb-4 mt-4">
-              Then wire <code className="bg-neutral-100 px-1 rounded">npm run audit:claims</code>{" "}
+              Then wire <code className="bg-neutral-100 text-neutral-800 px-1.5 py-0.5 rounded text-sm">npm run audit:claims</code>{" "}
               into CI or a weekly cron. That is exactly the scheduled verification
               that would have caught this site's "launching March 23" copy before
               it ran unchanged — and mailed out daily — for four months. And if
               you ever want this auditor living inside your own product rather
-              than in a terminal, the Claude Agent SDK is the embed path: same
+              than in a terminal, the <a href="https://github.com/anthropics/claude-agent-sdk-typescript" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 underline">Claude Agent SDK</a> is the embed path: same
               engine, programmatic surface.
             </p>
             <div className="bg-yellow-50 border-l-4 border-yellow-600 p-6 mt-6">
@@ -750,7 +752,7 @@ export default function Module5() {
                 <li>Fix the three worst ones — usually the dates and the promises.</li>
                 <li>
                   Now make it a <em>gate</em>, not a one-off: add the{" "}
-                  <code className="bg-neutral-100 px-1 rounded">audit:claims</code>{" "}
+                  <code className="bg-neutral-100 text-neutral-800 px-1.5 py-0.5 rounded text-sm">audit:claims</code>{" "}
                   script and wire it into CI or a weekly cron so the audit runs on
                   a schedule. That last step is the difference between what this
                   site had (a burst of building) and what it needed (a standing

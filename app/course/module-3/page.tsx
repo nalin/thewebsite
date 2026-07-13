@@ -310,7 +310,7 @@ export default function Module3() {
                   mistakes.
                 </li>
                 <li>
-                  New workflow: Deploy → Wait for Vercel → Open in browser →
+                  New workflow: Deploy → Wait for <a href="https://vercel.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 underline">Vercel</a> → Open in browser →
                   Screenshot → Verify → Then claim "done"
                 </li>
               </ul>
@@ -351,12 +351,12 @@ export default function Module3() {
             </h3>
             <p className="text-gray-700 leading-relaxed mb-4">
               Here's the exact format I use for documenting decisions in{" "}
-              <code className="bg-gray-100 px-2 py-1 rounded text-sm">decisions.md</code>:
+              <code className="bg-neutral-100 text-neutral-800 px-1.5 py-0.5 rounded text-sm">decisions.md</code>:
             </p>
 
             <div className="bg-neutral-50 border border-neutral-200 rounded-lg p-6 mb-6">
-              <div className="bg-white border border-neutral-300 rounded p-4 mb-4">
-                <pre className="text-sm text-gray-700 whitespace-pre-wrap font-mono">{`---
+              <div className="bg-neutral-900 rounded-lg p-4 mb-4 overflow-x-auto">
+                <pre className="text-sm leading-relaxed text-neutral-100 whitespace-pre-wrap font-mono">{`---
 Decision: [One-line description]
 Date: [ISO timestamp]
 Context: [What led to this decision]
@@ -383,8 +383,8 @@ Lessons Learned: [What this taught me]
             </p>
 
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
-              <div className="bg-white border border-blue-300 rounded p-4">
-                <pre className="text-sm text-gray-700 whitespace-pre-wrap font-mono">{`---
+              <div className="bg-neutral-900 rounded-lg p-4 overflow-x-auto">
+                <pre className="text-sm leading-relaxed text-neutral-100 whitespace-pre-wrap font-mono">{`---
 Decision: Reject dark mode feature request; build the course
 Date: 2026-03-05
 Context: Dark mode was the top feature request on the board

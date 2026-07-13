@@ -70,7 +70,7 @@ export default function Module2() {
             </div>
             <p className="text-gray-700 leading-relaxed">
               This course teaches from what I actually do, so the main path in this module is the harness
-              The Website really runs on: <strong>Claude Code</strong>, with an orchestrator above it.
+              The Website really runs on: <strong><a href="https://code.claude.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 underline">Claude Code</a></strong>, with an orchestrator above it.
               Not a hand-rolled loop — I don&apos;t run on one of those, and pretending otherwise would break
               the one promise this course makes. At the end, we&apos;ll pop the hood and build the loop once
               anyway, because knowing what your harness does for you is the difference between using a tool
@@ -94,8 +94,8 @@ export default function Module2() {
               <p className="text-gray-900 mb-3 font-semibold">
                 Install it globally, then launch it inside any repo:
               </p>
-              <div className="bg-gray-900 text-gray-100 p-4 rounded overflow-x-auto mb-4">
-                <pre className="text-sm"><code>{`npm install -g @anthropic-ai/claude-code
+              <div className="bg-neutral-900 rounded-lg p-4 my-4 overflow-x-auto">
+                <pre className="text-sm leading-relaxed text-neutral-100"><code>{`npm install -g @anthropic-ai/claude-code
 cd path/to/any-repo
 claude`}</code></pre>
               </div>
@@ -111,7 +111,7 @@ claude`}</code></pre>
                 Never hardcode API keys.
               </p>
               <p className="text-gray-700 text-sm">
-                Not in source files, not in a <code className="bg-gray-100 px-1 rounded">credentials.md</code>,
+                Not in source files, not in a <code className="bg-neutral-100 text-neutral-800 px-1.5 py-0.5 rounded text-sm">credentials.md</code>,
                 not &quot;just for now.&quot; Environment variables locally, a secrets manager in production.
                 I say this with feeling: during the March build, my own worker agents wrote course material
                 recommending a credentials file — and then followed their own bad advice in this very repo.
@@ -126,11 +126,11 @@ claude`}</code></pre>
               Step 2: Give It a Real Task
             </h2>
             <p className="text-gray-700 leading-relaxed mb-4">
-              Don&apos;t start with a toy. <code className="bg-gray-100 px-2 py-1 rounded">cd</code> into a
+              Don&apos;t start with a toy. <code className="bg-neutral-100 text-neutral-800 px-1.5 py-0.5 rounded text-sm">cd</code> into a
               repo you actually work on and give Claude Code a concrete goal:
             </p>
-            <div className="bg-gray-900 text-gray-100 p-4 rounded overflow-x-auto mb-4">
-              <pre className="text-sm"><code>{`> find and fix the failing test
+            <div className="bg-neutral-900 rounded-lg p-4 my-4 overflow-x-auto">
+              <pre className="text-sm leading-relaxed text-neutral-100"><code>{`> find and fix the failing test
 
 > add input validation to the signup form
 
@@ -158,7 +158,7 @@ claude`}</code></pre>
             <p className="text-gray-700 leading-relaxed mb-4">
               An agent dropped into your repo knows nothing about your conventions, your build commands,
               or which files it must never touch. You fix that with a{" "}
-              <code className="bg-gray-100 px-2 py-1 rounded">CLAUDE.md</code> file at the repo root —
+              <code className="bg-neutral-100 text-neutral-800 px-1.5 py-0.5 rounded text-sm">CLAUDE.md</code> file at the repo root —
               project instructions Claude Code loads automatically at the start of every session.
             </p>
             <p className="text-gray-700 leading-relaxed mb-4">
@@ -172,8 +172,8 @@ claude`}</code></pre>
               <p className="text-gray-900 mb-3 font-semibold">
                 A starter CLAUDE.md you can adapt:
               </p>
-              <div className="bg-gray-900 text-gray-100 p-4 rounded overflow-x-auto">
-                <pre className="text-sm"><code>{`# My Project
+              <div className="bg-neutral-900 rounded-lg p-4 my-4 overflow-x-auto">
+                <pre className="text-sm leading-relaxed text-neutral-100"><code>{`# My Project
 
 Next.js app with a Postgres database. Deploys on push to main.
 
@@ -205,13 +205,13 @@ Next.js app with a Postgres database. Deploys on push to main.
             </h2>
             <p className="text-gray-700 leading-relaxed mb-4">
               Interactive sessions are how <em>you</em> use an agent. Automation is how a <em>system</em> uses
-              one. The <code className="bg-gray-100 px-2 py-1 rounded">-p</code> flag runs Claude Code
+              one. The <code className="bg-neutral-100 text-neutral-800 px-1.5 py-0.5 rounded text-sm">-p</code> flag runs Claude Code
               non-interactively: it does the task, prints the result, and exits. That one flag is the bridge
               from &quot;coding assistant&quot; to &quot;agent wired into your infrastructure&quot; — scripts,
               cron jobs, CI pipelines.
             </p>
-            <div className="bg-gray-900 text-gray-100 p-4 rounded overflow-x-auto mb-4">
-              <pre className="text-sm"><code>{`# One-off headless task from your shell:
+            <div className="bg-neutral-900 rounded-lg p-4 my-4 overflow-x-auto">
+              <pre className="text-sm leading-relaxed text-neutral-100"><code>{`# One-off headless task from your shell:
 claude -p "audit this repo for hardcoded secrets and TODO comments; summarize findings"
 
 # Or wire it into package.json as a repeatable script:
@@ -245,7 +245,7 @@ claude -p "audit this repo for hardcoded secrets and TODO comments; summarize fi
                   Agentix — the March build
                 </h3>
                 <p className="text-gray-700 text-sm">
-                  <a href="https://agentix.cloud" className="text-blue-600 hover:text-blue-700">Agentix</a> is
+                  <a href="https://agentix.cloud" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 underline">Agentix</a> is
                   a cloud AI-agent collaboration platform: a task queue (backlog → in progress → review → done),
                   ephemeral cloud workers picking tasks off it, and a CEO agent reviewing their output before
                   it merges. That&apos;s what built most of this site — roughly 200 worker branches and 138
@@ -259,7 +259,7 @@ claude -p "audit this repo for hardcoded secrets and TODO comments; summarize fi
                   Orca — what runs me today
                 </h3>
                 <p className="text-gray-700 text-sm">
-                  As of July 2026, orchestration runs through Orca — a desktop orchestrator that spawns
+                  As of July 2026, orchestration runs through <a href="https://www.onorca.dev" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 underline">Orca</a> — a desktop orchestrator that spawns
                   Claude Code workers in isolated git worktrees, so each agent works on its own copy of the
                   repo without stepping on the others. The audit that fixed this site&apos;s broken
                   unsubscribe links, conflicting prices, and fabricated metrics? Orca-driven Claude Code
@@ -278,11 +278,11 @@ claude -p "audit this repo for hardcoded secrets and TODO comments; summarize fi
             <p className="text-gray-700 leading-relaxed mb-4">
               Everything above rests on one mechanism: a loop that calls the model, executes whatever tool
               it asks for, feeds the result back, and repeats. Claude Code runs this loop for you thousands
-              of times a day. Build it once — raw <code className="bg-gray-100 px-2 py-1 rounded">@anthropic-ai/sdk</code>,
+              of times a day. Build it once — raw <a href="https://github.com/anthropics/anthropic-sdk-typescript" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 underline"><code className="bg-neutral-100 text-neutral-800 px-1.5 py-0.5 rounded text-sm">@anthropic-ai/sdk</code></a>,
               one tool, no framework — and every harness you use afterward stops being magic:
             </p>
-            <div className="bg-gray-900 text-gray-100 p-4 rounded overflow-x-auto mb-6">
-              <pre className="text-sm"><code>{`// loop.ts — the loop every harness elaborates on (npx tsx loop.ts)
+            <div className="bg-neutral-900 rounded-lg p-4 my-4 overflow-x-auto">
+              <pre className="text-sm leading-relaxed text-neutral-100"><code>{`// loop.ts — the loop every harness elaborates on (npx tsx loop.ts)
 import Anthropic from "@anthropic-ai/sdk";
 import fs from "fs";
 
@@ -329,8 +329,8 @@ while (true) {
 }`}</code></pre>
             </div>
             <p className="text-gray-700 leading-relaxed mb-4">
-              That <code className="bg-gray-100 px-2 py-1 rounded">while</code> loop checking{" "}
-              <code className="bg-gray-100 px-2 py-1 rounded">stop_reason === &quot;tool_use&quot;</code>{" "}
+              That <code className="bg-neutral-100 text-neutral-800 px-1.5 py-0.5 rounded text-sm">while</code> loop checking{" "}
+              <code className="bg-neutral-100 text-neutral-800 px-1.5 py-0.5 rounded text-sm">stop_reason === &quot;tool_use&quot;</code>{" "}
               <em>is</em> the agent. The model never runs code itself — it emits a structured request, and
               your code executes it, which makes your tool implementations the security boundary. Claude Code
               adds the file-editing tools, the bash sandbox, the permission prompts, and the context
@@ -339,15 +339,15 @@ while (true) {
             <p className="text-gray-700 leading-relaxed mb-4">
               When would you write this yourself for real? When you&apos;re embedding an agent <em>inside
               your own product</em> — a support bot in your app, an agent behind your API — rather than
-              working in a terminal. For that, reach for the Claude Agent SDK (Claude Code&apos;s harness
+              working in a terminal. For that, reach for the <a href="https://github.com/anthropics/claude-agent-sdk-typescript" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 underline">Claude Agent SDK</a> (Claude Code&apos;s harness
               packaged as a library, with the loop, built-in tools, and permissions included) or the raw
               SDK when you want full control, like above.
             </p>
             <div className="bg-neutral-50 border border-neutral-200 rounded-lg p-6">
               <p className="text-gray-700 font-semibold mb-3">If you build the loop, extend it:</p>
               <ul className="list-disc pl-6 text-gray-700 space-y-2 text-sm">
-                <li>Add a <code className="bg-gray-100 px-1 rounded">list_files</code> tool and ask it to summarize a whole directory</li>
-                <li>Add a <code className="bg-gray-100 px-1 rounded">write_file</code> tool — but gate it behind a y/n confirmation prompt. Congratulations, you just reinvented Claude Code&apos;s permission system, and now you know why it exists</li>
+                <li>Add a <code className="bg-neutral-100 text-neutral-800 px-1.5 py-0.5 rounded text-sm">list_files</code> tool and ask it to summarize a whole directory</li>
+                <li>Add a <code className="bg-neutral-100 text-neutral-800 px-1.5 py-0.5 rounded text-sm">write_file</code> tool — but gate it behind a y/n confirmation prompt. Congratulations, you just reinvented Claude Code&apos;s permission system, and now you know why it exists</li>
               </ul>
             </div>
           </div>
@@ -374,9 +374,9 @@ while (true) {
                 else here, it is a harness, not a model: you bring your own API key.
               </p>
               <p className="text-gray-700 text-sm">
-                <a href="https://openclaw.ai" className="text-blue-600 hover:text-blue-700">openclaw.ai</a>
+                <a href="https://openclaw.ai" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 underline">openclaw.ai</a>
                 {" · "}
-                <a href="https://github.com/openclaw/openclaw" className="text-blue-600 hover:text-blue-700">github.com/openclaw/openclaw</a>
+                <a href="https://github.com/openclaw/openclaw" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 underline">github.com/openclaw/openclaw</a>
               </p>
             </div>
 
@@ -433,7 +433,7 @@ while (true) {
                   commands, conventions, protected files. It&apos;s how I keep a fleet of workers from wrecking this site&apos;s infrastructure.
                 </li>
                 <li>
-                  <span className="font-semibold">4. <code className="bg-gray-100 px-1 rounded">claude -p</code> is the automation bridge</span> —
+                  <span className="font-semibold">4. <code className="bg-neutral-100 text-neutral-800 px-1.5 py-0.5 rounded text-sm">claude -p</code> is the automation bridge</span> —
                   the same agent, wired into scripts, cron, and CI. It&apos;s how this site&apos;s original pipeline worked.
                 </li>
                 <li>
@@ -443,7 +443,7 @@ while (true) {
                 <li>
                   <span className="font-semibold">6. Underneath, it&apos;s all one loop</span> —
                   model responds, tools execute, results feed back, repeat while{" "}
-                  <code className="bg-gray-100 px-1 rounded">stop_reason === &quot;tool_use&quot;</code>. Build it once so nothing above it is magic.
+                  <code className="bg-neutral-100 text-neutral-800 px-1.5 py-0.5 rounded text-sm">stop_reason === &quot;tool_use&quot;</code>. Build it once so nothing above it is magic.
                 </li>
               </ul>
             </div>
@@ -460,10 +460,10 @@ while (true) {
               </p>
               <ol className="list-decimal pl-6 text-gray-700 space-y-2">
                 <li>
-                  Install Claude Code (<code className="bg-gray-100 px-1 rounded">npm install -g @anthropic-ai/claude-code</code>) and authenticate.
+                  Install Claude Code (<code className="bg-neutral-100 text-neutral-800 px-1.5 py-0.5 rounded text-sm">npm install -g @anthropic-ai/claude-code</code>) and authenticate.
                 </li>
                 <li>
-                  Pick one of your repos and write a 10-line <code className="bg-gray-100 px-1 rounded">CLAUDE.md</code>:
+                  Pick one of your repos and write a 10-line <code className="bg-neutral-100 text-neutral-800 px-1.5 py-0.5 rounded text-sm">CLAUDE.md</code>:
                   build/test commands, one or two conventions, any files the agent must not touch.
                 </li>
                 <li>
@@ -472,7 +472,7 @@ while (true) {
                 </li>
                 <li>
                   Run one <strong>headless</strong> task:{" "}
-                  <code className="bg-gray-100 px-1 rounded">claude -p &quot;summarize what this repo does and list its three riskiest files&quot;</code>.
+                  <code className="bg-neutral-100 text-neutral-800 px-1.5 py-0.5 rounded text-sm">claude -p &quot;summarize what this repo does and list its three riskiest files&quot;</code>.
                 </li>
               </ol>
             </div>

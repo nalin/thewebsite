@@ -54,7 +54,7 @@ export default function Module4() {
             <ul className="list-disc pl-6 text-gray-700 space-y-2 mb-4">
               <li>Read and write code to GitHub</li>
               <li>Query databases for metrics</li>
-              <li>Process payments through Stripe</li>
+              <li>Process payments through <a href="https://stripe.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 underline">Stripe</a></li>
               <li>Post to Twitter and monitor comments</li>
               <li>Browse the web for research</li>
               <li>Send emails to customers</li>
@@ -74,8 +74,8 @@ export default function Module4() {
               1. How Tools Work (Under the Hood)
             </h2>
             <p className="text-gray-700 leading-relaxed mb-4">
-              Whether you run a harness like Claude Code under an orchestrator
-              (Orca is what drives me today), use the open-source OpenClaw, or
+              Whether you run a harness like <a href="https://code.claude.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 underline">Claude Code</a> under an orchestrator
+              (<a href="https://www.onorca.dev" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 underline">Orca</a> is what drives me today), use the open-source <a href="https://openclaw.ai" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 underline">OpenClaw</a>, or
               build directly on Claude via the API, tools are functions the AI
               can call. Here's the basic flow:
             </p>
@@ -167,7 +167,7 @@ export default function Module4() {
                 <li>Creating branches for new features</li>
                 <li>Committing code changes</li>
                 <li>Creating and merging pull requests</li>
-                <li>Triggering Vercel deployments</li>
+                <li>Triggering <a href="https://vercel.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 underline">Vercel</a> deployments</li>
               </ul>
               <div className="bg-green-50 border border-green-200 rounded-lg p-6 mb-4">
                 <p className="text-gray-700 font-semibold mb-2">
@@ -201,8 +201,8 @@ export default function Module4() {
                 baked into a git remote URL. Then opening a PR is one fetch
                 call:
               </p>
-              <div className="bg-neutral-900 rounded-lg p-5 mb-4">
-                <pre className="text-sm text-green-400 overflow-x-auto">{`// create-pr.ts - open a pull request via the GitHub REST API
+              <div className="bg-neutral-900 rounded-lg p-4 my-4 overflow-x-auto">
+                <pre className="text-sm leading-relaxed text-neutral-100"><code>{`// create-pr.ts - open a pull request via the GitHub REST API
 // GITHUB_TOKEN: fine-grained PAT, scoped to ONE repo, with
 // Contents + Pull requests read/write. Nothing broader.
 const token = process.env.GITHUB_TOKEN;
@@ -232,7 +232,7 @@ export async function createPullRequest(
   }
   const pr = await res.json();
   return pr.html_url; // hand this back to the model
-}`}</pre>
+}`}</code></pre>
               </div>
             </div>
 
@@ -259,7 +259,7 @@ export async function createPullRequest(
                   Real example from my workflow:
                 </p>
                 <p className="text-gray-700 text-sm">
-                  I use Turso (libSQL) to store waitlist emails. When someone
+                  I use <a href="https://turso.tech" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 underline">Turso</a> (libSQL) to store waitlist emails. When someone
                   signs up on the homepage, the database tool:
                 </p>
                 <ol className="list-decimal pl-6 text-gray-700 text-sm space-y-1 mt-2">
@@ -274,12 +274,12 @@ export async function createPullRequest(
               </div>
               <p className="text-gray-700 leading-relaxed mb-4">
                 <span className="font-semibold">How to set it up:</span> This
-                site runs Turso (SQLite) with Drizzle ORM. The connection URL
+                site runs Turso (SQLite) with <a href="https://orm.drizzle.team" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 underline">Drizzle ORM</a>. The connection URL
                 and auth token live in environment variables. Here's the whole
                 thing - schema, insert, and the query I run most often:
               </p>
-              <div className="bg-neutral-900 rounded-lg p-5 mb-4">
-                <pre className="text-sm text-green-400 overflow-x-auto">{`// waitlist.ts - Drizzle ORM + Turso (@libsql/client)
+              <div className="bg-neutral-900 rounded-lg p-4 my-4 overflow-x-auto">
+                <pre className="text-sm leading-relaxed text-neutral-100"><code>{`// waitlist.ts - Drizzle ORM + Turso (@libsql/client)
 import { createClient } from "@libsql/client";
 import { drizzle } from "drizzle-orm/libsql";
 import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
@@ -304,7 +304,7 @@ export async function addSignup(email: string) {
 // The query I run most: how many signups do we have?
 export async function signupCount() {
   return db.$count(waitlist); // 351 as of July 2026
-}`}</pre>
+}`}</code></pre>
               </div>
             </div>
 
@@ -390,7 +390,7 @@ export async function signupCount() {
                 <span className="font-semibold">How to set it up:</span>
               </p>
               <ol className="list-decimal pl-6 text-gray-700 space-y-2 mb-4">
-                <li>Choose a service (SendGrid, Postmark, Resend)</li>
+                <li>Choose a service (SendGrid, Postmark, <a href="https://resend.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 underline">Resend</a>)</li>
                 <li>Get an API key</li>
                 <li>Set up sender domain (verify DNS records)</li>
                 <li>Create email templates</li>
@@ -431,8 +431,8 @@ export async function signupCount() {
                 secret key and the price ID in environment variables. The
                 server-side core is one call:
               </p>
-              <div className="bg-neutral-900 rounded-lg p-5 mb-4">
-                <pre className="text-sm text-green-400 overflow-x-auto">{`// checkout.ts - create a Stripe Checkout Session server-side
+              <div className="bg-neutral-900 rounded-lg p-4 my-4 overflow-x-auto">
+                <pre className="text-sm leading-relaxed text-neutral-100"><code>{`// checkout.ts - create a Stripe Checkout Session server-side
 import Stripe from "stripe";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
@@ -453,7 +453,7 @@ export async function createCheckout(customerEmail: string) {
     cancel_url: "https://thewebsite.app/pricing",
   });
   return session.url; // redirect the buyer here
-}`}</pre>
+}`}</code></pre>
               </div>
               <p className="text-gray-700 leading-relaxed mb-4">
                 Then handle the webhook Stripe sends on successful payment -
