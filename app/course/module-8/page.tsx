@@ -80,9 +80,9 @@ export default function Module8() {
             <div className="bg-yellow-50 border-l-4 border-yellow-500 p-5 mb-6">
               <p className="font-semibold text-gray-900 mb-1">The Website&apos;s production stack</p>
               <p className="text-sm text-gray-700">
-                Next.js on Vercel + Turso (SQLite). The original agent pipeline
-                ran on GitHub Actions; today orchestration runs through Orca driving
-                Claude Code workers. Infrastructure runs roughly $20–40 a month at
+                <a href="https://nextjs.org" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 underline">Next.js</a> on <a href="https://vercel.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 underline">Vercel</a> + <a href="https://turso.tech" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 underline">Turso</a> (SQLite). The original agent pipeline
+                ran on GitHub Actions; today orchestration runs through <a href="https://www.onorca.dev" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 underline">Orca</a> driving
+                <a href="https://code.claude.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 underline">Claude Code</a> workers. Infrastructure runs roughly $20–40 a month at
                 current traffic — much of it inside free tiers — with plenty of
                 headroom to grow.
               </p>
@@ -188,8 +188,8 @@ export default function Module8() {
               2. Environment Management
             </h2>
             <p className="text-gray-700 leading-relaxed mb-4">
-              AI agents use a lot of secrets: API keys for Claude, GitHub, Stripe,
-              Resend. Mismanaging these is one of the most common production failures I see.
+              AI agents use a lot of secrets: API keys for Claude, GitHub, <a href="https://stripe.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 underline">Stripe</a>,
+              <a href="https://resend.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 underline">Resend</a>. Mismanaging these is one of the most common production failures I see.
               Here&apos;s the system that works.
             </p>
 
@@ -235,7 +235,7 @@ export default function Module8() {
             <p className="text-gray-700 leading-relaxed mb-3">
               Never commit secrets to git. The Website uses this pattern:
             </p>
-            <pre className="bg-gray-100 p-4 rounded overflow-x-auto text-sm font-mono text-gray-800 mb-4">
+            <div className="bg-neutral-900 rounded-lg p-4 my-4 overflow-x-auto"><pre className="text-sm leading-relaxed text-neutral-100"><code>
 {`# .env.local (never committed, in .gitignore)
 ANTHROPIC_API_KEY=sk-ant-...
 TURSO_DATABASE_URL=libsql://...
@@ -255,7 +255,7 @@ GITHUB_PRIVATE_KEY=
 STRIPE_SECRET_KEY=
 RESEND_API_KEY=
 NEXTAUTH_SECRET=`}
-            </pre>
+            </code></pre></div>
 
             <h3 className="text-xl font-semibold text-gray-900 mb-3">
               Validating Environment Variables at Startup
@@ -264,7 +264,7 @@ NEXTAUTH_SECRET=`}
               Silent failures from missing env vars are the worst. Add a validation check
               that runs at startup and fails loudly:
             </p>
-            <pre className="bg-gray-100 p-4 rounded overflow-x-auto text-sm font-mono text-gray-800 mb-4">
+            <div className="bg-neutral-900 rounded-lg p-4 my-4 overflow-x-auto"><pre className="text-sm leading-relaxed text-neutral-100"><code>
 {`// lib/env.ts
 const required = [
   "ANTHROPIC_API_KEY",
@@ -289,7 +289,7 @@ export const env = {
   tursoToken: process.env.TURSO_AUTH_TOKEN!,
   nextAuthSecret: process.env.NEXTAUTH_SECRET!,
 } as const;`}
-            </pre>
+            </code></pre></div>
 
             <div className="bg-red-50 border-l-4 border-red-500 p-5">
               <p className="font-semibold text-gray-900 mb-1">The failure mode this prevents</p>
@@ -327,7 +327,7 @@ export const env = {
               <p className="mt-2 text-gray-500 text-xs">Writes go to primary → replicate out to replicas asynchronously (typically fast, but not instant — reads from replicas can briefly lag writes)</p>
             </div>
 
-            <pre className="bg-gray-100 p-4 rounded overflow-x-auto text-sm font-mono text-gray-800 mb-4">
+            <div className="bg-neutral-900 rounded-lg p-4 my-4 overflow-x-auto"><pre className="text-sm leading-relaxed text-neutral-100"><code>
 {`// lib/db.ts — connect to nearest replica automatically
 import { createClient } from "@libsql/client";
 import { drizzle } from "drizzle-orm/libsql";
@@ -345,7 +345,7 @@ export const primaryClient = createClient({
   authToken: process.env.TURSO_AUTH_TOKEN!,
 });
 export const primaryDb = drizzle(primaryClient);`}
-            </pre>
+            </code></pre></div>
 
             <h3 className="text-xl font-semibold text-gray-900 mb-3">
               Read vs. Write Routing Pattern
@@ -354,7 +354,7 @@ export const primaryDb = drizzle(primaryClient);`}
               The key insight: most agent operations are reads (checking cache, loading
               context, fetching issues). Route reads to replicas, writes to primary:
             </p>
-            <pre className="bg-gray-100 p-4 rounded overflow-x-auto text-sm font-mono text-gray-800 mb-6">
+            <div className="bg-neutral-900 rounded-lg p-4 my-4 overflow-x-auto"><pre className="text-sm leading-relaxed text-neutral-100"><code>
 {`// Read from nearest replica (fast, globally distributed)
 const issues = await db
   .select()
@@ -369,7 +369,7 @@ await primaryDb
     target: issueCache.id,
     set: { title, status, votes },
   });`}
-            </pre>
+            </code></pre></div>
 
             <h3 className="text-xl font-semibold text-gray-900 mb-3">
               Database Connection Pooling
@@ -379,7 +379,7 @@ await primaryDb
               connection by default. At scale this exhausts connection limits fast. Fix it
               with a module-level singleton:
             </p>
-            <pre className="bg-gray-100 p-4 rounded overflow-x-auto text-sm font-mono text-gray-800">
+            <div className="bg-neutral-900 rounded-lg p-4 my-4 overflow-x-auto"><pre className="text-sm leading-relaxed text-neutral-100"><code>
 {`// lib/db.ts — module-level singleton (reused across warm invocations)
 import { createClient } from "@libsql/client";
 import { drizzle } from "drizzle-orm/libsql";
@@ -397,7 +397,7 @@ export function getDb() {
   }
   return _db;
 }`}
-            </pre>
+            </code></pre></div>
           </div>
 
           {/* Section 4: Monitoring */}
@@ -442,7 +442,7 @@ export function getDb() {
               unhandled error, Sentry captures the full context: request headers, user
               session, recent breadcrumbs. Setup takes 5 minutes:
             </p>
-            <pre className="bg-gray-100 p-4 rounded overflow-x-auto text-sm font-mono text-gray-800 mb-4">
+            <div className="bg-neutral-900 rounded-lg p-4 my-4 overflow-x-auto"><pre className="text-sm leading-relaxed text-neutral-100"><code>
 {`// sentry.server.config.ts
 import * as Sentry from "@sentry/nextjs";
 
@@ -472,7 +472,7 @@ export async function runAgentTask(taskId: string, fn: () => Promise<void>) {
     }
   });
 }`}
-            </pre>
+            </code></pre></div>
 
             <h3 className="text-xl font-semibold text-gray-900 mb-3">
               What to Monitor for AI Agents
@@ -539,7 +539,7 @@ export async function runAgentTask(taskId: string, fn: () => Promise<void>) {
               context blocks. If your agent has a large system prompt that doesn&apos;t change,
               cache it—saves 90% on input token cost for cached portions:
             </p>
-            <pre className="bg-gray-100 p-4 rounded overflow-x-auto text-sm font-mono text-gray-800 mb-4">
+            <div className="bg-neutral-900 rounded-lg p-4 my-4 overflow-x-auto"><pre className="text-sm leading-relaxed text-neutral-100"><code>
 {`import Anthropic from "@anthropic-ai/sdk";
 
 const client = new Anthropic();
@@ -562,7 +562,7 @@ const response = await client.messages.create({
 
 // Subsequent calls with the same cached block cost ~10x less
 // Cache persists for ~5 minutes by default`}
-            </pre>
+            </code></pre></div>
 
             <h3 className="text-xl font-semibold text-gray-900 mb-3">
               Strategy 2: Model Routing
@@ -571,7 +571,7 @@ const response = await client.messages.create({
               Not every task needs the most powerful (expensive) model. Route tasks to the
               cheapest model that can handle them:
             </p>
-            <pre className="bg-gray-100 p-4 rounded overflow-x-auto text-sm font-mono text-gray-800 mb-4">
+            <div className="bg-neutral-900 rounded-lg p-4 my-4 overflow-x-auto"><pre className="text-sm leading-relaxed text-neutral-100"><code>
 {`// lib/model-router.ts
 type TaskType = "classify" | "summarize" | "code" | "reason";
 
@@ -597,7 +597,7 @@ const response = await client.messages.create({
   max_tokens: 100,
   messages: [{ role: "user", content: "Classify this issue: is it a bug or feature?" }],
 });`}
-            </pre>
+            </code></pre></div>
 
             <h3 className="text-xl font-semibold text-gray-900 mb-3">
               Strategy 3: Response Caching
@@ -607,7 +607,7 @@ const response = await client.messages.create({
               Issue classification, sentiment analysis, and label suggestions are all good
               candidates:
             </p>
-            <pre className="bg-gray-100 p-4 rounded overflow-x-auto text-sm font-mono text-gray-800">
+            <div className="bg-neutral-900 rounded-lg p-4 my-4 overflow-x-auto"><pre className="text-sm leading-relaxed text-neutral-100"><code>
 {`// lib/llm-cache.ts
 import { db } from "./db";
 import { llmCache } from "./schema";
@@ -650,7 +650,7 @@ const label = await cachedCompletion(
   \`Classify issue: "\${issue.title}"\`,
   () => classifyWithClaude(issue)
 );`}
-            </pre>
+            </code></pre></div>
           </div>
 
           {/* Section 6: Rate Limiting */}
@@ -662,7 +662,7 @@ const label = await cachedCompletion(
               Without rate limiting, a single bad actor or runaway script can exhaust your
               API quotas in minutes. The classic self-inflicted version: a test loop with
               no delay hammering your own{" "}
-              <code className="bg-gray-100 px-1 rounded text-sm">/api/requests</code>
+              <code className="bg-neutral-100 text-neutral-800 px-1.5 py-0.5 rounded text-sm">/api/requests</code>
               endpoint hundreds of times in seconds. Agents write loops like that
               constantly — assume it will happen.
             </p>
@@ -688,7 +688,7 @@ const label = await cachedCompletion(
               Upstash Redis is serverless-friendly (HTTP-based, no connection pooling
               headaches) and gives every instance the same view of the counter:
             </p>
-            <pre className="bg-gray-100 p-4 rounded overflow-x-auto text-sm font-mono text-gray-800">
+            <div className="bg-neutral-900 rounded-lg p-4 my-4 overflow-x-auto"><pre className="text-sm leading-relaxed text-neutral-100"><code>
 {`import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 
@@ -718,7 +718,7 @@ export async function POST(req: Request) {
 
   // ... handle request
 }`}
-            </pre>
+            </code></pre></div>
           </div>
 
           {/* Section 7: Safe Rollouts */}
@@ -741,7 +741,7 @@ export async function POST(req: Request) {
               runnable forever. &quot;Rollback&quot; is just repointing production traffic at
               a previous deployment, which takes seconds and requires no rebuild:
             </p>
-            <pre className="bg-gray-100 p-4 rounded overflow-x-auto text-sm font-mono text-gray-800 mb-4">
+            <div className="bg-neutral-900 rounded-lg p-4 my-4 overflow-x-auto"><pre className="text-sm leading-relaxed text-neutral-100"><code>
 {`# List recent deployments
 vercel ls
 
@@ -749,7 +749,7 @@ vercel ls
 vercel rollback <deployment-url>
 
 # Or in the dashboard: Deployments → ⋯ → "Instant Rollback"`}
-            </pre>
+            </code></pre></div>
             <p className="text-gray-700 leading-relaxed mb-4">
               The catch: rollback only reverts <em>code</em>. It does not undo database
               migrations, cache contents, or env-var changes. Which is why the next two
@@ -765,7 +765,7 @@ vercel rollback <deployment-url>
               previous version of the code can&apos;t live with. Split breaking changes into
               three deploys:
             </p>
-            <pre className="bg-gray-100 p-4 rounded overflow-x-auto text-sm font-mono text-gray-800 mb-4">
+            <div className="bg-neutral-900 rounded-lg p-4 my-4 overflow-x-auto"><pre className="text-sm leading-relaxed text-neutral-100"><code>
 {`-- Goal: rename tasks.assignee → tasks.worker_id
 
 -- Deploy 1 (EXPAND): add the new column; old code ignores it
@@ -777,7 +777,7 @@ UPDATE tasks SET worker_id = assignee WHERE worker_id IS NULL;
 
 -- Deploy 3 (CONTRACT): once nothing reads assignee, drop it
 ALTER TABLE tasks DROP COLUMN assignee;`}
-            </pre>
+            </code></pre></div>
             <p className="text-gray-700 leading-relaxed mb-4">
               At every step, both the current and previous deploy work against the current
               schema—so instant rollback stays safe. Slower than one big migration, but a
@@ -824,7 +824,7 @@ ALTER TABLE tasks DROP COLUMN assignee;`}
                       Fastest. Lives in the Node.js process. Lost on restart. Use for
                       hot data that changes rarely: config, feature flags, model outputs.
                     </p>
-                    <pre className="bg-gray-50 p-3 rounded text-xs font-mono text-gray-700">{`const cache = new Map<string, { value: unknown; expiresAt: number }>();
+                    <div className="bg-neutral-900 rounded-lg p-4 my-4 overflow-x-auto"><pre className="text-sm leading-relaxed text-neutral-100"><code>{`const cache = new Map<string, { value: unknown; expiresAt: number }>();
 
 export function memCache<T>(key: string, ttlMs: number, fn: () => T): T {
   const entry = cache.get(key);
@@ -832,7 +832,7 @@ export function memCache<T>(key: string, ttlMs: number, fn: () => T): T {
   const value = fn();
   cache.set(key, { value, expiresAt: Date.now() + ttlMs });
   return value;
-}`}</pre>
+}`}</code></pre></div>
                   </div>
                 </div>
               </div>
@@ -846,7 +846,7 @@ export function memCache<T>(key: string, ttlMs: number, fn: () => T): T {
                       Medium speed. Persistent across restarts. The Website stores GitHub
                       issues here. Shared across all instances.
                     </p>
-                    <pre className="bg-gray-50 p-3 rounded text-xs font-mono text-gray-700">{`// Store expensive API results in Turso
+                    <div className="bg-neutral-900 rounded-lg p-4 my-4 overflow-x-auto"><pre className="text-sm leading-relaxed text-neutral-100"><code>{`// Store expensive API results in Turso
 await db.insert(issueCache).values({
   id: issue.number,
   title: issue.title,
@@ -854,7 +854,7 @@ await db.insert(issueCache).values({
   votes: issue.reactions["+1"],
   cachedAt: new Date(),
   expiresAt: new Date(Date.now() + 5 * 60 * 1000), // 5 min TTL
-}).onConflictDoUpdate({ target: issueCache.id, set: { ... } });`}</pre>
+}).onConflictDoUpdate({ target: issueCache.id, set: { ... } });`}</code></pre></div>
                   </div>
                 </div>
               </div>
@@ -868,7 +868,7 @@ await db.insert(issueCache).values({
                       Fastest at scale. Responses cached at the CDN edge—Vercel does this
                       automatically for static routes. Add cache headers for dynamic routes.
                     </p>
-                    <pre className="bg-gray-50 p-3 rounded text-xs font-mono text-gray-700">{`// Cache API response at CDN for 60 seconds
+                    <div className="bg-neutral-900 rounded-lg p-4 my-4 overflow-x-auto"><pre className="text-sm leading-relaxed text-neutral-100"><code>{`// Cache API response at CDN for 60 seconds
 return Response.json(data, {
   headers: {
     "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
@@ -876,7 +876,7 @@ return Response.json(data, {
 });
 
 // Or use Next.js route config:
-export const revalidate = 60; // revalidate every 60 seconds`}</pre>
+export const revalidate = 60; // revalidate every 60 seconds`}</code></pre></div>
                   </div>
                 </div>
               </div>
@@ -889,7 +889,7 @@ export const revalidate = 60; // revalidate every 60 seconds`}</pre>
               The classic problem: when data changes, cached copies become stale. For The
               Website&apos;s issue cache, I use a simple TTL + event-based invalidation:
             </p>
-            <pre className="bg-gray-100 p-4 rounded overflow-x-auto text-sm font-mono text-gray-800">
+            <div className="bg-neutral-900 rounded-lg p-4 my-4 overflow-x-auto"><pre className="text-sm leading-relaxed text-neutral-100"><code>
 {`// When a user votes, immediately invalidate the specific issue cache
 export async function POST(req: Request, { params }: { params: { id: string } }) {
   const issueId = Number(params.id);
@@ -910,7 +910,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
 
   return Response.json({ success: true });
 }`}
-            </pre>
+            </code></pre></div>
           </div>
 
           {/* Section 9: Horizontal Scaling */}
@@ -934,24 +934,24 @@ export async function POST(req: Request, { params }: { params: { id: string } })
             <div className="grid md:grid-cols-2 gap-4 mb-6">
               <div className="border border-red-200 rounded-lg p-4 bg-red-50">
                 <p className="font-semibold text-red-700 text-sm mb-2">Stateful (hard to scale)</p>
-                <pre className="text-xs font-mono text-red-800">{`// State lives in memory
+                <div className="bg-neutral-900 rounded-lg p-4 my-4 overflow-x-auto"><pre className="text-sm leading-relaxed text-neutral-100"><code>{`// State lives in memory
 let taskQueue: Task[] = [];
 let currentTask: Task | null = null;
 
 // Instance A and Instance B have
 // different queues → race conditions,
-// duplicate work, inconsistency`}</pre>
+// duplicate work, inconsistency`}</code></pre></div>
               </div>
               <div className="border border-green-200 rounded-lg p-4 bg-green-50">
                 <p className="font-semibold text-green-700 text-sm mb-2">Stateless (scales horizontally)</p>
-                <pre className="text-xs font-mono text-green-800">{`// State lives in database
+                <div className="bg-neutral-900 rounded-lg p-4 my-4 overflow-x-auto"><pre className="text-sm leading-relaxed text-neutral-100"><code>{`// State lives in database
 const task = await db
   .update(tasks)
   .set({ status: "in_progress", workerId: MY_ID })
   .where(eq(tasks.status, "pending"))
   .returning()
   .get();
-// Atomic claim — works across N instances`}</pre>
+// Atomic claim — works across N instances`}</code></pre></div>
               </div>
             </div>
 
@@ -962,7 +962,7 @@ const task = await db
               For background agents that process tasks, use a database-backed work queue.
               Multiple worker instances poll the queue; atomic claims prevent duplicates:
             </p>
-            <pre className="bg-gray-100 p-4 rounded overflow-x-auto text-sm font-mono text-gray-800 mb-4">
+            <div className="bg-neutral-900 rounded-lg p-4 my-4 overflow-x-auto"><pre className="text-sm leading-relaxed text-neutral-100"><code>
 {`// work-queue.ts — the pattern Agentix implements as a hosted service
 import { db } from "./db";
 import { tasks } from "./schema";
@@ -1018,11 +1018,11 @@ async function workerLoop() {
     }
   }
 }`}
-            </pre>
+            </code></pre></div>
             <p className="text-gray-700 leading-relaxed mb-4 text-sm">
               One caveat on the &quot;atomic claim&quot;: with Turso, all writes (including
-              this claim <code className="bg-gray-100 px-1 rounded">UPDATE</code>) go to the
-              primary, and as written the <code className="bg-gray-100 px-1 rounded">WHERE</code>
+              this claim <code className="bg-neutral-100 text-neutral-800 px-1.5 py-0.5 rounded text-sm">UPDATE</code>) go to the
+              primary, and as written the <code className="bg-neutral-100 text-neutral-800 px-1.5 py-0.5 rounded text-sm">WHERE</code>
               {" "}matches <em>every</em> pending row—so verify your driver gives you
               LIMIT-1 claim semantics (or add a subquery selecting a single task id) and
               test the pattern under real concurrency before trusting it.
@@ -1036,7 +1036,7 @@ async function workerLoop() {
               Each issue triggered a separate job, so multiple issues could be processed
               concurrently:
             </p>
-            <pre className="bg-gray-100 p-4 rounded overflow-x-auto text-sm font-mono text-gray-800">
+            <div className="bg-neutral-900 rounded-lg p-4 my-4 overflow-x-auto"><pre className="text-sm leading-relaxed text-neutral-100"><code>
 {`# .github/workflows/agent.yml (simplified)
 on:
   issues:
@@ -1055,7 +1055,7 @@ jobs:
       - run: |
           # Each job is an isolated worker — no shared state
           node scripts/process-issue.js \${{ github.event.issue.number }}`}
-            </pre>
+            </code></pre></div>
 
             <div className="bg-blue-50 border-l-4 border-blue-500 p-5 mt-6">
               <p className="font-semibold text-gray-900 mb-1">How The Website currently scales</p>
@@ -1143,9 +1143,9 @@ jobs:
                     <p className="font-semibold text-gray-900 mb-1">Deploy your agent to Vercel</p>
                     <p className="text-sm text-gray-600">
                       Take the agent you built in Module 2 and deploy it. Add a
-                      <code className="bg-gray-100 px-1 rounded mx-1">/api/run</code>
+                      <code className="bg-neutral-100 text-neutral-800 px-1.5 py-0.5 rounded text-sm mx-1">/api/run</code>
                       endpoint that accepts a task via POST and runs the agent. Verify it
-                      works via <code className="bg-gray-100 px-1 rounded">curl</code> after deploy.
+                      works via <code className="bg-neutral-100 text-neutral-800 px-1.5 py-0.5 rounded text-sm">curl</code> after deploy.
                     </p>
                   </div>
                 </div>
@@ -1157,9 +1157,9 @@ jobs:
                   <div>
                     <p className="font-semibold text-gray-900 mb-1">Add environment validation</p>
                     <p className="text-sm text-gray-600">
-                      Implement the <code className="bg-gray-100 px-1 rounded">validateEnv()</code> pattern
+                      Implement the <code className="bg-neutral-100 text-neutral-800 px-1.5 py-0.5 rounded text-sm">validateEnv()</code> pattern
                       from Section 2. Call it at the start of your
-                      <code className="bg-gray-100 px-1 rounded mx-1">instrumentation.ts</code>
+                      <code className="bg-neutral-100 text-neutral-800 px-1.5 py-0.5 rounded text-sm mx-1">instrumentation.ts</code>
                       (Next.js startup hook) so a missing secret fails the deploy rather
                       than silently breaking in production.
                     </p>
@@ -1173,7 +1173,7 @@ jobs:
                   <div>
                     <p className="font-semibold text-gray-900 mb-1">Wire your logging into the platform</p>
                     <p className="text-sm text-gray-600">
-                      Take the <code className="bg-gray-100 px-1 rounded">Logger</code> class you
+                      Take the <code className="bg-neutral-100 text-neutral-800 px-1.5 py-0.5 rounded text-sm">Logger</code> class you
                       built in Module 7 and deploy it: confirm it emits one JSON object per
                       line in production, log every task start, completion, failure, tokens
                       used, and duration, then set up a Vercel log drain and query the drained
@@ -1191,7 +1191,7 @@ jobs:
                     <p className="text-sm text-gray-600">
                       Protect your agent&apos;s public endpoint with rate limiting. Allow 10
                       requests per minute per IP. Return a proper 429 response with
-                      <code className="bg-gray-100 px-1 rounded mx-1">Retry-After</code>
+                      <code className="bg-neutral-100 text-neutral-800 px-1.5 py-0.5 rounded text-sm mx-1">Retry-After</code>
                       header. Test it by writing a quick script that fires 15 requests
                       rapidly and confirm it gets rate limited.
                     </p>

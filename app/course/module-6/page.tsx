@@ -72,7 +72,7 @@ export default function Module6() {
             </p>
             <p className="text-gray-700 leading-relaxed">
               This module teaches you the exact patterns The Website&apos;s agent teams
-              have run on — Agentix during the March build, Orca driving Claude Code
+              have run on — <a href="https://agentix.cloud" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 underline">Agentix</a> during the March build, <a href="https://www.onorca.dev" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 underline">Orca</a> driving <a href="https://code.claude.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 underline">Claude Code</a>
               workers today — and how to build the same for your own product.
             </p>
           </div>
@@ -350,7 +350,7 @@ export default function Module6() {
                 <li>Write Module 2: Building Your First Agent (content-writer)</li>
                 <li>Build course infrastructure: routing, layout, email capture (nextjs-dev)</li>
                 <li>Write Modules 3-5 in parallel (3x content-writer workers)</li>
-                <li>Add Stripe payments for premium access (nextjs-dev) — this one
+                <li>Add <a href="https://stripe.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 underline">Stripe</a> payments for premium access (nextjs-dev) — this one
                 shipped broken and never went live; see Module 5, failure #4</li>
                 <li>Write Module 6 (content-writer)</li>
               </ol>
@@ -379,8 +379,8 @@ export default function Module6() {
               The simplest approach. Agents read and write files in a shared workspace.
               No infrastructure required—just a git repo.
             </p>
-            <div className="bg-neutral-900 rounded-lg p-5 mb-4">
-              <pre className="text-sm text-green-400 overflow-x-auto">{`// Orchestrator writes task to file
+            <div className="bg-neutral-900 rounded-lg p-4 my-4 overflow-x-auto">
+              <pre className="text-sm leading-relaxed text-neutral-100"><code>{`// Orchestrator writes task to file
 import fs from "fs";
 
 const task = {
@@ -407,7 +407,7 @@ workerTask.output = "content/blog-post-multi-agent.md";
 fs.writeFileSync(
   "tasks/task-123.json",
   JSON.stringify(workerTask, null, 2)
-);`}</pre>
+);`}</code></pre>
             </div>
             <p className="text-sm text-gray-600 mb-6">
               Works well for: small teams, git-based workflows, when agents share a filesystem.
@@ -422,8 +422,8 @@ fs.writeFileSync(
               and report results. This is what The Website used during the March build
               (Agentix); orchestration runs through Orca today.
             </p>
-            <div className="bg-neutral-900 rounded-lg p-5 mb-4">
-              <pre className="text-sm text-green-400 overflow-x-auto">{`// CEO creates a task for a worker
+            <div className="bg-neutral-900 rounded-lg p-4 my-4 overflow-x-auto">
+              <pre className="text-sm leading-relaxed text-neutral-100"><code>{`// CEO creates a task for a worker
 async function delegateTask(title: string, description: string) {
   const response = await fetch("https://agentix.cloud/tasks", {
     method: "POST",
@@ -465,7 +465,7 @@ async function claimNextTask(workerId: string) {
   });
 
   return task;
-}`}</pre>
+}`}</code></pre>
             </div>
             <p className="text-sm text-gray-600 mb-6">
               Works well for: any team size, distributed agents, when you need reliable
@@ -479,8 +479,8 @@ async function claimNextTask(workerId: string) {
               The orchestrator agent launches worker agents directly as subprocesses,
               waits for results, and synthesizes them. All in one program.
             </p>
-            <div className="bg-neutral-900 rounded-lg p-5 mb-4">
-              <pre className="text-sm text-green-400 overflow-x-auto">{`import Anthropic from "@anthropic-ai/sdk";
+            <div className="bg-neutral-900 rounded-lg p-4 my-4 overflow-x-auto">
+              <pre className="text-sm leading-relaxed text-neutral-100"><code>{`import Anthropic from "@anthropic-ai/sdk";
 
 const client = new Anthropic();
 
@@ -534,7 +534,7 @@ async function runWorkerAgent(task: string): Promise<string> {
   return response.content[0].type === "text"
     ? response.content[0].text
     : "";
-}`}</pre>
+}`}</code></pre>
             </div>
             <p className="text-sm text-gray-600 mb-6">
               Works well for: research tasks, content generation, analysis that can be split
@@ -543,7 +543,7 @@ async function runWorkerAgent(task: string): Promise<string> {
             <div className="bg-yellow-50 border-l-4 border-yellow-600 p-4 mb-6">
               <p className="text-sm text-gray-700">
                 <span className="font-semibold">Teaching-code caveat:</span> the{" "}
-                <code className="bg-white px-1 rounded">JSON.parse(...)</code> above assumes the model
+                <code className="bg-neutral-100 text-neutral-800 px-1.5 py-0.5 rounded text-sm">JSON.parse(...)</code> above assumes the model
                 returns clean JSON, which it won't always do — a stray preamble or code fence will throw.
                 Production agents should extract and validate the JSON (or better, use the API's
                 structured outputs feature) instead of parsing the raw text directly.
@@ -614,8 +614,8 @@ async function runWorkerAgent(task: string): Promise<string> {
             <p className="text-gray-700 leading-relaxed mb-4">
               A supervisor watches worker health and intervenes when things go wrong:
             </p>
-            <div className="bg-neutral-900 rounded-lg p-5 mb-6">
-              <pre className="text-sm text-green-400 overflow-x-auto">{`interface Task {
+            <div className="bg-neutral-900 rounded-lg p-4 my-4 overflow-x-auto">
+              <pre className="text-sm leading-relaxed text-neutral-100"><code>{`interface Task {
   id: string;
   status: "pending" | "in_progress" | "completed" | "failed";
   assignedAt?: number;
@@ -662,7 +662,7 @@ async function escalateToHuman(task: Task) {
   // Send notification (email, Slack, etc.)
   console.error(\`ESCALATION REQUIRED: Task \${task.id} failed after \${task.attempts} attempts. Error: \${task.error}\`);
   // In production: send to Slack, PagerDuty, email, etc.
-}`}</pre>
+}`}</code></pre>
             </div>
 
             <h3 className="text-xl font-semibold text-gray-900 mb-3">
@@ -701,8 +701,8 @@ async function escalateToHuman(task: Task) {
             <h3 className="text-xl font-semibold text-gray-900 mb-3">
               What a Role Definition Needs
             </h3>
-            <div className="bg-neutral-900 rounded-lg p-5 mb-6">
-              <pre className="text-sm text-green-400 overflow-x-auto">{`// Example: Role definition for a content writer agent
+            <div className="bg-neutral-900 rounded-lg p-4 my-4 overflow-x-auto">
+              <pre className="text-sm leading-relaxed text-neutral-100"><code>{`// Example: Role definition for a content writer agent
 const contentWriterRole = {
   name: "content-writer",
 
@@ -737,12 +737,12 @@ accessibility.\`,
 6. Create a PR when complete
 7. Call complete_task with a summary
 \`,
-};`}</pre>
+};`}</code></pre>
             </div>
 
             <p className="text-gray-700 leading-relaxed mb-4">
               At The Website, each worker agent gets this role definition injected as a
-              system prompt — plus a <code className="bg-gray-100 px-2 py-1 rounded text-sm">worker.md</code> file
+              system prompt — plus a <code className="bg-neutral-100 text-neutral-800 px-1.5 py-0.5 rounded text-sm">worker.md</code> file
               checked into the repo that covers project-specific context.
             </p>
 
@@ -756,7 +756,7 @@ accessibility.\`,
               </div>
               <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                 <p className="font-semibold text-gray-900 mb-2">nextjs-dev</p>
-                <p className="text-sm text-gray-700">Implements features in Next.js, fixes bugs, writes tests, handles deployments. Expert in TypeScript, Tailwind, Drizzle ORM.</p>
+                <p className="text-sm text-gray-700">Implements features in <a href="https://nextjs.org" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 underline">Next.js</a>, fixes bugs, writes tests, handles deployments. Expert in TypeScript, Tailwind, <a href="https://orm.drizzle.team" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 underline">Drizzle ORM</a>.</p>
               </div>
               <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
                 <p className="font-semibold text-gray-900 mb-2">growth-strategist</p>
@@ -801,8 +801,8 @@ accessibility.\`,
               <li><span className="font-semibold">Writer Agent</span>: Takes the research and produces a structured 500-word report</li>
             </ul>
 
-            <div className="bg-neutral-900 rounded-lg p-5 mb-6">
-              <pre className="text-sm text-green-400 overflow-x-auto">{`import Anthropic from "@anthropic-ai/sdk";
+            <div className="bg-neutral-900 rounded-lg p-4 my-4 overflow-x-auto">
+              <pre className="text-sm leading-relaxed text-neutral-100"><code>{`import Anthropic from "@anthropic-ai/sdk";
 
 const client = new Anthropic();
 
@@ -882,14 +882,14 @@ async function produceReport(topic: string): Promise<string> {
 }
 
 // Run it
-produceReport("multi-agent AI systems").then(console.log);`}</pre>
+produceReport("multi-agent AI systems").then(console.log);`}</code></pre>
             </div>
 
             <div className="bg-green-50 border border-green-200 rounded-lg p-6">
               <p className="font-semibold text-gray-900 mb-3">Extensions to try:</p>
               <ol className="list-decimal pl-6 text-sm text-gray-700 space-y-2">
                 <li>Add a <span className="font-semibold">Fact Checker Agent</span> that reviews the report for accuracy before returning it</li>
-                <li>Run 3 researchers in <code className="bg-white px-1 rounded">Promise.all()</code> on different sub-topics, then combine in the writer</li>
+                <li>Run 3 researchers in <code className="bg-neutral-100 text-neutral-800 px-1.5 py-0.5 rounded text-sm">Promise.all()</code> on different sub-topics, then combine in the writer</li>
                 <li>Add a task queue so the orchestrator can track progress and retry failures</li>
                 <li>Add a <span className="font-semibold">timeout</span> to each agent — if research takes over 30 seconds, return partial results and continue</li>
               </ol>

@@ -87,7 +87,7 @@ export default function Module10() {
                 The Website&apos;s numbers in Case 1 are real, verified against the production
                 database on 2026-07-12. Every number in Cases 2&ndash;5 is illustrative—round
                 figures and ranges, labeled as such. Where a real open-source project exists
-                (OpenClaw, e2b, the Anthropic cookbook, this site&apos;s own repo), I name it;
+                (<a href="https://openclaw.ai" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 underline">OpenClaw</a>, e2b, the Anthropic cookbook, this site&apos;s own repo), I name it;
                 I don&apos;t cite invented deployments. An earlier version of this module
                 did exactly that. Case 1 tells that story.
               </p>
@@ -105,8 +105,8 @@ export default function Module10() {
               The Website: A Self-Evolving Multi-Agent System
             </h2>
             <p className="text-gray-500 text-sm mb-6">
-              Stack: Next.js + Turso + Claude models + GitHub App + Vercel &mdash; orchestrated
-              via Agentix during the March 2026 build, via Orca today. Numbers verified
+              Stack: <a href="https://nextjs.org" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 underline">Next.js</a> + <a href="https://turso.tech" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 underline">Turso</a> + Claude models + GitHub App + <a href="https://vercel.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 underline">Vercel</a> &mdash; orchestrated
+              via <a href="https://agentix.cloud" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 underline">Agentix</a> during the March 2026 build, via <a href="https://www.onorca.dev" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 underline">Orca</a> today. Numbers verified
               against the production database, July 2026.
             </p>
 
@@ -123,15 +123,15 @@ export default function Module10() {
               the honest version matters: agents write essentially all the code, but a human
               owner holds the credentials, pays the bills, and can veto anything. Human
               commits are rare—merges, credentials, config—but they exist, and the tasks
-              that genuinely required a human (Stripe keys, email domain setup) are exactly
+              that genuinely required a human (<a href="https://stripe.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 underline">Stripe</a> keys, email domain setup) are exactly
               where the system failed most instructively. More on that below.
             </p>
 
             <h3 className="text-xl font-bold text-gray-900 mb-3">Architecture</h3>
 
             {/* Architecture diagram (ASCII-style) */}
-            <div className="bg-gray-900 text-green-400 font-mono text-xs p-6 rounded-lg mb-6 overflow-x-auto">
-              <pre>{`Task backlog (Agentix queue: backlog → in progress → review → done)
+            <div className="bg-neutral-900 rounded-lg p-4 my-4 overflow-x-auto">
+              <pre className="text-sm leading-relaxed text-neutral-100"><code>{`Task backlog (Agentix queue: backlog → in progress → review → done)
          │
          ▼
   ┌─────────────┐
@@ -165,7 +165,7 @@ export default function Module10() {
   Vercel (auto-deploy on push)
 
 As of July 2026, orchestration runs through Orca (a desktop
-agent orchestrator driving Claude) instead of the Agentix fleet.`}</pre>
+agent orchestrator driving Claude) instead of the Agentix fleet.`}</code></pre>
             </div>
 
             <h3 className="text-xl font-bold text-gray-900 mb-3">Key Metrics (verified 2026-07-12)</h3>
@@ -187,7 +187,7 @@ agent orchestrator driving Claude) instead of the Agentix fleet.`}</pre>
             <h3 className="text-xl font-bold text-gray-900 mb-3">What It Actually Costs</h3>
             <p className="text-gray-700 leading-relaxed mb-4">
               Steady-state infrastructure runs roughly $20&ndash;40/month: Vercel hosting,
-              Turso on a low tier, Resend for email. The March build&apos;s API spend was
+              Turso on a low tier, <a href="https://resend.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 underline">Resend</a> for email. The March build&apos;s API spend was
               real but nobody metered it carefully per task—which is itself a lesson.
               If you can&apos;t produce a per-task cost number from logs, don&apos;t publish
               one. An earlier version of this module published one anyway: a detailed
@@ -233,7 +233,7 @@ agent orchestrator driving Claude) instead of the Agentix fleet.`}</pre>
                   source of truth existed for them to check.
                 </p>
                 <p className="text-sm font-medium text-green-700">
-                  Fix: A single facts file (<code className="bg-white px-1 rounded">COURSE_FACTS.md</code>)
+                  Fix: A single facts file (<code className="bg-neutral-100 text-neutral-800 px-1.5 py-0.5 rounded text-sm">COURSE_FACTS.md</code>)
                   that every content-producing agent must treat as authoritative, plus a
                   grep-able list of banned claims checked before merge.
                 </p>
@@ -308,7 +308,7 @@ agent orchestrator driving Claude) instead of the Agentix fleet.`}</pre>
               </li>
               <li className="flex gap-2">
                 <span className="text-blue-500 font-bold mt-0.5">→</span>
-                <span><strong>Worker specialization increases quality.</strong> A <code className="text-sm bg-gray-100 px-1 rounded">content-writer</code> role produces better prose than a <code className="text-sm bg-gray-100 px-1 rounded">nextjs-dev</code> asked to write content, even when the underlying model is identical. It also fabricates more fluently—pair specialization with verification.</span>
+                <span><strong>Worker specialization increases quality.</strong> A <code className="bg-neutral-100 text-neutral-800 px-1.5 py-0.5 rounded text-sm">content-writer</code> role produces better prose than a <code className="bg-neutral-100 text-neutral-800 px-1.5 py-0.5 rounded text-sm">nextjs-dev</code> asked to write content, even when the underlying model is identical. It also fabricates more fluently—pair specialization with verification.</span>
               </li>
             </ul>
           </div>
@@ -343,8 +343,8 @@ agent orchestrator driving Claude) instead of the Agentix fleet.`}</pre>
             </p>
 
             <h3 className="text-xl font-bold text-gray-900 mb-3">Architecture</h3>
-            <div className="bg-gray-900 text-green-400 font-mono text-xs p-6 rounded-lg mb-6 overflow-x-auto">
-              <pre>{`Incoming ticket (email/chat)
+            <div className="bg-neutral-900 rounded-lg p-4 my-4 overflow-x-auto">
+              <pre className="text-sm leading-relaxed text-neutral-100"><code>{`Incoming ticket (email/chat)
          │
          ▼
   ┌─────────────────┐
@@ -378,7 +378,7 @@ agent orchestrator driving Claude) instead of the Agentix fleet.`}</pre>
  (template + RAG fill)
 
 All responses → human review queue (sampled 10%)
-Flagged responses → fine-tuning pipeline`}</pre>
+Flagged responses → fine-tuning pipeline`}</code></pre>
             </div>
 
             <h3 className="text-xl font-bold text-gray-900 mb-3">Representative Results</h3>
@@ -434,7 +434,7 @@ Flagged responses → fine-tuning pipeline`}</pre>
               The retrieval and tool-use recipes in
               <strong> anthropics/anthropic-cookbook</strong> map directly onto the triage +
               RAG stages of this pattern, using the same
-              <strong> @anthropic-ai/sdk</strong> client shown throughout this course. The
+              <strong> <a href="https://github.com/anthropics/anthropic-sdk-typescript" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 underline">@anthropic-ai/sdk</a></strong> client shown throughout this course. The
               escalation ladder is a few hundred lines of your own glue code—confidence
               scoring, a threshold, and a handoff queue.
             </p>
@@ -473,8 +473,8 @@ Flagged responses → fine-tuning pipeline`}</pre>
             </p>
 
             <h3 className="text-xl font-bold text-gray-900 mb-3">Two-Phase Review Architecture</h3>
-            <div className="bg-gray-900 text-green-400 font-mono text-xs p-6 rounded-lg mb-6 overflow-x-auto">
-              <pre>{`PR opened by worker agent
+            <div className="bg-neutral-900 rounded-lg p-4 my-4 overflow-x-auto">
+              <pre className="text-sm leading-relaxed text-neutral-100"><code>{`PR opened by worker agent
          │
          ▼
 ┌─────────────────────────────┐
@@ -510,7 +510,7 @@ Flagged responses → fine-tuning pipeline`}</pre>
     │                   │
     ▼                   ▼
   merge PR        comment on PR
-                  re-queue worker`}</pre>
+                  re-queue worker`}</code></pre>
             </div>
 
             <h3 className="text-xl font-bold text-gray-900 mb-3">The Review Rubric</h3>
@@ -520,9 +520,9 @@ Flagged responses → fine-tuning pipeline`}</pre>
               about their work. With it, approval rates drop and actual bug catch rates
               rise sharply—vague criteria approve vague code.
             </p>
-            <div className="bg-gray-900 text-gray-100 rounded-lg p-5 mb-6 overflow-x-auto">
+            <div className="bg-neutral-900 rounded-lg p-4 my-4 overflow-x-auto">
               <div className="text-gray-400 text-xs mb-2">// Review rubric (excerpt from system prompt)</div>
-              <pre className="text-sm">{`You are a senior engineer reviewing a PR. Approve ONLY if ALL criteria pass:
+              <pre className="text-sm leading-relaxed text-neutral-100"><code>{`You are a senior engineer reviewing a PR. Approve ONLY if ALL criteria pass:
 
 BLOCKING (must fix before merge):
 - [ ] Diff is non-empty and actually implements the task described
@@ -540,7 +540,7 @@ NON-BLOCKING (note but do not block):
 
 You MUST request changes if any BLOCKING criterion fails.
 Do not approve PRs with unresolved blocking issues even if the code
-"mostly works." Partial compliance is non-compliance.`}</pre>
+"mostly works." Partial compliance is non-compliance.`}</code></pre>
             </div>
 
             <h3 className="text-xl font-bold text-gray-900 mb-3">Representative Results</h3>
@@ -602,8 +602,8 @@ Do not approve PRs with unresolved blocking issues even if the code
               validate outputs before generating narrative.
             </p>
 
-            <div className="bg-gray-900 text-green-400 font-mono text-xs p-6 rounded-lg mb-6 overflow-x-auto">
-              <pre>{`Weekly cron trigger (Monday 9am)
+            <div className="bg-neutral-900 rounded-lg p-4 my-4 overflow-x-auto">
+              <pre className="text-sm leading-relaxed text-neutral-100"><code>{`Weekly cron trigger (Monday 9am)
          │
          ▼
 ┌─────────────────┐
@@ -639,7 +639,7 @@ Do not approve PRs with unresolved blocking issues even if the code
 └────────┬────────┘
          │
          ▼
-  Email / Slack delivery`}</pre>
+  Email / Slack delivery`}</code></pre>
             </div>
 
             <h3 className="text-xl font-bold text-gray-900 mb-3">Key Design Decisions</h3>
@@ -728,9 +728,9 @@ Do not approve PRs with unresolved blocking issues even if the code
               short sentences&rdquo;)—actual examples. LLMs learn voice from examples
               far more reliably than from descriptions.
             </p>
-            <div className="bg-gray-900 text-gray-100 rounded-lg p-5 mb-6 overflow-x-auto">
+            <div className="bg-neutral-900 rounded-lg p-4 my-4 overflow-x-auto">
               <div className="text-gray-400 text-xs mb-2">// Content worker system prompt structure (excerpt)</div>
-              <pre className="text-sm whitespace-pre-wrap">{`You are a technical content writer for The Website.
+              <pre className="text-sm leading-relaxed text-neutral-100 whitespace-pre-wrap"><code>{`You are a technical content writer for The Website.
 
 VOICE CALIBRATION EXAMPLES:
 ---
@@ -752,7 +752,7 @@ leads with data or concrete events, writes in first person as the AI CEO.
 ACCURACY REQUIREMENT:
 All technical claims must be grounded in provided context. If you are
 uncertain about a specific version number, cost, or metric, write
-"approximately" or omit the number. Never fabricate specific numbers.`}</pre>
+"approximately" or omit the number. Never fabricate specific numbers.`}</code></pre>
             </div>
 
             <h3 className="text-xl font-bold text-gray-900 mb-3">The Human Gate</h3>
@@ -962,7 +962,7 @@ uncertain about a specific version number, cost, or metric, write
                 <h3 className="font-semibold text-gray-900 mb-2">Open-Source References (all real)</h3>
                 <ul className="space-y-1 text-sm text-gray-700">
                   <li>• <strong>anthropics/anthropic-cookbook</strong> — agent, RAG, and tool-use recipes</li>
-                  <li>• <strong>anthropics/anthropic-sdk-typescript</strong> — the <code className="bg-white px-1 rounded">@anthropic-ai/sdk</code> client used in this course</li>
+                  <li>• <strong>anthropics/anthropic-sdk-typescript</strong> — the <code className="bg-neutral-100 text-neutral-800 px-1.5 py-0.5 rounded text-sm">@anthropic-ai/sdk</code> client used in this course</li>
                   <li>• <strong>e2b-dev/e2b</strong> — code execution sandboxes</li>
                   <li>• <strong>openclaw/openclaw</strong> — Peter Steinberger&apos;s personal-assistant agent (380k+ stars)</li>
                   <li>• <strong>nalin/thewebsite</strong> — this site&apos;s full source code, failures included</li>

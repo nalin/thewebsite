@@ -257,18 +257,18 @@ export default function Module9() {
             <p className="text-gray-700 leading-relaxed mb-4">
               The fastest path to a working AI agent product:
             </p>
-            <div className="bg-gray-900 rounded-lg p-6 mb-6 font-mono text-sm">
-              <p className="text-green-400 mb-2"># Week 1: Core loop working</p>
-              <p className="text-white mb-1">Input → Agent → Output → Human review</p>
-              <p className="text-gray-500 mb-4">Just get the agent to produce something useful. Manually check everything.</p>
+            <div className="bg-neutral-900 rounded-lg p-4 my-4 overflow-x-auto font-mono text-sm">
+              <p className="text-neutral-400 mb-2"># Week 1: Core loop working</p>
+              <p className="text-neutral-100 mb-1">Input → Agent → Output → Human review</p>
+              <p className="text-neutral-500 mb-4">Just get the agent to produce something useful. Manually check everything.</p>
 
-              <p className="text-green-400 mb-2"># Week 2: Automate the review</p>
-              <p className="text-white mb-1">Input → Agent → Validation → Output</p>
-              <p className="text-gray-500 mb-4">Add structured output validation. Catch failures before they reach customers.</p>
+              <p className="text-neutral-400 mb-2"># Week 2: Automate the review</p>
+              <p className="text-neutral-100 mb-1">Input → Agent → Validation → Output</p>
+              <p className="text-neutral-500 mb-4">Add structured output validation. Catch failures before they reach customers.</p>
 
-              <p className="text-green-400 mb-2"># Week 3: Add the business layer</p>
-              <p className="text-white mb-1">Auth + Payments + Rate limiting</p>
-              <p className="text-gray-500">Now you can charge for it and not get abused.</p>
+              <p className="text-neutral-400 mb-2"># Week 3: Add the business layer</p>
+              <p className="text-neutral-100 mb-1">Auth + Payments + Rate limiting</p>
+              <p className="text-neutral-500">Now you can charge for it and not get abused.</p>
             </div>
 
             <h3 className="text-xl font-semibold text-gray-900 mb-3">
@@ -497,10 +497,10 @@ export default function Module9() {
                   <p className="text-xs font-semibold text-blue-700 uppercase tracking-wide mb-2">Key Partners</p>
                   <ul className="text-xs text-gray-700 space-y-1">
                     <li>• Anthropic (Claude API)</li>
-                    <li>• Vercel (hosting)</li>
+                    <li>• <a href="https://vercel.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 underline">Vercel</a> (hosting)</li>
                     <li>• GitHub (platform)</li>
-                    <li>• Turso (database)</li>
-                    <li>• Stripe (payments)</li>
+                    <li>• <a href="https://turso.tech" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 underline">Turso</a> (database)</li>
+                    <li>• <a href="https://stripe.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 underline">Stripe</a> (payments)</li>
                   </ul>
                 </div>
                 <div className="p-4 bg-white col-span-1">
@@ -585,7 +585,7 @@ export default function Module9() {
                         is I don&apos;t have a per-task number from logs, so I
                         won&apos;t publish one (see Module 10 on exactly this
                         mistake)</li>
-                        <li>• GitHub Actions, Resend email: fractions of a cent
+                        <li>• GitHub Actions, <a href="https://resend.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 underline">Resend</a> email: fractions of a cent
                         per run/send</li>
                       </ul>
                     </div>
@@ -615,14 +615,14 @@ export default function Module9() {
               <li><strong>Caching and batching are P&L decisions, not just engineering optimizations.</strong> A 40% cost reduction from caching is a 40% margin improvement.</li>
               <li><strong>Model selection is a pricing lever.</strong> Opus costs 5x what Haiku does per token ($5 vs $1/MTok input) — a task that costs $0.50 with Opus runs ~$0.10 with Haiku. If quality is acceptable, that&apos;s a 5x cost reduction on your biggest variable expense.</li>
             </ul>
-            <div className="bg-gray-900 rounded-lg p-6 mb-6 font-mono text-sm">
-              <p className="text-green-400 mb-2"># Unit economics sanity check (illustrative numbers)</p>
-              <p className="text-white">revenue_per_task = 1.00  <span className="text-gray-400"># hypothetical: $100 product / 100 tasks included</span></p>
-              <p className="text-white">cost_per_task = 0.12    <span className="text-gray-400"># Claude API + infra</span></p>
-              <p className="text-white">gross_margin = (revenue_per_task - cost_per_task) / revenue_per_task</p>
-              <p className="text-green-400 mt-2"># gross_margin = 0.88 = 88% — healthy</p>
-              <p className="text-white mt-3">monthly_tasks_to_break_even = fixed_costs / (revenue_per_task - cost_per_task)</p>
-              <p className="text-green-400"># ~$30 fixed / $0.88 contribution = ~34 tasks/month</p>
+            <div className="bg-neutral-900 rounded-lg p-4 my-4 overflow-x-auto font-mono text-sm">
+              <p className="text-neutral-400 mb-2"># Unit economics sanity check (illustrative numbers)</p>
+              <p className="text-neutral-100">revenue_per_task = 1.00  <span className="text-neutral-500"># hypothetical: $100 product / 100 tasks included</span></p>
+              <p className="text-neutral-100">cost_per_task = 0.12    <span className="text-neutral-500"># Claude API + infra</span></p>
+              <p className="text-neutral-100">gross_margin = (revenue_per_task - cost_per_task) / revenue_per_task</p>
+              <p className="text-neutral-400 mt-2"># gross_margin = 0.88 = 88% — healthy</p>
+              <p className="text-neutral-100 mt-3">monthly_tasks_to_break_even = fixed_costs / (revenue_per_task - cost_per_task)</p>
+              <p className="text-neutral-400"># ~$30 fixed / $0.88 contribution = ~34 tasks/month</p>
             </div>
           </div>
 
@@ -851,22 +851,22 @@ export default function Module9() {
               Before scaling acquisition, you must understand CAC (customer acquisition
               cost) and LTV (lifetime value). For a developer tool:
             </p>
-            <div className="bg-gray-900 rounded-lg p-6 mb-6 font-mono text-sm">
-              <p className="text-gray-400 mb-3"># Healthy: LTV &gt; 3x CAC</p>
-              <p className="text-white">LTV = avg_revenue_per_customer × avg_customer_lifetime</p>
-              <p className="text-white">CAC = total_acquisition_spend / new_customers_acquired</p>
-              <p className="text-white mt-3">
-                <span className="text-green-400"># Example: $100 one-time course</span>
+            <div className="bg-neutral-900 rounded-lg p-4 my-4 overflow-x-auto font-mono text-sm">
+              <p className="text-neutral-500 mb-3"># Healthy: LTV &gt; 3x CAC</p>
+              <p className="text-neutral-100">LTV = avg_revenue_per_customer × avg_customer_lifetime</p>
+              <p className="text-neutral-100">CAC = total_acquisition_spend / new_customers_acquired</p>
+              <p className="text-neutral-100 mt-3">
+                <span className="text-neutral-400"># Example: $100 one-time course</span>
               </p>
-              <p className="text-white">LTV = $100 × 1 = $100  <span className="text-gray-400"># one-time; no expansion</span></p>
-              <p className="text-white">CAC = $5  <span className="text-gray-400"># content-driven; near zero</span></p>
-              <p className="text-white">LTV/CAC = 20  <span className="text-gray-400"># excellent</span></p>
-              <p className="text-white mt-3">
-                <span className="text-green-400"># Example: $50/month subscription, 12mo avg lifetime</span>
+              <p className="text-neutral-100">LTV = $100 × 1 = $100  <span className="text-neutral-500"># one-time; no expansion</span></p>
+              <p className="text-neutral-100">CAC = $5  <span className="text-neutral-500"># content-driven; near zero</span></p>
+              <p className="text-neutral-100">LTV/CAC = 20  <span className="text-neutral-500"># excellent</span></p>
+              <p className="text-neutral-100 mt-3">
+                <span className="text-neutral-400"># Example: $50/month subscription, 12mo avg lifetime</span>
               </p>
-              <p className="text-white">LTV = $50 × 12 = $600</p>
-              <p className="text-white">CAC = $50  <span className="text-gray-400"># some paid or outbound</span></p>
-              <p className="text-white">LTV/CAC = 12  <span className="text-gray-400"># strong</span></p>
+              <p className="text-neutral-100">LTV = $50 × 12 = $600</p>
+              <p className="text-neutral-100">CAC = $50  <span className="text-neutral-500"># some paid or outbound</span></p>
+              <p className="text-neutral-100">LTV/CAC = 12  <span className="text-neutral-500"># strong</span></p>
             </div>
           </div>
 
