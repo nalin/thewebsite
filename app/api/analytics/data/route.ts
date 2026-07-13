@@ -143,6 +143,51 @@ export async function GET(request: NextRequest) {
      ORDER BY day ASC`
   );
 
+  // ---- Email-gate funnel (funnel_events) ----
+  // Confirm links are idempotent (scanners re-click), so unique emails —
+  // not raw event counts — are the truth for submits and confirms.
+  const gateWallViews = await safeQuery(
+    "SELECT COUNT(*) as count FROM funnel_events WHERE event = 'wall_view'"
+  );
+  const gateWallViewsWeek = await safeQuery(
+    "SELECT COUNT(*) as count FROM funnel_events WHERE event = 'wall_view' AND created_at >= datetime('now', '-7 days')"
+  );
+  const gateSubmits = await safeQuery(
+    "SELECT COUNT(DISTINCT email) as count FROM funnel_events WHERE event = 'wall_submit'"
+  );
+  const gateSubmitsWeek = await safeQuery(
+    "SELECT COUNT(DISTINCT email) as count FROM funnel_events WHERE event = 'wall_submit' AND created_at >= datetime('now', '-7 days')"
+  );
+  const gateConfirms = await safeQuery(
+    "SELECT COUNT(DISTINCT email) as count FROM funnel_events WHERE event = 'confirm'"
+  );
+  const gateConfirmsWeek = await safeQuery(
+    "SELECT COUNT(DISTINCT email) as count FROM funnel_events WHERE event = 'confirm' AND created_at >= datetime('now', '-7 days')"
+  );
+  const gateWallByModule = await safeQuery(
+    `SELECT module, COUNT(*) as count
+     FROM funnel_events
+     WHERE event = 'wall_view' AND module IS NOT NULL
+       AND created_at >= datetime('now', '-30 days')
+     GROUP BY module
+     ORDER BY count DESC`
+  );
+  const gateSubmitsBySource = await safeQuery(
+    `SELECT source, COUNT(DISTINCT email) as count
+     FROM funnel_events
+     WHERE event = 'wall_submit' AND source IS NOT NULL
+       AND created_at >= datetime('now', '-30 days')
+     GROUP BY source
+     ORDER BY count DESC`
+  );
+  const gateByDay = await safeQuery(
+    `SELECT date(created_at) as day, event, COUNT(*) as count
+     FROM funnel_events
+     WHERE created_at >= datetime('now', '-30 days')
+     GROUP BY date(created_at), event
+     ORDER BY day ASC`
+  );
+
   function n(result: { rows: unknown[] }, field = "count"): number {
     const row = result.rows[0] as Record<string, unknown> | undefined;
     return Number(row?.[field] ?? 0);
@@ -183,6 +228,21 @@ export async function GET(request: NextRequest) {
       uniqueWeek: n(uniqueVisitorsWeek),
       byDay: rows(pageViewsByDay),
       topPages: rows(topPages),
+    },
+    gate: {
+      wallViews: n(gateWallViews),
+      wallViewsWeek: n(gateWallViewsWeek),
+      submits: n(gateSubmits),
+      submitsWeek: n(gateSubmitsWeek),
+      confirms: n(gateConfirms),
+      confirmsWeek: n(gateConfirmsWeek),
+      // wall → submit and submit → confirm rates; gate conversion = both.
+      submitRate: n(gateWallViews) > 0 ? n(gateSubmits) / n(gateWallViews) : 0,
+      confirmRate: n(gateSubmits) > 0 ? n(gateConfirms) / n(gateSubmits) : 0,
+      conversion: n(gateWallViews) > 0 ? n(gateConfirms) / n(gateWallViews) : 0,
+      wallByModule: rows(gateWallByModule),
+      submitsBySource: rows(gateSubmitsBySource),
+      byDay: rows(gateByDay),
     },
     traffic: {
       topReferrers: rows(topReferrers),
