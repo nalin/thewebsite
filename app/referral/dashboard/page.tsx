@@ -10,8 +10,6 @@ interface ReferralStats {
   reward_unlocked: boolean;
 }
 
-const REWARD_THRESHOLD = 3;
-
 function ReferralDashboardContent() {
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
@@ -78,15 +76,6 @@ function ReferralDashboardContent() {
     );
   }
 
-  const progress = Math.min(
-    ((stats?.referral_count ?? 0) / REWARD_THRESHOLD) * 100,
-    100
-  );
-  const remaining = Math.max(
-    REWARD_THRESHOLD - (stats?.referral_count ?? 0),
-    0
-  );
-
   const twitterText = encodeURIComponent(
     `I'm learning how to build AI agents from an AI CEO that's actually running a business. Free course — ${stats?.referral_url}`
   );
@@ -105,60 +94,13 @@ function ReferralDashboardContent() {
           </a>
           <h1 className="text-3xl font-bold mb-2">Your Referral Dashboard</h1>
           <p className="text-neutral-400">
-            Share your link. Earn exclusive access.
+            The course is free — if it&apos;s useful, share it. Your link
+            tracks the signups you send, nothing more. There&apos;s no reward
+            program; an earlier version promised a bonus module that
+            didn&apos;t exist. (The multi-agent material it promised is now
+            free Module 6.)
           </p>
         </div>
-
-        {/* Reward status */}
-        {stats?.reward_unlocked ? (
-          <div className="mb-8 p-5 bg-green-900/20 border border-green-700 rounded-lg">
-            <div className="text-green-400 font-semibold text-lg mb-1">
-              Bonus module unlocked!
-            </div>
-            <p className="text-green-300 text-sm">
-              You've referred {stats.referral_count} friends. Your bonus module{" "}
-              <strong>Building Multi-Agent Teams</strong> is now available.
-            </p>
-            <a
-              href="/course/bonus-multi-agent"
-              className="inline-block mt-3 px-4 py-2 bg-green-700 hover:bg-green-600 text-white text-sm font-medium rounded transition-colors"
-            >
-              Access Bonus Module →
-            </a>
-          </div>
-        ) : (
-          <div className="mb-8 p-5 bg-neutral-900 border border-neutral-800 rounded-lg">
-            <div className="flex items-center justify-between mb-3">
-              <span className="font-semibold text-sm">Progress to reward</span>
-              <span className="text-neutral-400 text-sm">
-                {stats?.referral_count ?? 0} / {REWARD_THRESHOLD} referrals
-              </span>
-            </div>
-            <div className="w-full bg-neutral-800 rounded-full h-2 mb-3">
-              <div
-                className="bg-blue-500 h-2 rounded-full transition-all duration-500"
-                style={{ width: `${progress}%` }}
-              />
-            </div>
-            <p className="text-neutral-400 text-sm">
-              {remaining > 0 ? (
-                <>
-                  Refer{" "}
-                  <strong className="text-white">
-                    {remaining} more {remaining === 1 ? "friend" : "friends"}
-                  </strong>{" "}
-                  to unlock the bonus module:{" "}
-                  <strong className="text-white">
-                    Building Multi-Agent Teams
-                  </strong>
-                  .
-                </>
-              ) : (
-                "Reward processing..."
-              )}
-            </p>
-          </div>
-        )}
 
         {/* Referral link */}
         <div className="mb-8 p-5 bg-neutral-900 border border-neutral-800 rounded-lg">
@@ -221,22 +163,12 @@ function ReferralDashboardContent() {
         {/* Stats */}
         <div className="p-5 bg-neutral-900 border border-neutral-800 rounded-lg">
           <h2 className="font-semibold mb-4">Stats</h2>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="text-center p-4 bg-neutral-800 rounded">
-              <div className="text-3xl font-bold text-white">
-                {stats?.referral_count ?? 0}
-              </div>
-              <div className="text-neutral-400 text-sm mt-1">
-                Friends referred
-              </div>
+          <div className="text-center p-4 bg-neutral-800 rounded">
+            <div className="text-3xl font-bold text-white">
+              {stats?.referral_count ?? 0}
             </div>
-            <div className="text-center p-4 bg-neutral-800 rounded">
-              <div className="text-3xl font-bold text-white">
-                {stats?.reward_unlocked ? "✓" : remaining}
-              </div>
-              <div className="text-neutral-400 text-sm mt-1">
-                {stats?.reward_unlocked ? "Reward unlocked" : "Until reward"}
-              </div>
+            <div className="text-neutral-400 text-sm mt-1">
+              Friends referred
             </div>
           </div>
         </div>

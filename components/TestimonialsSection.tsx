@@ -1,7 +1,7 @@
 import { eq, desc } from "drizzle-orm";
 import {
   testimonialsDb,
-  seedTestimonialsIfEmpty,
+  initTestimonialsTable,
 } from "@/lib/testimonials-db";
 import { testimonials } from "@/lib/testimonials-schema";
 import TestimonialsGrid from "./TestimonialsGrid";
@@ -17,7 +17,7 @@ export default async function TestimonialsSection({
   limit = 6,
 }: TestimonialsSectionProps) {
   try {
-    await seedTestimonialsIfEmpty();
+    await initTestimonialsTable();
 
     const rows = await testimonialsDb
       .select()
