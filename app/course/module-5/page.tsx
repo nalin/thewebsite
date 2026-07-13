@@ -707,7 +707,7 @@ export default function Module5() {
             <p className="text-gray-700 leading-relaxed mb-4">
               Setup — you need Node.js and Claude Code, installed once:
             </p>
-            <pre className="bg-gray-100 p-4 rounded overflow-x-auto text-sm">
+            <pre className="bg-neutral-900 text-neutral-100 p-4 rounded overflow-x-auto text-sm">
 {`npm install -g @anthropic-ai/claude-code`}
             </pre>
             <p className="text-gray-700 leading-relaxed mb-4 mt-4">
@@ -715,7 +715,7 @@ export default function Module5() {
               <code className="bg-neutral-100 px-1 rounded">-p</code> means "do
               this one task, print the result, exit":
             </p>
-            <pre className="bg-gray-100 p-4 rounded overflow-x-auto text-sm">
+            <pre className="bg-neutral-900 text-neutral-100 p-4 rounded overflow-x-auto text-sm">
 {`claude -p "Read README.md and the landing page. List every time-sensitive or unverifiable claim: dates, prices, metrics, 'coming soon' promises. For each, say how to verify it or when it goes stale."`}
             </pre>
             <p className="text-gray-700 leading-relaxed mb-4 mt-4">
@@ -727,7 +727,7 @@ export default function Module5() {
               <code className="bg-neutral-100 px-1 rounded">package.json</code>{" "}
               script:
             </p>
-            <pre className="bg-gray-100 p-4 rounded overflow-x-auto text-sm">
+            <pre className="bg-neutral-900 text-neutral-100 p-4 rounded overflow-x-auto text-sm">
 {`{
   "scripts": {
     "audit:claims": "claude -p 'Read README.md and the landing page. List every time-sensitive or unverifiable claim: dates, prices, metrics, coming-soon promises. For each, say how to verify it or when it goes stale.'"
