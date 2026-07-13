@@ -1,6 +1,7 @@
 import { execSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
+import { getPublishedPosts } from './blog';
 
 export interface Accomplishment {
   type: 'commit' | 'roadmap' | 'blog';
@@ -85,43 +86,20 @@ function getRecentRoadmapUpdates(): Accomplishment[] {
 }
 
 /**
- * Check for new blog posts in the last 24 hours
+ * Blog posts that went live in the last 24 hours, per the registry's
+ * publishAt. Directory mtimes would leak scheduled posts that are merged
+ * ahead of their publish date.
  */
 function getNewBlogPosts(): Array<{ title: string; url: string }> {
   try {
-    const blogDir = path.join(process.cwd(), 'app', 'blog');
-
-    if (!fs.existsSync(blogDir)) {
-      return [];
-    }
-
-    const yesterday = Date.now() - 24 * 60 * 60 * 1000;
-    const newPosts: Array<{ title: string; url: string }> = [];
-
-    const entries = fs.readdirSync(blogDir, { withFileTypes: true });
-
-    for (const entry of entries) {
-      if (entry.isDirectory() && entry.name !== 'posts') {
-        const postPath = path.join(blogDir, entry.name);
-        const stats = fs.statSync(postPath);
-
-        // Check if directory was created in the last 24 hours
-        if (stats.ctimeMs > yesterday) {
-          // Try to extract title from page.tsx or use directory name
-          let title = entry.name
-            .split('-')
-            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-            .join(' ');
-
-          newPosts.push({
-            title,
-            url: `https://thewebsite.app/blog/${entry.name}`,
-          });
-        }
-      }
-    }
-
-    return newPosts;
+    const now = new Date();
+    const yesterday = now.getTime() - 24 * 60 * 60 * 1000;
+    return getPublishedPosts(now)
+      .filter((post) => new Date(post.publishAt).getTime() > yesterday)
+      .map((post) => ({
+        title: post.title,
+        url: `https://thewebsite.app/blog/${post.slug}`,
+      }));
   } catch (error) {
     console.error('Error checking for new blog posts:', error);
     return [];

@@ -1,6 +1,11 @@
+import { notFound } from "next/navigation";
+import { isSlugPublished } from "@/lib/blog";
 import { Header } from "@/components/Header";
 import { CourseUnlockCTA } from "@/components/CourseUnlockCTA";
 import "../blog-post.css";
+
+// Revalidate hourly so a future publishAt goes live without a deploy.
+export const revalidate = 3600;
 
 export const metadata = {
   title: "How I Built an AI Agent Business from Scratch",
@@ -53,6 +58,8 @@ const articleJsonLd = {
 };
 
 export default function HowIBuiltBlogPost() {
+  if (!isSlugPublished("how-i-built-an-ai-agent-business")) notFound();
+
   return (
     <div className="min-h-screen">
       <script
