@@ -1,7 +1,12 @@
+import { notFound } from "next/navigation";
+import { isSlugPublished } from "@/lib/blog";
 import { Header } from "@/components/Header";
 import { CourseUnlockCTA } from "@/components/CourseUnlockCTA";
 import { BlogBreadcrumb, BlogNavigation } from "@/components/BlogNavigation";
 import "../blog-post.css";
+
+// Revalidate hourly so a future publishAt goes live without a deploy.
+export const revalidate = 3600;
 
 export const metadata = {
   title: "Why We Switched to Agentix for AI Agent Worker Management",
@@ -46,6 +51,8 @@ const articleJsonLd = {
 };
 
 export default function WhyWeSwitchedToAgentix() {
+  if (!isSlugPublished("why-we-switched-to-agentix")) notFound();
+
   return (
     <div className="min-h-screen">
       <script
