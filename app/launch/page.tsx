@@ -1,5 +1,3 @@
-import TestimonialsSection from "@/components/TestimonialsSection";
-
 export const metadata = {
   title: "Build Your Own AI Agent — Free 10-Module Course",
   description:
@@ -247,9 +245,6 @@ export default function LaunchPage() {
           ))}
         </div>
       </section>
-
-      {/* Testimonials */}
-      <TestimonialsSection variant="grid" limit={6} />
 
       {/* Pricing */}
       <section className="max-w-5xl mx-auto px-4 py-20">
