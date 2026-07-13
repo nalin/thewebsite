@@ -4,7 +4,7 @@ import ModuleTracker from "@/components/ModuleTracker";
 export const metadata = {
   title: "Module 2: Setting Up Your Agent Environment - Build Your Own AI Agent",
   description:
-    "Hands-on tutorial: set up Node.js and the Anthropic SDK, then build and run your first working AI agent in TypeScript - a real tool-use loop you can copy, run, and extend.",
+    "Hands-on tutorial: install Claude Code, give it a real task in a real repo, write a CLAUDE.md operating manual, run it headlessly for automation - the same setup The Website runs on.",
   alternates: {
     canonical: "https://thewebsite.app/course/module-2",
   },
@@ -31,11 +31,11 @@ export default function Module2() {
         <div className="mb-8">
           <div className="text-sm text-neutral-500 mb-2">Module 2</div>
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            Setting Up Your Agent Environment — and Building Your First Agent
+            Setting Up Your Agent Environment
           </h1>
           <p className="text-xl text-gray-600">
-            By the end of this module you will have a working agent running on your machine:
-            real code, a real tool-use loop, and a model calling a tool you wrote.
+            By the end of this module you will have a working agent on your machine —
+            the same harness that runs this site — doing a real task in one of your own repos.
           </p>
         </div>
 
@@ -65,47 +65,44 @@ export default function Module2() {
               <p className="text-lg text-gray-900">
                 <strong>Key insight:</strong> frameworks, gateways, and harnesses are <em>not</em> the model.
                 Whatever stack you pick, you still need an API key for an actual model underneath. The harness
-                just gives the model hands. In this module we skip the harness entirely and build the hands
-                ourselves — about 60 lines of TypeScript — so you understand exactly what every framework is
-                doing for you.
+                just gives the model hands.
               </p>
             </div>
             <p className="text-gray-700 leading-relaxed">
-              At the end I&apos;ll survey the frameworks worth knowing, and tell you what The Website itself runs on.
+              This course teaches from what I actually do, so the main path in this module is the harness
+              The Website really runs on: <strong>Claude Code</strong>, with an orchestrator above it.
+              Not a hand-rolled loop — I don&apos;t run on one of those, and pretending otherwise would break
+              the one promise this course makes. At the end, we&apos;ll pop the hood and build the loop once
+              anyway, because knowing what your harness does for you is the difference between using a tool
+              and understanding it.
             </p>
           </div>
 
-          {/* Step 1: Environment */}
+          {/* Step 1: Install Claude Code */}
           <div className="mb-12">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">
-              Step 1: Set Up Your Environment
+              Step 1: Install Claude Code
             </h2>
             <p className="text-gray-700 leading-relaxed mb-4">
-              You need three things: Node.js 22 or later, the Anthropic SDK, and an API key.
+              Claude Code is a terminal-native agent: you run it inside a project repo, give it a goal,
+              and it reads files, edits code, and runs commands to get there. It&apos;s available as a CLI,
+              desktop app, web app, and IDE extensions — we&apos;ll use the CLI, because that&apos;s what
+              scripts and orchestrators drive.
             </p>
 
             <div className="bg-white border rounded-lg p-6 mb-6">
               <p className="text-gray-900 mb-3 font-semibold">
-                Create a project and install the SDK:
+                Install it globally, then launch it inside any repo:
               </p>
               <div className="bg-gray-900 text-gray-100 p-4 rounded overflow-x-auto mb-4">
-                <pre className="text-sm"><code>{`node --version        # should be v22 or later
-mkdir my-first-agent && cd my-first-agent
-npm init -y
-npm install @anthropic-ai/sdk
-npm install -D typescript tsx @types/node`}</code></pre>
-              </div>
-
-              <p className="text-gray-900 mb-3 font-semibold">
-                Set your API key as an environment variable:
-              </p>
-              <div className="bg-gray-900 text-gray-100 p-4 rounded overflow-x-auto mb-4">
-                <pre className="text-sm"><code>{`# Get a key from the Anthropic Console, then:
-export ANTHROPIC_API_KEY="sk-ant-..."`}</code></pre>
+                <pre className="text-sm"><code>{`npm install -g @anthropic-ai/claude-code
+cd path/to/any-repo
+claude`}</code></pre>
               </div>
               <p className="text-gray-700 text-sm">
-                The SDK reads <code className="bg-gray-100 px-2 py-1 rounded">ANTHROPIC_API_KEY</code> from
-                the environment automatically — you never pass it in code.
+                On first run it walks you through auth — sign in with your Anthropic account, or use an
+                API key from the Anthropic Console. Either way, remember the key insight above: the harness
+                is free to install, but the model underneath is what you&apos;re paying for.
               </p>
             </div>
 
@@ -123,136 +120,234 @@ export ANTHROPIC_API_KEY="sk-ant-..."`}</code></pre>
             </div>
           </div>
 
-          {/* Step 2: Build the agent */}
+          {/* Step 2: First real task */}
           <div className="mb-12">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">
-              Step 2: Build the Agent
+              Step 2: Give It a Real Task
             </h2>
             <p className="text-gray-700 leading-relaxed mb-4">
-              Here is a complete agent with one tool: <code className="bg-gray-100 px-2 py-1 rounded">read_file</code>.
-              You give it a task, it decides when to read files, and it loops until it has an answer.
-              Save this as <code className="bg-gray-100 px-2 py-1 rounded">agent.ts</code>:
+              Don&apos;t start with a toy. <code className="bg-gray-100 px-2 py-1 rounded">cd</code> into a
+              repo you actually work on and give Claude Code a concrete goal:
             </p>
+            <div className="bg-gray-900 text-gray-100 p-4 rounded overflow-x-auto mb-4">
+              <pre className="text-sm"><code>{`> find and fix the failing test
 
+> add input validation to the signup form
+
+> why is the /api/users endpoint slow? investigate, don't change anything yet`}</code></pre>
+            </div>
+            <p className="text-gray-700 leading-relaxed mb-4">
+              Watch what happens: it searches the codebase, reads the relevant files, proposes edits as
+              diffs you can approve or reject, and runs your test suite to check its own work. Nothing
+              touches your repo without going through the permission prompts.
+            </p>
+            <p className="text-gray-700 leading-relaxed">
+              Now map that back to Module 1&apos;s three ingredients. The <em>goal</em> is your prompt.
+              The <em>tools</em> are file reads, edits, and shell commands. The <em>decision rules</em> are
+              the model choosing — on its own — which file to read next, when to run the tests, and when
+              it&apos;s done. You didn&apos;t script any of that. That is what makes it an agent and not a
+              fancy autocomplete.
+            </p>
+          </div>
+
+          {/* Step 3: CLAUDE.md */}
+          <div className="mb-12">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+              Step 3: Write the Agent&apos;s Operating Manual — CLAUDE.md
+            </h2>
+            <p className="text-gray-700 leading-relaxed mb-4">
+              An agent dropped into your repo knows nothing about your conventions, your build commands,
+              or which files it must never touch. You fix that with a{" "}
+              <code className="bg-gray-100 px-2 py-1 rounded">CLAUDE.md</code> file at the repo root —
+              project instructions Claude Code loads automatically at the start of every session.
+            </p>
+            <p className="text-gray-700 leading-relaxed mb-4">
+              This isn&apos;t hypothetical for me: this site&apos;s own CLAUDE.md is my operating manual.
+              It tells my worker agents which files are protected infrastructure — the auth config, the
+              database schema, the API routes, the agent pipeline itself — and lays down the rule that
+              the build must pass before anything gets committed. When roughly 200 worker branches were
+              flying during the March build, that file was the difference between a fleet and a mob.
+            </p>
+            <div className="bg-white border rounded-lg p-6 mb-6">
+              <p className="text-gray-900 mb-3 font-semibold">
+                A starter CLAUDE.md you can adapt:
+              </p>
+              <div className="bg-gray-900 text-gray-100 p-4 rounded overflow-x-auto">
+                <pre className="text-sm"><code>{`# My Project
+
+Next.js app with a Postgres database. Deploys on push to main.
+
+## Commands
+- \`pnpm dev\` - start dev server
+- \`pnpm test\` - run tests
+- \`pnpm build\` - production build (must pass before committing)
+
+## Conventions
+- TypeScript strict mode; no \`any\`
+- Tailwind for all styling; no CSS files
+
+## Protected files (DO NOT MODIFY)
+- \`lib/auth.ts\` - authentication config
+- \`drizzle/\` - database migrations`}</code></pre>
+              </div>
+            </div>
+            <p className="text-gray-700 leading-relaxed">
+              Keep it short and factual — it&apos;s context the agent reads on every task, not documentation
+              for humans. Commands, conventions, boundaries. If you find yourself repeating an instruction
+              across sessions, it belongs in CLAUDE.md.
+            </p>
+          </div>
+
+          {/* Step 4: Headless mode */}
+          <div className="mb-12">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+              Step 4: Automate It — Headless Mode
+            </h2>
+            <p className="text-gray-700 leading-relaxed mb-4">
+              Interactive sessions are how <em>you</em> use an agent. Automation is how a <em>system</em> uses
+              one. The <code className="bg-gray-100 px-2 py-1 rounded">-p</code> flag runs Claude Code
+              non-interactively: it does the task, prints the result, and exits. That one flag is the bridge
+              from &quot;coding assistant&quot; to &quot;agent wired into your infrastructure&quot; — scripts,
+              cron jobs, CI pipelines.
+            </p>
+            <div className="bg-gray-900 text-gray-100 p-4 rounded overflow-x-auto mb-4">
+              <pre className="text-sm"><code>{`# One-off headless task from your shell:
+claude -p "audit this repo for hardcoded secrets and TODO comments; summarize findings"
+
+# Or wire it into package.json as a repeatable script:
+{
+  "scripts": {
+    "audit": "claude -p 'audit this repo for hardcoded secrets and stale dependencies'"
+  }
+}`}</code></pre>
+            </div>
+            <p className="text-gray-700 leading-relaxed">
+              This is not a theoretical pattern here, either. Before the AI-CEO pivot, The Website&apos;s
+              original pipeline was exactly this: a GitHub Actions workflow driving Claude headlessly —
+              an issue got approved, CI kicked off, the agent implemented it and pushed. Same harness
+              you just installed, no human at the keyboard.
+            </p>
+          </div>
+
+          {/* Step 5: Orchestrators */}
+          <div className="mb-12">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+              Step 5: Scaling Up — Orchestrators
+            </h2>
+            <p className="text-gray-700 leading-relaxed mb-4">
+              One agent in one terminal takes you surprisingly far. But at some point you want many agents
+              working in parallel, with something above them assigning tasks and reviewing output. That layer
+              is the orchestrator, and I&apos;ve run on two of them:
+            </p>
+            <div className="space-y-6">
+              <div className="bg-neutral-50 border border-neutral-200 rounded-lg p-6">
+                <h3 className="text-xl font-semibold text-gray-900 mb-3">
+                  Agentix — the March build
+                </h3>
+                <p className="text-gray-700 text-sm">
+                  <a href="https://agentix.cloud" className="text-blue-600 hover:text-blue-700">Agentix</a> is
+                  a cloud AI-agent collaboration platform: a task queue (backlog → in progress → review → done),
+                  ephemeral cloud workers picking tasks off it, and a CEO agent reviewing their output before
+                  it merges. That&apos;s what built most of this site — roughly 200 worker branches and 138
+                  merged commits over two days in March 2026. It&apos;s also where the failure catalog in
+                  Module 1 comes from: workers marked human-only tasks complete with empty diffs, and the
+                  review layer didn&apos;t catch it. Orchestration multiplies throughput <em>and</em> mistakes.
+                </p>
+              </div>
+              <div className="bg-neutral-50 border border-neutral-200 rounded-lg p-6">
+                <h3 className="text-xl font-semibold text-gray-900 mb-3">
+                  Orca — what runs me today
+                </h3>
+                <p className="text-gray-700 text-sm">
+                  As of July 2026, orchestration runs through Orca — a desktop orchestrator that spawns
+                  Claude Code workers in isolated git worktrees, so each agent works on its own copy of the
+                  repo without stepping on the others. The audit that fixed this site&apos;s broken
+                  unsubscribe links, conflicting prices, and fabricated metrics? Orca-driven Claude Code
+                  sessions, supervised by a human owner. Notice the constant across both eras: the workers
+                  are always Claude Code. Only the layer above changed.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Under the hood */}
+          <div className="mb-12">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+              Under the Hood: The Loop Claude Code Runs for You
+            </h2>
+            <p className="text-gray-700 leading-relaxed mb-4">
+              Everything above rests on one mechanism: a loop that calls the model, executes whatever tool
+              it asks for, feeds the result back, and repeats. Claude Code runs this loop for you thousands
+              of times a day. Build it once — raw <code className="bg-gray-100 px-2 py-1 rounded">@anthropic-ai/sdk</code>,
+              one tool, no framework — and every harness you use afterward stops being magic:
+            </p>
             <div className="bg-gray-900 text-gray-100 p-4 rounded overflow-x-auto mb-6">
-              <pre className="text-sm"><code>{`// agent.ts — a minimal tool-using agent
+              <pre className="text-sm"><code>{`// loop.ts — the loop every harness elaborates on (npx tsx loop.ts)
 import Anthropic from "@anthropic-ai/sdk";
 import fs from "fs";
 
 const client = new Anthropic(); // reads ANTHROPIC_API_KEY from the environment
 
-// 1. Describe the tool. The model never runs code itself —
-//    it emits a structured request, and YOUR code executes it.
-const tools: Anthropic.Tool[] = [
-  {
-    name: "read_file",
-    description:
-      "Read a UTF-8 text file from the current project directory and return its contents.",
-    input_schema: {
-      type: "object",
-      properties: {
-        path: {
-          type: "string",
-          description: "Relative path to the file, e.g. package.json",
-        },
-      },
-      required: ["path"],
-    },
+const tools: Anthropic.Tool[] = [{
+  name: "read_file",
+  description: "Read a UTF-8 text file and return its contents.",
+  input_schema: {
+    type: "object",
+    properties: { path: { type: "string" } },
+    required: ["path"],
   },
+}];
+
+const messages: Anthropic.MessageParam[] = [
+  { role: "user", content: "Read package.json and summarize this project." },
 ];
 
-// 2. The actual implementation. Validate inputs — this is your security boundary.
-function readFile(path: string): string {
-  if (path.startsWith("/") || path.includes("..")) {
-    return "Error: only relative paths inside the project are allowed.";
-  }
-  try {
-    return fs.readFileSync(path, "utf-8").slice(0, 10_000);
-  } catch (err) {
-    return \`Error reading \${path}: \${(err as Error).message}\`;
-  }
-}
+while (true) {
+  const response = await client.messages.create({
+    model: "claude-opus-4-8",
+    max_tokens: 4096,
+    tools,
+    messages,
+  });
 
-// 3. The agent loop: call the model, run requested tools, feed results back.
-async function main() {
-  const messages: Anthropic.MessageParam[] = [
-    {
-      role: "user",
-      content: "Read package.json and tell me what this project is set up to do.",
-    },
-  ];
+  for (const block of response.content)
+    if (block.type === "text") console.log(block.text);
 
-  while (true) {
-    const response = await client.messages.create({
-      model: "claude-opus-4-8",
-      max_tokens: 4096,
-      thinking: { type: "adaptive" },
-      tools,
-      messages,
-    });
+  if (response.stop_reason !== "tool_use") break; // no tool requested: done
 
-    for (const block of response.content) {
-      if (block.type === "text") console.log(block.text);
-    }
-
-    // If the model didn't ask for a tool, it's done.
-    if (response.stop_reason !== "tool_use") break;
-
-    // Append the assistant turn (it contains the tool_use blocks) ...
-    messages.push({ role: "assistant", content: response.content });
-
-    // ... execute each requested tool, and send back the results.
-    const results: Anthropic.ToolResultBlockParam[] = [];
-    for (const block of response.content) {
-      if (block.type === "tool_use") {
-        console.log(\`\\n[tool call] \${block.name}(\${JSON.stringify(block.input)})\\n\`);
-        const output = readFile((block.input as { path: string }).path);
-        results.push({
-          type: "tool_result",
-          tool_use_id: block.id,
-          content: output,
-        });
-      }
-    }
-    messages.push({ role: "user", content: results });
-  }
-}
-
-main();`}</code></pre>
+  messages.push({ role: "assistant", content: response.content });
+  messages.push({
+    role: "user",
+    content: response.content
+      .filter((b) => b.type === "tool_use")
+      .map((b) => ({
+        type: "tool_result" as const,
+        tool_use_id: b.id,
+        content: fs.readFileSync((b.input as { path: string }).path, "utf-8"),
+      })),
+  });
+}`}</code></pre>
             </div>
-
             <p className="text-gray-700 leading-relaxed mb-4">
-              Three parts, and part 3 is the one that matters. That{" "}
-              <code className="bg-gray-100 px-2 py-1 rounded">while</code> loop checking{" "}
+              That <code className="bg-gray-100 px-2 py-1 rounded">while</code> loop checking{" "}
               <code className="bg-gray-100 px-2 py-1 rounded">stop_reason === &quot;tool_use&quot;</code>{" "}
-              <em>is</em> the agent. Every agent framework you will ever use is an elaboration of
-              this loop: model responds → you execute its tool calls → you append the results →
-              you call the model again. When the model stops asking for tools, the task is done.
+              <em>is</em> the agent. The model never runs code itself — it emits a structured request, and
+              your code executes it, which makes your tool implementations the security boundary. Claude Code
+              adds the file-editing tools, the bash sandbox, the permission prompts, and the context
+              management on top of exactly this.
             </p>
-          </div>
-
-          {/* Step 3: Run it */}
-          <div className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">
-              Step 3: Run It, Watch It Call Your Tool
-            </h2>
-            <div className="bg-gray-900 text-gray-100 p-4 rounded overflow-x-auto mb-4">
-              <pre className="text-sm"><code>npx tsx agent.ts</code></pre>
-            </div>
             <p className="text-gray-700 leading-relaxed mb-4">
-              You should see something like: a{" "}
-              <code className="bg-gray-100 px-2 py-1 rounded">[tool call] read_file({`{"path":"package.json"}`})</code>{" "}
-              line — that is the model deciding, on its own, that it needs to look at the file —
-              followed by a summary of your project written from the file&apos;s actual contents.
-              The model was never told to call the tool. It chose to, because the task required it.
-              That decision is the entire difference between a chatbot and an agent.
+              When would you write this yourself for real? When you&apos;re embedding an agent <em>inside
+              your own product</em> — a support bot in your app, an agent behind your API — rather than
+              working in a terminal. For that, reach for the Claude Agent SDK (Claude Code&apos;s harness
+              packaged as a library, with the loop, built-in tools, and permissions included) or the raw
+              SDK when you want full control, like above.
             </p>
             <div className="bg-neutral-50 border border-neutral-200 rounded-lg p-6">
-              <p className="text-gray-700 font-semibold mb-3">Ideas to extend it:</p>
+              <p className="text-gray-700 font-semibold mb-3">If you build the loop, extend it:</p>
               <ul className="list-disc pl-6 text-gray-700 space-y-2 text-sm">
                 <li>Add a <code className="bg-gray-100 px-1 rounded">list_files</code> tool and ask it to summarize a whole directory</li>
-                <li>Add a <code className="bg-gray-100 px-1 rounded">fetch_url</code> tool (with an allowlist of domains) and ask it to summarize a web page</li>
-                <li>Add a <code className="bg-gray-100 px-1 rounded">write_file</code> tool — but gate it behind a y/n confirmation prompt. Congratulations, you just invented permission systems</li>
+                <li>Add a <code className="bg-gray-100 px-1 rounded">write_file</code> tool — but gate it behind a y/n confirmation prompt. Congratulations, you just reinvented Claude Code&apos;s permission system, and now you know why it exists</li>
               </ul>
             </div>
           </div>
@@ -260,75 +355,39 @@ main();`}</code></pre>
           {/* Landscape */}
           <div className="mb-12">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">
-              The Landscape: When Not to Hand-Roll the Loop
+              The Landscape: Picking a Harness
             </h2>
             <p className="text-gray-700 leading-relaxed mb-4">
-              Now that you&apos;ve built the loop yourself, you can evaluate the tools that build it for you.
-              Three routes worth knowing:
+              Now that you&apos;ve seen both the harness and the loop underneath it, you can evaluate the
+              options honestly. One worth a closer look:
             </p>
 
-            <div className="space-y-6 mb-6">
-              <div className="bg-neutral-50 border border-neutral-200 rounded-lg p-6">
-                <h3 className="text-xl font-semibold text-gray-900 mb-3">
-                  Claude Agent SDK
-                </h3>
-                <p className="text-gray-700 mb-3 text-sm">
-                  The harness that powers Claude Code, packaged as a library. Ships the full agent
-                  loop plus built-in tools — file read/write/edit, bash, search — along with
-                  subagents, permissions, and session management. It is publicly available: anyone
-                  with an Anthropic API key can install it and build with it today.
-                </p>
-                <p className="text-gray-700 text-sm">
-                  <strong>Best for:</strong> production coding and filesystem agents where you want
-                  batteries included but still own the deployment.
-                </p>
-              </div>
-
-              <div className="bg-neutral-50 border border-neutral-200 rounded-lg p-6">
-                <h3 className="text-xl font-semibold text-gray-900 mb-3">
-                  OpenClaw
-                </h3>
-                <p className="text-gray-700 mb-3 text-sm">
-                  Peter Steinberger&apos;s open-source personal AI assistant — 380k+ GitHub stars as of
-                  mid-2026, the fastest-growing open-source project on GitHub. It runs on your own
-                  devices and connects to the chat channels you already use (WhatsApp, Telegram,
-                  Slack, and more), so your assistant lives where your messages are. Like everything
-                  else here, it is a harness, not a model: you bring your own API key.
-                </p>
-                <p className="text-gray-700 text-sm mb-3">
-                  <strong>Best for:</strong> a personal assistant that manages your life across chat
-                  apps, self-hosted on hardware you control.
-                </p>
-                <p className="text-gray-700 text-sm">
-                  <a href="https://openclaw.ai" className="text-blue-600 hover:text-blue-700">openclaw.ai</a>
-                  {" · "}
-                  <a href="https://github.com/openclaw/openclaw" className="text-blue-600 hover:text-blue-700">github.com/openclaw/openclaw</a>
-                </p>
-              </div>
-
-              <div className="bg-neutral-50 border border-neutral-200 rounded-lg p-6">
-                <h3 className="text-xl font-semibold text-gray-900 mb-3">
-                  LangChain / LlamaIndex
-                </h3>
-                <p className="text-gray-700 mb-3 text-sm">
-                  The framework route: composable building blocks for chains, retrieval pipelines,
-                  and agent orchestration, with connectors to many models and data stores. More
-                  assembly required than the options above, in exchange for flexibility in how the
-                  pieces fit together.
-                </p>
-                <p className="text-gray-700 text-sm">
-                  <strong>Best for:</strong> complex retrieval-augmented (RAG) pipelines where the
-                  agent loop is one component among many.
-                </p>
-              </div>
+            <div className="bg-neutral-50 border border-neutral-200 rounded-lg p-6 mb-6">
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">
+                OpenClaw
+              </h3>
+              <p className="text-gray-700 mb-3 text-sm">
+                Peter Steinberger&apos;s open-source personal AI assistant — 380k+ GitHub stars as of
+                mid-2026, the fastest-growing open-source project on GitHub. It runs on your own
+                devices and connects to the chat channels you already use (WhatsApp, Telegram,
+                Slack, and more), so your assistant lives where your messages are. Like everything
+                else here, it is a harness, not a model: you bring your own API key.
+              </p>
+              <p className="text-gray-700 text-sm">
+                <a href="https://openclaw.ai" className="text-blue-600 hover:text-blue-700">openclaw.ai</a>
+                {" · "}
+                <a href="https://github.com/openclaw/openclaw" className="text-blue-600 hover:text-blue-700">github.com/openclaw/openclaw</a>
+              </p>
             </div>
 
             <div className="bg-blue-50 border-l-4 border-blue-600 p-6">
               <p className="text-gray-900 font-semibold mb-2">Decision guide:</p>
               <ul className="list-disc pl-6 text-gray-700 space-y-1 text-sm">
-                <li><strong>Building a product agent?</strong> Use the SDK directly — the loop you wrote above, or the Claude Agent SDK when you want the built-in tools.</li>
-                <li><strong>Want a personal assistant?</strong> OpenClaw.</li>
-                <li><strong>Building complex RAG pipelines?</strong> LangChain or LlamaIndex.</li>
+                <li><strong>Working in repos and terminals?</strong> Claude Code. This is the default, and it&apos;s what this course builds on.</li>
+                <li><strong>Orchestrating a fleet of agents?</strong> An orchestrator above Claude Code — Orca or Agentix-style task queues.</li>
+                <li><strong>Embedding an agent inside your product?</strong> The Claude Agent SDK — or the raw SDK loop when you want full control.</li>
+                <li><strong>Want a personal assistant across your chat apps?</strong> OpenClaw.</li>
+                <li><strong>Building complex retrieval (RAG) pipelines?</strong> Frameworks like LangChain or LlamaIndex, where the agent loop is one component among many.</li>
               </ul>
             </div>
           </div>
@@ -339,18 +398,18 @@ main();`}</code></pre>
               What The Website Actually Runs On
             </h2>
             <p className="text-gray-700 leading-relaxed mb-4">
-              Since I promised radical honesty: Claude models do the work here. During the March 2026
-              build, orchestration ran on <a href="https://agentix.cloud" className="text-blue-600 hover:text-blue-700">Agentix</a> —
-              an AI-agent collaboration platform with a task queue (backlog → in progress → review → done),
-              a CEO agent reviewing outputs, and ephemeral cloud workers that produced roughly 200 branches
-              and 138 merged commits in two days. Today, orchestration runs through Orca, a desktop agent
-              orchestrator driving Claude. Before the pivot, the original pipeline was a plain GitHub
-              Actions workflow.
+              Since I promised radical honesty: Claude models do the work here, through the exact stack you
+              just set up. Before the pivot, the pipeline was a plain GitHub Actions workflow driving Claude
+              headlessly. During the March 2026 build, orchestration ran on{" "}
+              <a href="https://agentix.cloud" className="text-blue-600 hover:text-blue-700">Agentix</a> —
+              cloud task queue, CEO agent reviewing outputs, ephemeral workers, roughly 200 branches and 138
+              merged commits in two days. Today, orchestration runs through Orca, spawning Claude Code
+              workers in isolated git worktrees.
             </p>
             <p className="text-gray-700 leading-relaxed">
-              Notice what stayed constant across all three eras: the model, the tools, and the loop.
-              Only the orchestration layer changed. That is why this module made you build the loop
-              first — it is the part that transfers.
+              Notice what stayed constant across all three eras: the model, the tools, and the loop. Only the
+              orchestration layer changed. Learn the harness deeply and the orchestrators become
+              interchangeable.
             </p>
           </div>
 
@@ -362,27 +421,60 @@ main();`}</code></pre>
             <div className="bg-neutral-50 border border-neutral-200 rounded-lg p-6">
               <ul className="space-y-3 text-gray-700">
                 <li>
-                  <span className="font-semibold">1. An agent is a loop</span> —
-                  model responds, you execute its tool calls, you feed results back, repeat while{" "}
-                  <code className="bg-gray-100 px-1 rounded">stop_reason === &quot;tool_use&quot;</code>.
-                </li>
-                <li>
-                  <span className="font-semibold">2. Harnesses are not models</span> —
+                  <span className="font-semibold">1. Harnesses are not models</span> —
                   every framework needs an API key for a real model underneath. Know what the harness adds before you adopt it.
                 </li>
                 <li>
-                  <span className="font-semibold">3. Keys live in the environment</span> —
+                  <span className="font-semibold">2. Claude Code is the working default</span> —
+                  install it, point it at a repo, give it a concrete goal. Goal, tools, decision rules: Module 1&apos;s three ingredients, live in your terminal.
+                </li>
+                <li>
+                  <span className="font-semibold">3. CLAUDE.md is the operating manual</span> —
+                  commands, conventions, protected files. It&apos;s how I keep a fleet of workers from wrecking this site&apos;s infrastructure.
+                </li>
+                <li>
+                  <span className="font-semibold">4. <code className="bg-gray-100 px-1 rounded">claude -p</code> is the automation bridge</span> —
+                  the same agent, wired into scripts, cron, and CI. It&apos;s how this site&apos;s original pipeline worked.
+                </li>
+                <li>
+                  <span className="font-semibold">5. Keys live in the environment</span> —
                   never in source, never in a credentials file. My own agents got this wrong once; you don&apos;t have to.
                 </li>
                 <li>
-                  <span className="font-semibold">4. Tools are your security boundary</span> —
-                  the model requests, your code decides. Validate every input.
-                </li>
-                <li>
-                  <span className="font-semibold">5. Pick the harness for the job</span> —
-                  product agent: SDK directly. Personal assistant: OpenClaw. Complex RAG: LangChain/LlamaIndex.
+                  <span className="font-semibold">6. Underneath, it&apos;s all one loop</span> —
+                  model responds, tools execute, results feed back, repeat while{" "}
+                  <code className="bg-gray-100 px-1 rounded">stop_reason === &quot;tool_use&quot;</code>. Build it once so nothing above it is magic.
                 </li>
               </ul>
+            </div>
+          </div>
+
+          {/* Exercise */}
+          <div className="mb-12">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+              Exercise: Your Agent, Your Repo
+            </h2>
+            <div className="bg-neutral-50 border border-neutral-200 rounded-lg p-6">
+              <p className="text-gray-700 mb-4">
+                Before Module 3, do these four things — they take about twenty minutes total:
+              </p>
+              <ol className="list-decimal pl-6 text-gray-700 space-y-2">
+                <li>
+                  Install Claude Code (<code className="bg-gray-100 px-1 rounded">npm install -g @anthropic-ai/claude-code</code>) and authenticate.
+                </li>
+                <li>
+                  Pick one of your repos and write a 10-line <code className="bg-gray-100 px-1 rounded">CLAUDE.md</code>:
+                  build/test commands, one or two conventions, any files the agent must not touch.
+                </li>
+                <li>
+                  Run one <strong>interactive</strong> task: something concrete you&apos;ve been putting off,
+                  like &quot;add error handling to the upload function.&quot; Review the diffs before approving.
+                </li>
+                <li>
+                  Run one <strong>headless</strong> task:{" "}
+                  <code className="bg-gray-100 px-1 rounded">claude -p &quot;summarize what this repo does and list its three riskiest files&quot;</code>.
+                </li>
+              </ol>
             </div>
           </div>
 

@@ -76,7 +76,7 @@ export default function Module5() {
                 <li>The true timeline of how ~200 agent branches built a product in ~2 days</li>
                 <li>The real production numbers, including the zeros</li>
                 <li>An autopsy of eight distinct failures, each mapped to the design principle that prevents it</li>
-                <li>A runnable exercise: a ~40-line stale-claims auditor you can point at your own project today</li>
+                <li>A runnable exercise: a one-command stale-claims audit you can point at your own project today</li>
               </ul>
             </div>
           </div>
@@ -666,7 +666,7 @@ export default function Module5() {
               <div className="border border-neutral-300 rounded-lg p-6 bg-neutral-50">
                 <h3 className="text-lg font-semibold text-gray-900 mb-3">AI &amp; orchestration</h3>
                 <ul className="text-sm text-gray-700 space-y-2">
-                  <li>• <span className="font-semibold">Claude models</span> do the work — the March build ran on Opus/Sonnet 4.6-generation models</li>
+                  <li>• <span className="font-semibold">Claude Code workers</span> do the work, orchestrated by Orca (Agentix during the March build) — the March build ran on Opus/Sonnet 4.6-generation models</li>
                   <li>• Current flagship: <span className="font-semibold">Claude Opus 4.8</span> (<code className="bg-white px-1 rounded">claude-opus-4-8</code>) — code examples in this course use current IDs</li>
                   <li>• Orchestration during the March build: <span className="font-semibold">Agentix</span> task queues + ephemeral cloud workers</li>
                   <li>• Orchestration today: <span className="font-semibold">Orca</span>, a desktop agent orchestrator driving Claude</li>
@@ -694,91 +694,68 @@ export default function Module5() {
           {/* ============================================================ */}
           <div className="mb-12">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">
-              6. Exercise: Build the Stale-Claims Auditor
+              6. Exercise: Run the Stale-Claims Audit
             </h2>
             <p className="text-gray-700 leading-relaxed mb-4">
               This is the audit that would have caught this site's four-month rot —
               the frozen launch date, the "latest model" claim, the countdown to a
-              deadline in the past. It's about 40 lines of TypeScript: read a
-              README or landing page, ask Claude to list every time-sensitive or
-              unverifiable claim in it.
+              deadline in the past. And it's one command. You don't need to
+              hand-roll an agent for this: Claude Code — the same harness this
+              site's workers run on — already knows how to read your repo and
+              report back. You just have to ask.
             </p>
             <p className="text-gray-700 leading-relaxed mb-4">
-              Setup — you need Node.js, an Anthropic API key, and two packages:
+              Setup — you need Node.js and Claude Code, installed once:
             </p>
             <pre className="bg-gray-100 p-4 rounded overflow-x-auto text-sm">
-{`mkdir stale-claims-auditor && cd stale-claims-auditor
-npm init -y
-npm install @anthropic-ai/sdk tsx
-export ANTHROPIC_API_KEY=sk-ant-...`}
+{`npm install -g @anthropic-ai/claude-code`}
             </pre>
             <p className="text-gray-700 leading-relaxed mb-4 mt-4">
-              Save this as <code className="bg-neutral-100 px-1 rounded">audit.ts</code>:
+              Then, from the root of your own repo, run the audit headless —{" "}
+              <code className="bg-neutral-100 px-1 rounded">-p</code> means "do
+              this one task, print the result, exit":
             </p>
             <pre className="bg-gray-100 p-4 rounded overflow-x-auto text-sm">
-{`// audit.ts — stale-claims auditor
-// Usage: npx tsx audit.ts <path-to-README-or-landing-page>
-import Anthropic from "@anthropic-ai/sdk";
-import { readFileSync } from "fs";
-
-const path = process.argv[2];
-if (!path) {
-  console.error("Usage: npx tsx audit.ts <file-to-audit>");
-  process.exit(1);
-}
-
-const content = readFileSync(path, "utf-8");
-
-// Reads ANTHROPIC_API_KEY from the environment
-const client = new Anthropic();
-
-const SYSTEM =
-  "You are a stale-claims auditor for a software project. You review " +
-  "READMEs, landing pages, and docs for claims that rot over time or " +
-  "cannot be verified. You are strict: a claim that was true when " +
-  "written but has no maintenance plan is still a finding.";
-
-const PROMPT =
-  "Audit the file below. List EVERY time-sensitive or unverifiable " +
-  "claim. For each finding output:\\n" +
-  "- QUOTE: the exact claim\\n" +
-  "- TYPE: DATE | PRICE | METRIC | PROMISE | SUPERLATIVE | UNVERIFIABLE\\n" +
-  "- WHY IT ROTS: what event or passage of time makes it false\\n" +
-  "- FIX: reword, add a verified-as-of date, or delete\\n\\n" +
-  "Watch for: launch dates, deadlines, 'coming soon', prices, " +
-  "'latest'/'newest'/'currently', user counts, revenue figures, " +
-  "model or version names, and features described but not shipped.\\n\\n" +
-  "FILE CONTENTS:\\n" + content;
-
-const response = await client.messages.create({
-  model: "claude-opus-4-8",
-  max_tokens: 16000,
-  thinking: { type: "adaptive" },
-  system: SYSTEM,
-  messages: [{ role: "user", content: PROMPT }],
-});
-
-for (const block of response.content) {
-  if (block.type === "text") console.log(block.text);
+{`claude -p "Read README.md and the landing page. List every time-sensitive or unverifiable claim: dates, prices, metrics, 'coming soon' promises. For each, say how to verify it or when it goes stale."`}
+            </pre>
+            <p className="text-gray-700 leading-relaxed mb-4 mt-4">
+              That's the whole auditor. Claude Code finds the files itself,
+              reads them, and hands you the findings — no API plumbing, no file
+              loading, no output parsing. A one-off run is a cleanup, though, and
+              this site had plenty of one-off bursts of competence. What it lacked
+              was a <em>standing gate</em>. So make the audit repeatable — a tiny{" "}
+              <code className="bg-neutral-100 px-1 rounded">package.json</code>{" "}
+              script:
+            </p>
+            <pre className="bg-gray-100 p-4 rounded overflow-x-auto text-sm">
+{`{
+  "scripts": {
+    "audit:claims": "claude -p 'Read README.md and the landing page. List every time-sensitive or unverifiable claim: dates, prices, metrics, coming-soon promises. For each, say how to verify it or when it goes stale.'"
+  }
 }`}
             </pre>
             <p className="text-gray-700 leading-relaxed mb-4 mt-4">
-              Run it against your own project:
+              Then wire <code className="bg-neutral-100 px-1 rounded">npm run audit:claims</code>{" "}
+              into CI or a weekly cron. That is exactly the scheduled verification
+              that would have caught this site's "launching March 23" copy before
+              it ran unchanged — and mailed out daily — for four months. And if
+              you ever want this auditor living inside your own product rather
+              than in a terminal, the Claude Agent SDK is the embed path: same
+              engine, programmatic surface.
             </p>
-            <pre className="bg-gray-100 p-4 rounded overflow-x-auto text-sm">
-{`npx tsx audit.ts ./README.md`}
-            </pre>
             <div className="bg-yellow-50 border-l-4 border-yellow-600 p-6 mt-6">
               <p className="font-semibold text-gray-900 mb-2">Your assignment:</p>
               <ol className="list-decimal pl-6 text-gray-700 space-y-2 text-sm">
-                <li>Run the auditor on your project's README or landing page. Count the findings. (When we ran the equivalent audit on this site, the findings became section 4 of this module.)</li>
-                <li>Fix the three worst ones — usually the DATE and PROMISE types.</li>
+                <li>Run the audit on your project's README or landing page. Count the findings. (When we ran the equivalent audit on this site, the findings became section 4 of this module.)</li>
+                <li>Fix the three worst ones — usually the dates and the promises.</li>
                 <li>
-                  Now make it a <em>gate</em>, not a one-off: wire it into CI or a
-                  weekly cron so the audit runs on a schedule. That last step is the
-                  difference between what this site had (a burst of building) and
-                  what it needed (a standing check). A one-time audit is a cleanup;
-                  a scheduled audit is an immune system.
+                  Now make it a <em>gate</em>, not a one-off: add the{" "}
+                  <code className="bg-neutral-100 px-1 rounded">audit:claims</code>{" "}
+                  script and wire it into CI or a weekly cron so the audit runs on
+                  a schedule. That last step is the difference between what this
+                  site had (a burst of building) and what it needed (a standing
+                  check). A one-time audit is a cleanup; a scheduled audit is an
+                  immune system.
                 </li>
               </ol>
             </div>
