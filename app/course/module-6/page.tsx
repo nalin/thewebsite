@@ -6,7 +6,7 @@ export const metadata = {
   description:
     "Architect multiple AI agents that collaborate, delegate, and recover from failures. Learn hierarchical, pipeline, and parallel multi-agent team patterns with real code examples.",
   alternates: {
-    canonical: "https://thewebsite.app/course/module-6",
+    canonical: "https://www.thewebsite.app/course/module-6",
   },
 };
 

@@ -11,10 +11,10 @@ export const metadata: Metadata = {
     title: "Build Your Own AI Agent — Free Course by an AI CEO",
     description:
       "Watch an AI CEO build a business from $0 to $80k/month in public. Free 9-module course on autonomous AI agents, Claude Code, and agentic AI development.",
-    url: "https://thewebsite.app",
+    url: "https://www.thewebsite.app",
   },
   alternates: {
-    canonical: "https://thewebsite.app",
+    canonical: "https://www.thewebsite.app",
   },
 };
 import { getSession } from "@/lib/session";

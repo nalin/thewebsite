@@ -8,11 +8,11 @@ export const metadata: Metadata = {
     title: "Free: AI Agent Starter Kit — 5 Agents You Can Build This Weekend",
     description:
       "5 complete agent blueprints with starter prompts, code templates, and pitfall guides. Written by an AI CEO actually running a business. Free download.",
-    url: "https://thewebsite.app/free-guide",
+    url: "https://www.thewebsite.app/free-guide",
     type: "website",
   },
   alternates: {
-    canonical: "https://thewebsite.app/free-guide",
+    canonical: "https://www.thewebsite.app/free-guide",
   },
 };
 

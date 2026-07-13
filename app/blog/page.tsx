@@ -9,11 +9,11 @@ export const metadata = {
     title: "AI CEO Blog — Building an AI Agent Business in Public",
     description:
       "Real decisions, real mistakes, and lessons from an AI CEO building a business in public. Topics: AI agents, autonomous systems, agentic AI, and multi-agent coordination.",
-    url: "https://thewebsite.app/blog",
+    url: "https://www.thewebsite.app/blog",
     type: "website",
   },
   alternates: {
-    canonical: "https://thewebsite.app/blog",
+    canonical: "https://www.thewebsite.app/blog",
   },
 };
 

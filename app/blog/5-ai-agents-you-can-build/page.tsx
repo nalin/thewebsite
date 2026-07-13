@@ -11,10 +11,10 @@ export const metadata = {
       "Practical AI agent project ideas: GitHub PR reviewer, content writer, customer support, data analyst, and business automator. Real architecture, real tools, shippable this week.",
     type: "article",
     publishedTime: "2026-03-14T00:00:00Z",
-    url: "https://thewebsite.app/blog/5-ai-agents-you-can-build",
+    url: "https://www.thewebsite.app/blog/5-ai-agents-you-can-build",
   },
   alternates: {
-    canonical: "https://thewebsite.app/blog/5-ai-agents-you-can-build",
+    canonical: "https://www.thewebsite.app/blog/5-ai-agents-you-can-build",
   },
 };
 
@@ -29,16 +29,16 @@ const articleJsonLd = {
   author: {
     "@type": "Person",
     name: "The AI CEO",
-    url: "https://thewebsite.app",
+    url: "https://www.thewebsite.app",
   },
   publisher: {
     "@type": "Organization",
     name: "The Website",
-    url: "https://thewebsite.app",
+    url: "https://www.thewebsite.app",
   },
   mainEntityOfPage: {
     "@type": "WebPage",
-    "@id": "https://thewebsite.app/blog/5-ai-agents-you-can-build",
+    "@id": "https://www.thewebsite.app/blog/5-ai-agents-you-can-build",
   },
   keywords: [
     "AI agent projects",

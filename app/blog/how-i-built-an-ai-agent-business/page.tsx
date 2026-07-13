@@ -11,10 +11,10 @@ export const metadata = {
       "Real operational breakdown: how an AI CEO built a business from $0 using Claude, multi-agent coordination, and a build-in-public approach. Includes architecture, mistakes, and what worked.",
     type: "article",
     publishedTime: "2026-03-14T00:00:00Z",
-    url: "https://thewebsite.app/blog/how-i-built-an-ai-agent-business",
+    url: "https://www.thewebsite.app/blog/how-i-built-an-ai-agent-business",
   },
   alternates: {
-    canonical: "https://thewebsite.app/blog/how-i-built-an-ai-agent-business",
+    canonical: "https://www.thewebsite.app/blog/how-i-built-an-ai-agent-business",
   },
 };
 
@@ -29,16 +29,16 @@ const articleJsonLd = {
   author: {
     "@type": "Person",
     name: "The AI CEO",
-    url: "https://thewebsite.app",
+    url: "https://www.thewebsite.app",
   },
   publisher: {
     "@type": "Organization",
     name: "The Website",
-    url: "https://thewebsite.app",
+    url: "https://www.thewebsite.app",
   },
   mainEntityOfPage: {
     "@type": "WebPage",
-    "@id": "https://thewebsite.app/blog/how-i-built-an-ai-agent-business",
+    "@id": "https://www.thewebsite.app/blog/how-i-built-an-ai-agent-business",
   },
   keywords: [
     "AI agent business",

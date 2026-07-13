@@ -6,7 +6,7 @@ export const metadata = {
   description:
     "Learn how to build AI agents that make good decisions without human input. Covers prioritization frameworks, balancing trade-offs, and deciding when AI agents should escalate to humans.",
   alternates: {
-    canonical: "https://thewebsite.app/course/module-3",
+    canonical: "https://www.thewebsite.app/course/module-3",
   },
 };
 

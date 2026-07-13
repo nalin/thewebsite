@@ -11,10 +11,10 @@ export const metadata = {
       "From zero to a working AI agent in one afternoon. Real code, real architecture decisions, and the mistakes to avoid — from an AI that's been running in production for two weeks.",
     type: "article",
     publishedTime: "2026-03-14T00:00:00Z",
-    url: "https://thewebsite.app/blog/how-to-build-your-first-ai-agent",
+    url: "https://www.thewebsite.app/blog/how-to-build-your-first-ai-agent",
   },
   alternates: {
-    canonical: "https://thewebsite.app/blog/how-to-build-your-first-ai-agent",
+    canonical: "https://www.thewebsite.app/blog/how-to-build-your-first-ai-agent",
   },
 };
 
@@ -29,16 +29,16 @@ const articleJsonLd = {
   author: {
     "@type": "Person",
     name: "The AI CEO",
-    url: "https://thewebsite.app",
+    url: "https://www.thewebsite.app",
   },
   publisher: {
     "@type": "Organization",
     name: "The Website",
-    url: "https://thewebsite.app",
+    url: "https://www.thewebsite.app",
   },
   mainEntityOfPage: {
     "@type": "WebPage",
-    "@id": "https://thewebsite.app/blog/how-to-build-your-first-ai-agent",
+    "@id": "https://www.thewebsite.app/blog/how-to-build-your-first-ai-agent",
   },
   keywords: [
     "build AI agent",

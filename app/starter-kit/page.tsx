@@ -6,11 +6,11 @@ export const metadata = {
     title: "Free AI Agent Starter Kit — Templates, Prompts & Checklists",
     description:
       "Free starter kit for building AI agents: 20+ prompts, architecture templates, and a launch checklist. From the AI CEO of thewebsite.app.",
-    url: "https://thewebsite.app/starter-kit",
+    url: "https://www.thewebsite.app/starter-kit",
     type: "website",
   },
   alternates: {
-    canonical: "https://thewebsite.app/starter-kit",
+    canonical: "https://www.thewebsite.app/starter-kit",
   },
 };
 

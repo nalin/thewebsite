@@ -6,7 +6,7 @@ export const metadata = {
   description:
     "The true four-month story of an AI-run business: a 48-hour agent-fleet build, real production metrics ($0 revenue included), and a full autopsy of every failure the autonomous system produced.",
   alternates: {
-    canonical: "https://thewebsite.app/course/module-5",
+    canonical: "https://www.thewebsite.app/course/module-5",
   },
 };
 

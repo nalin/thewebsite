@@ -6,7 +6,7 @@ export const metadata = {
   description:
     "Learn how to deploy and scale AI agents in production. Covers Vercel, Railway, fly.io, Turso replication, safe rollouts, cost optimization at deploy scale, and caching.",
   alternates: {
-    canonical: "https://thewebsite.app/course/module-8",
+    canonical: "https://www.thewebsite.app/course/module-8",
   },
 };
 
