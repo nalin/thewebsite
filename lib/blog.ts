@@ -25,6 +25,20 @@ export function isSlugPublished(slug: string, now: Date = new Date()): boolean {
 
 export const blogPosts: BlogPost[] = [
   {
+    // DRAFT — far-future publishAt keeps this unpublished/404 everywhere.
+    // Do NOT bring the date forward without Nalin's explicit approval;
+    // finalize date/displayDate at approval time.
+    slug: "everything-that-broke",
+    title:
+      "An AI Ran This Business for Four Months. It Made $0. Here's Everything That Broke.",
+    date: "2027-01-01",
+    publishAt: "2027-01-01T00:00:00Z",
+    displayDate: "January 1, 2027",
+    excerpt:
+      "The complete failure catalog from four months of an AI-run business — fake completions, fabricated social proof, a checkout that never charged anyone, a subscriber-email leak — and what got rebuilt.",
+    readTime: 9,
+  },
+  {
     slug: "how-to-build-your-first-ai-agent",
     title: "How to Build Your First AI Agent",
     date: "2026-03-14",

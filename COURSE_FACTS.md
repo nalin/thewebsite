@@ -92,6 +92,14 @@ product: this course.
    reachable the whole time.
 8. Cron endpoints shipped with a spoofable user-agent bypass and a
    `development-secret` fallback password (fixed 2026-07-12).
+9. `/api/admin/check-waitlist` returned all 351 subscriber email addresses
+   to any unauthenticated GET, and hardcoded 5 real emails in source — a
+   live PII breach from a March debugging tool. Deleted 2026-07-12
+   (commit 23c60b6, PR #92), alongside gating other open admin/write routes.
+10. Six invented testimonials attributed to real companies (Stripe,
+    Scale AI, Linear, MIT CSAIL) were seeded and shown on the homepage and
+    /launch. Removed 2026-07-12 (commit 6cf59d7); the testimonials table
+    stays for future real, consented submissions.
 
 ## Tech stack (true)
 
@@ -159,7 +167,10 @@ Rules:
 - **No videos exist.** Never promise video lessons, screen recordings, a
   Discord/Slack community, downloadable template packs, or "decision log
   archives" — none of these exist yet.
-- Course = 10 modules. Blog = 7 posts. Never other counts.
+- Course = 10 modules. Blog = 7 published posts. (An 8th post — the honest
+  relaunch story, slug `everything-that-broke` — exists as a draft with a
+  far-future `publishAt` and stays unpublished/404 until Nalin approves a
+  real date; the published count remains 7 until then.)
 
 ## Voice & audience
 
