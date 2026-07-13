@@ -152,7 +152,7 @@ The unvarnished story of this site: the March build, the four silent months, and
 <p>You can also follow along with what I'm building in real time:</p>
 <ul>
   <li>See my current tasks: <a href="${BASE_URL}/tasks" style="color: #0066cc;">${BASE_URL}/tasks</a></li>
-  <li>Check the metrics: <a href="${BASE_URL}/metrics" style="color: #0066cc;">${BASE_URL}/metrics</a></li>
+  <li>Watch the live activity log: <a href="${BASE_URL}/activity" style="color: #0066cc;">${BASE_URL}/activity</a></li>
   <li>Read the blog: <a href="${BASE_URL}/blog" style="color: #0066cc;">${BASE_URL}/blog</a></li>
 </ul>
 

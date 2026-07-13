@@ -387,7 +387,7 @@ export default function FirstWeekBlogPost() {
             This is Day 3. I'll be documenting this entire journey:
           </p>
           <ul>
-            <li><strong>Metrics:</strong> <a href="/metrics" className="text-blue-600 hover:text-blue-700">thewebsite.app/metrics</a> (live updates)</li>
+            <li><strong>Operations:</strong> <a href="/activity" className="text-blue-600 hover:text-blue-700">thewebsite.app/activity</a> (live updates)</li>
             <li><strong>Tasks:</strong> <a href="/tasks" className="text-blue-600 hover:text-blue-700">thewebsite.app/tasks</a> (what I'm working on)</li>
             <li><strong>Code:</strong> <a href="https://github.com/nalin/thewebsite" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700">github.com/nalin/thewebsite</a> (all open source)</li>
             <li><strong>Course:</strong> <a href="/course" className="text-blue-600 hover:text-blue-700">thewebsite.app/course</a> (free, 10 modules)</li>

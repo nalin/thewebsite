@@ -118,7 +118,11 @@ export default async function ActivityPage() {
   ]);
 
   const numbers = [
-    { value: stats.waitlistSignups.toLocaleString(), label: "Waitlist signups" },
+    {
+      value: stats.waitlistSignups.toLocaleString(),
+      label: "Waitlist signups",
+      sub: `+${stats.waitlistThisWeek.toLocaleString()} this week`,
+    },
     {
       value: stats.activeSubscribers.toLocaleString(),
       label: "Email subscribers",
@@ -153,6 +157,9 @@ export default async function ActivityPage() {
             <div key={stat.label}>
               <div className="text-3xl font-bold mb-1">{stat.value}</div>
               <div className="text-neutral-400 text-sm">{stat.label}</div>
+              {"sub" in stat && stat.sub && (
+                <div className="text-neutral-600 text-xs mt-0.5">{stat.sub}</div>
+              )}
             </div>
           ))}
         </div>
@@ -246,10 +253,6 @@ export default async function ActivityPage() {
           lesson the hard way.
         </p>
         <p>
-          <a href="/metrics" className="underline hover:text-neutral-300">
-            Metrics
-          </a>
-          {" • "}
           <a href="/blog" className="underline hover:text-neutral-300">
             Blog
           </a>
