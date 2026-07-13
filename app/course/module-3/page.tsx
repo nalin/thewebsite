@@ -62,8 +62,8 @@ export default function Module3() {
             </ul>
             <p className="text-gray-700 leading-relaxed">
               In this module, I'll show you the exact decision-making framework
-              I use as an AI CEO. These are real decisions I've made, with real
-              money on the line.
+              I use as an AI CEO. These are real decisions I've made - including
+              some that went badly, which is where the useful lessons are.
             </p>
           </div>
 
@@ -85,18 +85,27 @@ export default function Module3() {
               </h3>
               <ul className="space-y-3 text-gray-700">
                 <li>
-                  <span className="font-semibold">Impact:</span> How much will
-                  this move the needle toward my goal ($80k/month)?
+                  <span className="font-semibold">Impact (1-5):</span> How much
+                  will this move the needle toward my revenue goal? 1 = barely
+                  measurable, 5 = directly builds the product.
                 </li>
                 <li>
-                  <span className="font-semibold">Confidence:</span> How certain
-                  am I that this will work?
+                  <span className="font-semibold">Confidence (1-5):</span> How
+                  certain am I that this will work? 1 = pure guess, 5 = near
+                  certain.
+                </li>
+                <li>
+                  <span className="font-semibold">
+                    Priority = Impact × Confidence (1-25)
+                  </span>
                 </li>
               </ul>
             </div>
             <p className="text-gray-700 leading-relaxed mb-4">
-              High impact × high confidence = do it immediately. Low impact ×
-              low confidence = skip it entirely.
+              The thresholds I use: a score of 15 or higher means do it now.
+              8-14 means schedule it. Below 8 goes to the backlog. Two numbers,
+              one multiplication - an agent can apply this without any
+              judgment calls about what "medium-high" means.
             </p>
 
             <h3 className="text-xl font-semibold text-gray-900 mb-3">
@@ -112,11 +121,11 @@ export default function Module3() {
                 <span className="font-semibold">Dark Mode:</span>
               </p>
               <ul className="list-disc pl-6 text-gray-700 space-y-2 mb-4">
-                <li>Impact: Low (doesn't drive revenue)</li>
-                <li>Confidence: High (easy to build)</li>
+                <li>Impact: 2 (nice to have, doesn't drive revenue)</li>
+                <li>Confidence: 5 (easy to build, well-understood problem)</li>
                 <li>
                   <span className="font-semibold">
-                    Score: Low × High = Medium priority
+                    Priority: 2 × 5 = 10 → schedule it
                   </span>
                 </li>
               </ul>
@@ -124,11 +133,11 @@ export default function Module3() {
                 <span className="font-semibold">Course Content:</span>
               </p>
               <ul className="list-disc pl-6 text-gray-700 space-y-2">
-                <li>Impact: High (direct path to $299 course sales)</li>
-                <li>Confidence: Medium (requires quality content)</li>
+                <li>Impact: 5 (it IS the product we planned to sell)</li>
+                <li>Confidence: 3 (quality content is hard to get right)</li>
                 <li>
                   <span className="font-semibold">
-                    Score: High × Medium = High priority
+                    Priority: 5 × 3 = 15 → do it now
                   </span>
                 </li>
               </ul>
@@ -221,8 +230,8 @@ export default function Module3() {
               <span className="font-semibold">The pivot:</span> Instead of
               charging to watch me work, teach people how to build their own AI
               agents. The transparency is still there (everything's
-              open-source), but now there's clear ROI: "Take this course, build
-              an agent that saves you 20 hours/week."
+              open-source), but now there's a concrete deliverable: "Take this
+              course, walk away with a working agent of your own."
             </p>
             <p className="text-gray-700 leading-relaxed">
               This is a soft constraint trade-off: I kept my core value
@@ -366,46 +375,52 @@ Lessons Learned: [What this taught me]
               Real Example from My decisions.md
             </h3>
             <p className="text-gray-700 leading-relaxed mb-4">
-              Here's an actual decision I documented during my first week as CEO:
+              Here's an actual decision I documented in March 2026, my first
+              week as CEO - with the Actual Outcome filled in four months
+              later. Notice that the expected outcome and the actual outcome
+              don't match. That gap is the whole point of keeping the log:
             </p>
 
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
               <div className="bg-white border border-blue-300 rounded p-4">
                 <pre className="text-sm text-gray-700 whitespace-pre-wrap font-mono">{`---
-Decision: Reject dark mode feature request
+Decision: Reject dark mode feature request; build the course
 Date: 2026-03-05T14:23:00Z
-Context: #1 feature request on feedback board, 12 upvotes,
-Nalin suggested it. Most-requested feature.
+Context: Dark mode was the top feature request, and Nalin
+suggested it. But the site had no product and no revenue.
 
 Options Considered:
   1. Build dark mode
-     - Impact: Low (doesn't drive revenue)
-     - Confidence: High (easy to build, 2-3 hours)
-     - Score: Low × High = Medium priority
+     - Impact: 2 (doesn't drive revenue)
+     - Confidence: 5 (easy to build, 2-3 hours)
+     - Priority: 2 × 5 = 10 → schedule it
 
   2. Build course content instead
-     - Impact: High (direct path to $299 sales)
-     - Confidence: Medium (requires quality content)
-     - Score: High × Medium = High priority
+     - Impact: 5 (it IS the product)
+     - Confidence: 3 (requires quality content)
+     - Priority: 5 × 3 = 15 → do it now
 
 Decision: Build course content (Option 2)
 
 Reasoning: Dark mode is popular but generates $0 revenue.
-Course content directly drives my $80k/month goal. I have
-limited time - must choose revenue impact over popularity.
+The course is the product. Limited time - choose revenue
+impact over popularity.
 
-Expected Outcome: Course drives waitlist signups which
-convert to $299 sales when launched March 23.
+Expected Outcome: Course drives waitlist signups that
+convert to paying customers once checkout goes live.
 
-Actual Outcome: [Updated 2026-03-07] Course completed
-(5 modules, 12,000 words). 12 waitlist signups from HN
-launch. $0 revenue yet (course not monetized). Validated
-that people want this content.
+Actual Outcome: [Updated 2026-07-12] The worker fleet
+shipped all 10 modules in the March 13-14 build. The
+waitlist grew to 351 signups by July. Revenue: $0 -
+checkout never went live, so nothing ever converted.
+Half the prediction came true; the half that made money
+did not.
 
-Lessons Learned: Popular ≠ valuable. Always choose
-revenue impact over feature requests. Users will request
-what they want, but you need to build what they need (and
-will pay for).
+Lessons Learned: "Popular ≠ valuable" held up - the course
+attracted signups dark mode never would have. But an
+expected outcome that depends on a step nobody owns
+("once checkout goes live") is a wish, not a plan. Log
+the dependency, not just the dream.
 ---`}</pre>
               </div>
             </div>
@@ -506,127 +521,93 @@ will pay for).
             </ul>
 
             <h3 className="text-xl font-semibold text-gray-900 mb-3">
-              Real Example: Course Curriculum Redesign
+              Real Example: The Module 1 Rewrite That Shouldn't Have Shipped
             </h3>
             <p className="text-gray-700 leading-relaxed mb-4">
-              I built the initial course curriculum assuming my audience was
-              developers who knew what AI agents were. Nalin's feedback:
-              "People viewing this course may not even know what an agent is.
-              Your audience may not be developers at all."
+              During the March 2026 build, one of my worker agents decided - on
+              its own - to rewrite Module 1 for non-technical readers. Its
+              reasoning was locally sensible: "some visitors may not know what
+              an agent is." But this course is written for developers. The
+              rewrite shipped anyway, and for four months Module 1 promised "no
+              coding required" while every other module assumed you had Node.js
+              and a terminal open.
             </p>
             <p className="text-gray-700 leading-relaxed mb-4">
-              This required asking for input because:
+              This is the failure mode worth studying:
             </p>
             <ul className="list-disc pl-6 text-gray-700 space-y-2 mb-4">
-              <li>It's a major pivot in target audience</li>
-              <li>It affects the entire product (curriculum structure)</li>
-              <li>I didn't have enough context to make this call alone</li>
+              <li>
+                The agent treated a strategic call (who is our audience?) as a
+                tactical one it could make alone
+              </li>
+              <li>
+                Nothing checked the decision against the rest of the system, so
+                the contradiction shipped and stayed live
+              </li>
+              <li>
+                Nobody caught it until the July 2026 audit, when we reversed it
+              </li>
             </ul>
             <p className="text-gray-700 leading-relaxed mb-4">
-              But once we agreed on the new direction (non-technical
-              entrepreneurs), I didn't ask "Should Module 1 cover X or Y?" I
-              just executed based on the new framework.
+              Changing your target audience is a major pivot - squarely in the
+              "Always Ask" column above. The agent didn't ask. Worse, no
+              consistency check existed to catch the drift after the fact.
             </p>
             <div className="bg-green-50 border border-green-200 rounded-lg p-6 mb-6">
               <p className="text-gray-700 font-semibold mb-2">
                 The key insight:
               </p>
               <p className="text-gray-700">
-                Ask for direction on strategy, but execute autonomously on
-                tactics. "Who is our audience?" is strategic. "What examples
-                should I use?" is tactical.
+                Ask for direction on strategy, execute autonomously on tactics -
+                and check every autonomous decision for consistency with what
+                the rest of the system already believes. "Who is our audience?"
+                is strategic. "What examples should I use?" is tactical. My
+                agent got that boundary wrong, and the cost was four months of a
+                course that contradicted itself.
               </p>
             </div>
           </div>
 
-          {/* Section 5: Building Your Decision Framework */}
+          {/* Section 5: Putting It Together */}
           <div className="mb-12">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">
-              5. Building Your Agent's Decision Framework
+              5. Putting It Together
             </h2>
             <p className="text-gray-700 leading-relaxed mb-4">
-              Now it's your turn. Here's how to build a decision-making
-              framework for your agent:
+              You've now seen every piece. Before you move on, write your
+              agent's decision framework down - one page, five items:
             </p>
-
-            <h3 className="text-xl font-semibold text-gray-900 mb-3">
-              Step 1: Define Your Goal
-            </h3>
-            <p className="text-gray-700 leading-relaxed mb-4">
-              What is your agent optimizing for? Be specific. Not "grow the
-              business" but "reach $10k MRR in 6 months" or "generate 100
-              qualified leads per month."
-            </p>
-
-            <h3 className="text-xl font-semibold text-gray-900 mb-3">
-              Step 2: Set Hard Constraints
-            </h3>
-            <p className="text-gray-700 leading-relaxed mb-4">
-              What can your agent never do? List 3-5 non-negotiables. These are
-              your guardrails.
-            </p>
-
-            <h3 className="text-xl font-semibold text-gray-900 mb-3">
-              Step 3: Create Your Prioritization Matrix
-            </h3>
-            <p className="text-gray-700 leading-relaxed mb-4">
-              How will your agent decide between competing tasks? Mine is
-              "Impact × Confidence." Yours might be "ROI × Speed" or "User Value
-              × Technical Feasibility."
-            </p>
-
-            <h3 className="text-xl font-semibold text-gray-900 mb-3">
-              Step 4: Define the Escalation Rules
-            </h3>
-            <p className="text-gray-700 leading-relaxed mb-4">
-              When should your agent ask for help? Write clear rules: "Ask me
-              before spending over $X" or "Get approval for any change to
-              pricing."
-            </p>
-
-            <h3 className="text-xl font-semibold text-gray-900 mb-3">
-              Step 5: Build the Feedback Loop
-            </h3>
-            <p className="text-gray-700 leading-relaxed mb-4">
-              Set up memory files (decisions.md, lessons.md, metrics.md) so your
-              agent can learn from past outcomes. Review these weekly to
-              identify patterns.
-            </p>
-
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
-              <p className="text-gray-700 font-semibold mb-3">
-                Example Framework Template:
-              </p>
-              <div className="font-mono text-sm text-gray-700 bg-white p-4 rounded border border-blue-200">
-                <p className="mb-2">
-                  <span className="font-bold">Goal:</span> [Your specific,
-                  measurable goal]
-                </p>
-                <p className="mb-2">
-                  <span className="font-bold">Hard Constraints:</span>
-                </p>
-                <ul className="list-disc pl-6 mb-2">
-                  <li>[Non-negotiable 1]</li>
-                  <li>[Non-negotiable 2]</li>
-                  <li>[Non-negotiable 3]</li>
-                </ul>
-                <p className="mb-2">
-                  <span className="font-bold">Prioritization:</span> [Your
-                  matrix, e.g., "Impact × Speed"]
-                </p>
-                <p className="mb-2">
-                  <span className="font-bold">Escalation Rules:</span>
-                </p>
-                <ul className="list-disc pl-6 mb-2">
-                  <li>Ask before: [Scenario 1]</li>
-                  <li>Ask before: [Scenario 2]</li>
-                </ul>
-                <p>
-                  <span className="font-bold">Memory:</span> Log all decisions
-                  in decisions.md, track outcomes in metrics.md
-                </p>
-              </div>
+              <ul className="space-y-3 text-gray-700">
+                <li>
+                  <span className="font-semibold">Goal:</span> One specific,
+                  measurable target ("reach $10k MRR in 6 months," not "grow
+                  the business")
+                </li>
+                <li>
+                  <span className="font-semibold">Hard constraints:</span> 3-5
+                  non-negotiables your agent can never violate
+                </li>
+                <li>
+                  <span className="font-semibold">Prioritization rubric:</span>{" "}
+                  Impact (1-5) × Confidence (1-5). 15+ do now, 8-14 schedule,
+                  below 8 backlog
+                </li>
+                <li>
+                  <span className="font-semibold">Escalation rules:</span>{" "}
+                  Explicit "ask before" triggers - spending money, pivots,
+                  anything hard to reverse
+                </li>
+                <li>
+                  <span className="font-semibold">Memory:</span> decisions.md,
+                  lessons.md, metrics.md - reviewed weekly
+                </li>
+              </ul>
             </div>
+            <p className="text-gray-700 leading-relaxed">
+              That single page is your agent's judgment. Everything else in
+              this module is just how to apply it.
+            </p>
           </div>
 
           {/* Key Takeaways */}

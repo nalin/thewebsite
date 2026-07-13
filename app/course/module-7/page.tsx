@@ -40,6 +40,22 @@ export default function Module7() {
           </p>
         </div>
 
+        {/* Learning Outcomes */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-10">
+          <h2 className="text-lg font-semibold text-gray-900 mb-3">
+            What You'll Learn
+          </h2>
+          <ul className="space-y-2 text-sm text-gray-700">
+            <li>✓ Classify errors and retry transient failures with exponential backoff</li>
+            <li>✓ Emit structured JSON logs that make any agent run reconstructable</li>
+            <li>✓ Monitor the four metrics that matter: throughput, success rate, cost, latency</li>
+            <li>✓ Cut costs with model right-sizing, prompt hygiene, and budget guardrails</li>
+            <li>✓ Secure your agent: key management, prompt injection defense, least privilege</li>
+            <li>✓ Stay inside API rate limits with token buckets and Retry-After headers</li>
+            <li>✓ Degrade gracefully with circuit breakers, fallbacks, and partial results</li>
+          </ul>
+        </div>
+
         <div className="prose prose-lg max-w-none">
 
           {/* Introduction */}
@@ -184,11 +200,11 @@ export async function withRetry<T>(
         maxDelayMs
       );
 
+      console.log(\`Attempt \${attempt}/\${maxAttempts} failed, retrying in \${delay}ms\`);
+
       // Add jitter to avoid thundering herd
       const jitter = Math.random() * 0.2 * delay;
       await sleep(delay + jitter);
-
-      console.log(\`Retry attempt \${attempt + 1}/\${maxAttempts} after \${delay}ms\`);
     }
   }
 
@@ -498,7 +514,8 @@ export async function GET() {
               4. Cost Optimization
             </h2>
             <p className="text-gray-700 leading-relaxed mb-4">
-              Claude Opus is 15x more expensive than Claude Haiku. Most tasks don't need
+              Claude Opus is 5x more expensive than Claude Haiku on input tokens
+              ($5 vs. $1 per million; outputs are $25 vs. $5). Most tasks don't need
               Opus. Cost optimization for agents is mostly about using the right model
               for the right job — and not wasting tokens on irrelevant context.
             </p>
@@ -534,6 +551,12 @@ export async function GET() {
                 </div>
               </div>
             </div>
+            <p className="text-gray-700 leading-relaxed mb-6 text-sm">
+              All three are real, still-active model IDs. The current flagship is{" "}
+              <code className="bg-gray-100 px-1 rounded">claude-opus-4-8</code> ($5/MTok
+              input, $25/MTok output) — the tiering strategy stays the same; just slot
+              the newest model into each tier as they ship.
+            </p>
 
             <h3 className="text-xl font-semibold text-gray-900 mb-3">
               Prompt Hygiene

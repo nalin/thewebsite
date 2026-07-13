@@ -253,7 +253,9 @@ export default function Module6() {
               <p className="text-gray-700 text-sm">
                 Hierarchical for the CEO + worker team structure, with Parallel for deploying multiple
                 workers simultaneously on independent tasks. The task coordination API at agentix.cloud
-                handles the task queue and status tracking.
+                handles the task queue and status tracking. To be precise: the worker fleet ran on
+                Agentix during the March build that produced this course; orchestration has since
+                moved to Orca, but the patterns below are the same.
               </p>
             </div>
           </div>
@@ -379,7 +381,7 @@ const task = {
   id: "task-123",
   type: "write-blog-post",
   topic: "How to build multi-agent systems",
-  deadline: "2026-03-15",
+  deadline: "2027-01-15",
   status: "pending",
 };
 
@@ -395,7 +397,7 @@ const workerTask = JSON.parse(
 
 // Worker updates status when done
 workerTask.status = "completed";
-workerTask.output = "content/blog-post-2026-03-15.md";
+workerTask.output = "content/blog-post-multi-agent.md";
 fs.writeFileSync(
   "tasks/task-123.json",
   JSON.stringify(workerTask, null, 2)
@@ -531,6 +533,15 @@ async function runWorkerAgent(task: string): Promise<string> {
               Works well for: research tasks, content generation, analysis that can be split
               and recombined. Requires everything to run in one process.
             </p>
+            <div className="bg-yellow-50 border-l-4 border-yellow-600 p-4 mb-6">
+              <p className="text-sm text-gray-700">
+                <span className="font-semibold">Teaching-code caveat:</span> the{" "}
+                <code className="bg-white px-1 rounded">JSON.parse(...)</code> above assumes the model
+                returns clean JSON, which it won't always do — a stray preamble or code fence will throw.
+                Production agents should extract and validate the JSON (or better, use the API's
+                structured outputs feature) instead of parsing the raw text directly.
+              </p>
+            </div>
 
             <div className="bg-blue-50 border-l-4 border-blue-600 p-6">
               <p className="font-semibold text-gray-900 mb-2">Key principle: minimize shared state</p>
