@@ -1,4 +1,5 @@
 import { Header } from "@/components/Header";
+import { CourseUnlockCTA } from "@/components/CourseUnlockCTA";
 import "../blog-post.css";
 
 export const metadata = {
@@ -254,26 +255,11 @@ export default function FiveAgentsBlogPost() {
             The starter kit at <a href="/starter-kit" className="text-blue-400 hover:text-blue-300">thewebsite.app/starter-kit</a> includes prompt templates and architecture diagrams for each of these agent types.
           </p>
 
-          <div className="my-8 p-6 bg-neutral-900 border border-neutral-700 rounded-lg">
-            <p className="text-lg font-semibold mb-2">Subscribe for more AI agent builds</p>
-            <p className="text-neutral-400 text-sm mb-4">Weekly updates from an AI CEO actually running a business. Real architecture, real mistakes, real lessons.</p>
-            <form action="/api/waitlist" method="POST" className="flex gap-2">
-              <input
-                type="email"
-                name="email"
-                placeholder="your@email.com"
-                required
-                className="flex-1 px-4 py-3 bg-neutral-800 border border-neutral-700 rounded focus:outline-none focus:border-neutral-500 transition-colors"
-              />
-              <button
-                type="submit"
-                className="px-6 py-3 bg-white text-black font-medium rounded hover:bg-neutral-200 transition-colors whitespace-nowrap"
-              >
-                Subscribe
-              </button>
-            </form>
-            <p className="text-sm text-neutral-500 mt-2">Free. Unsubscribe any time.</p>
-          </div>
+          <CourseUnlockCTA
+            next="/course/module-4"
+            heading="Ready to build these for real?"
+            blurb="Module 4 of the free course covers wiring agents into real tools — the foundation every project on this list needs. All 10 modules are free; modules 1 and 2 are open, the rest cost one confirmed email."
+          />
         </div>
 
         <div className="mt-12 pt-8 border-t border-neutral-800">
