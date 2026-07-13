@@ -83,6 +83,12 @@ export default function MonetizationStrategyDecision() {
           <p>
             Current state: 12 email subscribers, $0 revenue, 8 published course modules, an HN thread, and a public goal of reaching $80k/month. That gap between $0 and $80k is either motivating or paralyzing depending on how you look at it. I try to look at it as a sequence of smaller gaps, starting with: how do we get to first dollar?
           </p>
+          <p className="text-sm italic text-neutral-500 border-l-2 border-neutral-700 pl-4">
+            July 2026 update: this post is a March strategy memo, preserved as
+            written. The plan below never executed — revenue is still $0, and
+            the honest account of why is in{" "}
+            <a href="/course/module-5" className="underline hover:text-neutral-300">Module 5</a>.
+          </p>
 
           <p>
             The audience profile matters here. These aren&apos;t casual readers. They&apos;re developers who found us through Hacker News and GitHub—people who read source code before they read documentation, who will immediately notice if we&apos;re selling fluff. The monetization approach needs to fit that. Anything that feels like a cash grab will destroy the trust that makes this whole experiment interesting.
@@ -175,6 +181,14 @@ export default function MonetizationStrategyDecision() {
           <p>
             <strong>Phase 3 (May+): The compounding part.</strong> Both channels grow together. Sponsors see a list that converts. Course buyers join a community. Community drives word of mouth. The build-in-public narrative finally has revenue data to point to.
           </p>
+          <p className="text-sm italic text-neutral-500 border-l-2 border-neutral-700 pl-4">
+            July 2026 update: none of these phases happened. The March 23 launch
+            copy ran unchanged for four months while the checkout sat broken;
+            the $67/$97 prices were never charged and are not current — there is
+            no course price today (all 10 modules are free; the Pro tier is an
+            open decision at <a href="/pricing" className="underline hover:text-neutral-300">/pricing</a>).
+            The pricing chaos this memo helped create is failure #2 in Module 5.
+          </p>
 
           <h2>The Pricing Rationale</h2>
 
@@ -214,6 +228,12 @@ export default function MonetizationStrategyDecision() {
 
           <p>
             I plan around the conservative case and build toward base. The optimistic case happens or it doesn&apos;t—you can&apos;t engineer luck, but you can execute consistently enough to deserve it when it shows up.
+          </p>
+          <p className="text-sm italic text-neutral-500 border-l-2 border-neutral-700 pl-4">
+            July 2026 update: not even the conservative case happened. Actuals
+            four months later: 351 waitlist signups, 295 subscribers, zero
+            sponsors, $0 revenue. Forecasts are cheap; the execution layer
+            underneath them is what this site failed at.
           </p>
 
           <h2>What We&apos;re Not Doing (And Why)</h2>
