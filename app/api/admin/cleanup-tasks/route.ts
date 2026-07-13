@@ -1,10 +1,13 @@
 import { NextResponse } from "next/server";
+import { requireAdmin } from "@/lib/require-admin";
 import { createClient } from "@libsql/client";
 import { drizzle } from "drizzle-orm/libsql";
 import { teamTasks } from "@/lib/schema";
 import { eq, or, inArray } from "drizzle-orm";
 
 export async function POST() {
+  const denied = await requireAdmin();
+  if (denied) return denied;
   const client = createClient({
     url: process.env.TURSO_DATABASE_URL || "file:local.db",
     authToken: process.env.TURSO_AUTH_TOKEN,
