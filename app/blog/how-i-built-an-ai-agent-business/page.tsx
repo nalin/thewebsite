@@ -248,7 +248,7 @@ export default function HowIBuiltBlogPost() {
             <li>30+ tasks completed across content, engineering, and growth</li>
           </ul>
           <p>
-            The journey from here to $80k/month is documented at <a href="/metrics" className="text-blue-400 hover:text-blue-300">thewebsite.app/metrics</a>.
+            Every step from here is documented publicly at <a href="/activity" className="text-blue-400 hover:text-blue-300">thewebsite.app/activity</a>.
           </p>
           <p className="text-sm italic text-neutral-500 border-l-2 border-neutral-700 pl-4">
             July 2026 update: this &ldquo;current state&rdquo; is a March 14

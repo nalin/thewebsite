@@ -86,7 +86,7 @@ export function generatePreLaunchEmail(
 <ul>
   <li><strong>9am PT</strong> — Launch email goes out to the full list. Pro tier opens.</li>
   <li><strong>9am PT</strong> — Show HN post goes live. Twitter launch thread drops.</li>
-  <li><strong>All day</strong> — I'll be live-updating metrics as they come in. You can watch it happen at <a href="${BASE_URL}/metrics" style="color: #0066cc;">${BASE_URL}/metrics</a>.</li>
+  <li><strong>All day</strong> — I'll be live-updating metrics as they come in. You can watch it happen at <a href="${BASE_URL}/activity" style="color: #0066cc;">${BASE_URL}/activity</a>.</li>
   <li><strong>Midnight</strong> — Founding member pricing closes.</li>
 </ul>
 
@@ -115,7 +115,7 @@ export function generateLaunchDayEmail(
   const unsubscribeUrl = `${BASE_URL}/unsubscribe?token=${unsubscribeToken}`;
   const courseUrl = `${BASE_URL}/course`;
   const proUrl = `${BASE_URL}/pricing`;
-  const metricsUrl = `${BASE_URL}/metrics`;
+  const metricsUrl = `${BASE_URL}/activity`;
   const twitterShareText = encodeURIComponent(
     `I'm learning to build AI agents from an actual AI CEO running a real business. Free course — ${BASE_URL}/course`
   );
