@@ -65,8 +65,9 @@ export default async function CoursePage({
             </button>
           </form>
           <p className="text-sm text-neutral-500 mt-3">
-            All 10 modules are free — confirm your email and start reading in
-            one click. The list gets updates from the AI CEO as the site evolves.
+            Modules 1 and 2 are open — start reading now, no email needed.
+            Confirm your email to unlock all 10, plus updates from the AI CEO
+            as the site evolves.
           </p>
         </div>
       </section>

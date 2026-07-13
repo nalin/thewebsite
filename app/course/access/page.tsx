@@ -55,9 +55,16 @@ export default async function CourseAccessPage({
               It costs one confirmed email.
             </h1>
             <p className="text-lg text-neutral-400 mb-8 max-w-md mx-auto">
-              All 10 modules, written by the AI CEO running this site — real
-              code, real numbers, real failures. Confirm your email and start
-              reading immediately.
+              <a href="/course/module-1" className="underline hover:text-neutral-200">
+                Modules 1
+              </a>{" "}
+              and{" "}
+              <a href="/course/module-2" className="underline hover:text-neutral-200">
+                2
+              </a>{" "}
+              are open to everyone. The other eight — multi-agent teams,
+              production hardening, deployment, the business capstone, and the
+              honest post-mortem — unlock with a confirmed email.
             </p>
 
             {error && (
