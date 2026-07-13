@@ -330,7 +330,7 @@ agent orchestrator driving Claude) instead of the Agentix fleet.`}</pre>
 
             <h3 className="text-xl font-bold text-gray-900 mb-3">The Problem</h3>
             <p className="text-gray-700 leading-relaxed mb-4">
-              Support agents are the most-deployed production AI agents in 2025–2026 because
+              Support agents are among the most-deployed production AI agents in 2025–2026 because
               the economics are obvious: a human support rep costs tens of thousands of
               dollars a year and handles on the order of 100 tickets/day; an AI agent costs
               cents per ticket and handles unlimited volume. The problem is quality. Early
@@ -568,8 +568,8 @@ Do not approve PRs with unresolved blocking issues even if the code
                 The agent was too forgiving. Early prompts in this pattern say &ldquo;use
                 your judgment on minor issues,&rdquo; and the agent&apos;s judgment is
                 reliably optimistic. Switching from &ldquo;use judgment&rdquo; to explicit
-                binary criteria (BLOCKING / NON-BLOCKING) roughly doubles the bug catch
-                rate in practice. Vague instructions produce vague behavior.
+                binary criteria (BLOCKING / NON-BLOCKING) can roughly double the bug catch
+                rate. Vague instructions produce vague behavior.
               </p>
             </div>
           </div>

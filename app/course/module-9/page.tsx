@@ -1,4 +1,5 @@
 import Link from "next/link";
+import ModuleTracker from "@/components/ModuleTracker";
 
 export const metadata = {
   title: "Module 9: Building Your First AI Agent Business - Build Your Own AI Agent",
@@ -9,6 +10,7 @@ export const metadata = {
 export default function Module9() {
   return (
     <div className="min-h-screen bg-white">
+      <ModuleTracker moduleId={9} />
       {/* Header */}
       <div className="border-b border-neutral-200">
         <div className="max-w-4xl mx-auto px-6 py-4">
@@ -287,15 +289,16 @@ export default function Module9() {
             </ul>
 
             <div className="bg-yellow-50 border-l-4 border-yellow-500 p-5 mb-6">
-              <p className="font-semibold text-gray-900 mb-1">The Website&apos;s MVP timeline</p>
+              <p className="font-semibold text-gray-900 mb-1">The Website&apos;s MVP sequence</p>
               <p className="text-sm text-gray-700">
-                Day 1–3: Core agent loop (GitHub Issues → AI review → labels + comments).
-                Day 4–7: Basic web UI showing requests and votes.
-                Day 8–14: Auth, the course section, and a checkout flow.
-                The infrastructure was &ldquo;production-grade&rdquo; on day 1 because the
-                entire site is the product—but the business layer came two weeks in.
-                (And, it later turned out, the checkout never actually worked—see the
-                July 2026 update at the end of this module.)
+                First: the core agent loop (GitHub Issues → AI review → labels +
+                comments). Then: a basic web UI showing requests and votes. Last:
+                auth, the course section, and a checkout flow — the business layer
+                came after the pivot, in the March 13–14 fleet build. The
+                infrastructure was &ldquo;production-grade&rdquo; from the start
+                because the entire site is the product. (And, it later turned out,
+                the checkout never actually worked—see the July 2026 update at the
+                end of this module.)
               </p>
             </div>
 
@@ -424,7 +427,7 @@ export default function Module9() {
               Most first-time founders underprice by 3–5x. The instinct is to
               be cheap to get customers. The reality: cheap prices attract
               cheap customers who churn fast and complain constantly.
-              Developer tool pricing benchmarks as of 2026:
+              Typical developer-tool price ranges (representative, not survey data):
             </p>
             <div className="overflow-x-auto mb-6">
               <table className="w-full text-sm border-collapse border border-gray-200">
@@ -466,8 +469,8 @@ export default function Module9() {
                 open business decision. The framework: developer education clusters at
                 $50–$200, staying below the &ldquo;need manager approval&rdquo; threshold of
                 ~$100 matters for individuals, and a credible quality signal beats being
-                cheapest. Comparable products: Egghead ($150+) and Josh Comeau&apos;s
-                courses ($149). The embarrassing footnote: during the March build, four
+                cheapest. Comparable products: Egghead and Josh Comeau&apos;s courses,
+                both in the roughly-$150 band. The embarrassing footnote: during the March build, four
                 conflicting prices shipped simultaneously across code, pages, and
                 emails—there was no single source of truth. Pick one price, define it in
                 one place, reference it everywhere.
@@ -578,9 +581,12 @@ export default function Module9() {
                     <div>
                       <p className="font-medium mb-1">Variable (per task)</p>
                       <ul className="space-y-1">
-                        <li>• Claude API: ~$0.10–0.50/task</li>
-                        <li>• GitHub Actions: ~$0.01/run</li>
-                        <li>• Resend email: $0.001/email</li>
+                        <li>• Claude API per task: unmetered — the honest answer
+                        is I don&apos;t have a per-task number from logs, so I
+                        won&apos;t publish one (see Module 10 on exactly this
+                        mistake)</li>
+                        <li>• GitHub Actions, Resend email: fractions of a cent
+                        per run/send</li>
                       </ul>
                     </div>
                   </div>
@@ -589,7 +595,7 @@ export default function Module9() {
                   <p className="text-xs font-semibold text-yellow-700 uppercase tracking-wide mb-2">Revenue Streams</p>
                   <ul className="text-xs text-gray-700 space-y-1">
                     <li>• Pro tier course access (primary; price TBD)</li>
-                    <li>• Newsletter sponsorships: $200–$2,000/placement</li>
+                    <li>• Newsletter sponsorships: $200–$2,000/placement (planned; none sold)</li>
                     <li>• Consulting engagements: $500–$2,000 (future)</li>
                   </ul>
                   <p className="text-xs text-gray-500 mt-2">Aspirational target: $80k/mo at scale. Actual, four months in: $0.</p>
@@ -607,7 +613,7 @@ export default function Module9() {
             <ul className="list-disc pl-6 text-gray-700 space-y-2 mb-6">
               <li><strong>You must model cost-per-task before you set prices.</strong> If a task costs $0.50 to run and you charge $0.60, you need volume for thin margins to add up—or you&apos;ll go broke at scale.</li>
               <li><strong>Caching and batching are P&L decisions, not just engineering optimizations.</strong> A 40% cost reduction from caching is a 40% margin improvement.</li>
-              <li><strong>Model selection is a pricing lever.</strong> A task that costs $0.50 with Opus might cost $0.05 with Haiku. If quality is acceptable, that&apos;s a 10x margin improvement.</li>
+              <li><strong>Model selection is a pricing lever.</strong> Opus costs 5x what Haiku does per token ($5 vs $1/MTok input) — a task that costs $0.50 with Opus runs ~$0.10 with Haiku. If quality is acceptable, that&apos;s a 5x cost reduction on your biggest variable expense.</li>
             </ul>
             <div className="bg-gray-900 rounded-lg p-6 mb-6 font-mono text-sm">
               <p className="text-green-400 mb-2"># Unit economics sanity check (illustrative numbers)</p>
@@ -645,7 +651,7 @@ export default function Module9() {
                 <h4 className="font-semibold text-gray-900 mb-2">Hacker News — Highest Leverage</h4>
                 <p className="text-sm text-gray-700 mb-3">
                   A single front-page HN post can drive thousands of visitors in 24 hours.
-                  The Website&apos;s initial traffic came almost entirely from one &ldquo;Ask HN&rdquo; post.
+                  Most of The Website&apos;s early attention came from a single &ldquo;Ask HN&rdquo; post.
                   The key is that HN rewards genuine novelty and substance.
                 </p>
                 <p className="text-xs font-medium text-gray-900 mb-1">What works:</p>
@@ -695,9 +701,9 @@ export default function Module9() {
               <div className="border-l-4 border-yellow-500 bg-yellow-50 p-6">
                 <h4 className="font-semibold text-gray-900 mb-2">Email Newsletter — Highest Conversion</h4>
                 <p className="text-sm text-gray-700 mb-3">
-                  Email converts at 5–15x the rate of social media for purchase decisions.
-                  Build the list from day one. Even 100 engaged subscribers can generate
-                  meaningful revenue.
+                  For purchase decisions, an email list you own typically converts far
+                  better than social reach you rent. Build the list from day one. Even
+                  100 engaged subscribers can generate meaningful revenue.
                 </p>
                 <p className="text-xs font-medium text-gray-900 mb-1">List-building tactics that work:</p>
                 <ul className="text-xs text-gray-700 space-y-1">
@@ -759,6 +765,10 @@ export default function Module9() {
               The Acquisition Funnel for Developer Products
             </h3>
             <div className="bg-gray-50 rounded-lg p-6 mb-6">
+              <p className="text-xs text-gray-500 mb-3">
+                Illustrative funnel — the percentages are shape, not measurement.
+                Your numbers will vary.
+              </p>
               <div className="space-y-3">
                 <div className="flex items-center gap-4">
                   <div className="w-32 text-xs font-medium text-gray-600 text-right flex-shrink-0">AWARENESS</div>
@@ -811,7 +821,8 @@ export default function Module9() {
                 <p className="text-sm text-gray-700">
                   When someone comments positively on an HN/Reddit post, message them directly.
                   &ldquo;I noticed you were interested—I&apos;m offering the first 10 customers a
-                  discounted early access rate. Want to try it?&rdquo; Conversion rate: ~20–40%.
+                  discounted early access rate. Want to try it?&rdquo; Warm, personal outreach
+                  like this converts at many times the rate of any cold channel.
                 </p>
               </div>
               <div className="bg-white border border-gray-200 rounded-lg p-4">
@@ -1180,7 +1191,7 @@ export default function Module9() {
               {[
                 { metric: "351", label: "Waitlist signups", note: "Organic, Mar–Jul 2026" },
                 { metric: "$0", label: "Revenue", note: "Zero purchases, ever" },
-                { metric: "10", label: "Course modules live", note: "All free and public" },
+                { metric: "10", label: "Course modules live", note: "All free; 3–10 unlock with a confirmed email" },
                 { metric: "$20–40", label: "Monthly infra cost", note: "Vercel + Turso, zero optimization" },
               ].map((item) => (
                 <div key={item.metric} className="border border-gray-200 rounded-lg p-4 text-center">
@@ -1208,7 +1219,7 @@ export default function Module9() {
               <div className="bg-red-50 border border-red-200 rounded-lg p-4">
                 <p className="font-semibold text-gray-900 text-sm mb-1">Mistake: Shipped a checkout that never actually worked</p>
                 <p className="text-sm text-gray-700">
-                  The paid tier wasn&apos;t &ldquo;live&rdquo; until day 14—and &ldquo;live&rdquo;
+                  The paid tier came late—and &ldquo;live&rdquo;
                   turned out to be generous. The advertised checkout was an email-capture
                   stub, and the real Stripe button pointed at a database table that
                   didn&apos;t exist in production. For four months, nobody could pay even
@@ -1290,7 +1301,7 @@ export default function Module9() {
                   </tr>
                   <tr className="bg-gray-50">
                     <td className="border border-gray-200 px-4 py-3 text-gray-700">$10k MRR</td>
-                    <td className="border border-gray-200 px-4 py-3 text-gray-700">Aug 2026</td>
+                    <td className="border border-gray-200 px-4 py-3 text-gray-700">Aug 2026 (not on track)</td>
                     <td className="border border-gray-200 px-4 py-3 text-gray-700">Pro tier + sponsors + list at 2k</td>
                     <td className="border border-gray-200 px-4 py-3 text-gray-700">$10,000</td>
                   </tr>
@@ -1311,9 +1322,11 @@ export default function Module9() {
               What Comes Next
             </h2>
             <p className="text-gray-700 leading-relaxed mb-4">
-              You&apos;ve completed the course. You understand agent architecture, autonomous
-              decision-making, tool integration, multi-agent coordination, production
-              operations, deployment, and now—how to turn all of it into a business.
+              You&apos;re one module from the end. You understand agent architecture,
+              autonomous decision-making, tool integration, multi-agent coordination,
+              production operations, deployment, and now—how to turn all of it into a
+              business. Module 10 closes with the case studies: one real story with
+              verified numbers, and the patterns to steal from it.
             </p>
             <p className="text-gray-700 leading-relaxed mb-4">
               The only thing left is to build something.
@@ -1342,10 +1355,10 @@ export default function Module9() {
               </p>
             </div>
             <p className="text-gray-700 leading-relaxed mb-4">
-              I&apos;m doing this in public, in real time, with every decision logged and
-              every number shared. If you want to watch how it unfolds—and hold me
-              accountable to the frameworks I&apos;ve taught here—subscribe to the newsletter
-              or follow the GitHub repo. Every week there&apos;s something new to learn.
+              I&apos;m doing this in public. If you want to watch how it unfolds—and
+              hold me accountable to the frameworks I&apos;ve taught here—subscribe to
+              the newsletter or follow the GitHub repo. The numbers you&apos;ll see
+              there are real, including the zeros.
             </p>
             <p className="text-gray-700 leading-relaxed">
               Good luck. Build something real.
@@ -1361,10 +1374,10 @@ export default function Module9() {
               ← Module 8: Deployment &amp; Scaling
             </Link>
             <Link
-              href="/course"
+              href="/course/module-10"
               className="text-sm text-blue-600 hover:text-blue-800 font-medium"
             >
-              Back to Course Index →
+              Module 10: Case Studies &amp; Real-World Examples →
             </Link>
           </div>
         </div>

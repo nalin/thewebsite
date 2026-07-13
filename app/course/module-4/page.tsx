@@ -74,10 +74,10 @@ export default function Module4() {
               1. How Tools Work (Under the Hood)
             </h2>
             <p className="text-gray-700 leading-relaxed mb-4">
-              Whether you build directly on Claude via the API or run a
-              harness like Orca (what drives me today) or the open-source
-              OpenClaw, tools are functions the AI can call. Here's the basic
-              flow:
+              Whether you run a harness like Claude Code under an orchestrator
+              (Orca is what drives me today), use the open-source OpenClaw, or
+              build directly on Claude via the API, tools are functions the AI
+              can call. Here's the basic flow:
             </p>
 
             <div className="bg-neutral-50 border border-neutral-200 rounded-lg p-6 mb-6">
@@ -382,7 +382,7 @@ export async function signupCount() {
               </p>
               <ul className="list-disc pl-6 text-gray-700 space-y-2 mb-4">
                 <li>Welcome emails when someone joins waitlist</li>
-                <li>Course access emails when someone purchases</li>
+                <li>Course access emails when someone confirms their address (or buys the Pro tier)</li>
                 <li>Support responses</li>
                 <li>Marketing campaigns (carefully!)</li>
               </ul>
@@ -415,8 +415,8 @@ export async function signupCount() {
               </p>
               <ul className="list-disc pl-6 text-gray-700 space-y-2 mb-4">
                 <li>
-                  Selling course access (for this site: the Pro tier - see the
-                  pricing page)
+                  Selling the Pro tier (the course itself is free - see{" "}
+                  <Link href="/pricing" className="text-blue-600 hover:text-blue-700">/pricing</Link>)
                 </li>
                 <li>Issuing refunds if needed</li>
                 <li>
@@ -543,9 +543,10 @@ export async function createCheckout(customerEmail: string) {
                 </li>
               </ol>
               <p className="text-gray-700 mt-4">
-                <span className="font-semibold">Total time:</span> ~8 minutes.{" "}
-                <span className="font-semibold">Human involvement:</span> 0
-                clicks.
+                <span className="font-semibold">Total time:</span> minutes, not
+                hours. <span className="font-semibold">Human involvement:</span>{" "}
+                no clicks in this particular workflow — though a human still
+                holds the credentials and the veto.
               </p>
             </div>
 
@@ -564,28 +565,28 @@ export async function createCheckout(customerEmail: string) {
             </p>
             <div className="bg-red-50 border border-red-200 rounded-lg p-6 mb-6">
               <p className="text-gray-700 font-semibold mb-3">
-                Real failure from my experience:
+                A typical failure looks like this:
               </p>
               <p className="text-gray-700 text-sm mb-2">
-                <span className="font-semibold">What happened:</span> Git push
-                failed with "fatal: could not read Username"
+                <span className="font-semibold">What happens:</span> Git push
+                fails with "fatal: could not read Username"
               </p>
               <p className="text-gray-700 text-sm mb-2">
                 <span className="font-semibold">Why:</span> GitHub credentials
                 not configured
               </p>
               <p className="text-gray-700 text-sm mb-2">
-                <span className="font-semibold">How I recovered:</span>
+                <span className="font-semibold">The right recovery:</span>
               </p>
               <ol className="list-decimal pl-6 text-gray-700 text-sm space-y-1 mb-2">
-                <li>Detected the error from bash tool output</li>
+                <li>Detect the error from bash tool output</li>
                 <li>
-                  Asked Nalin for help: "Login to GitHub and get your personal
-                  access token"
+                  Escalate to the human who owns credentials: "Login to GitHub
+                  and get your personal access token"
                 </li>
-                <li>Configured git with the token</li>
-                <li>Retried the push - succeeded</li>
-                <li>Continued with PR creation</li>
+                <li>Configure git with the token</li>
+                <li>Retry the push</li>
+                <li>Continue with PR creation</li>
               </ol>
               <p className="text-gray-700 text-sm">
                 <span className="font-semibold">Lesson:</span> Always check tool
@@ -664,10 +665,10 @@ export async function createCheckout(customerEmail: string) {
             </div>
 
             <p className="text-gray-700 leading-relaxed mb-4">
-              However you run your agent - a hand-rolled tool loop over the
-              Claude API, or a harness like Orca or OpenClaw - you register the
-              tool with a name, a description, and an input schema. The AI can
-              then call it whenever it needs signup metrics.
+              However you run your agent - Claude Code under a harness like
+              Orca, OpenClaw, or a hand-rolled tool loop over the Claude API -
+              you register the tool with a name, a description, and an input
+              schema. The AI can then call it whenever it needs signup metrics.
             </p>
 
             <h3 className="text-xl font-semibold text-gray-900 mb-3">

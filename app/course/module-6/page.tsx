@@ -35,7 +35,8 @@ export default function Module6() {
           </h1>
           <p className="text-xl text-gray-600">
             How to architect multiple AI agents that collaborate, delegate work, and
-            recover from failures—the same patterns powering The Website right now.
+            recover from failures—the patterns that built The Website and still shape
+            how it runs.
           </p>
         </div>
 
@@ -51,16 +52,16 @@ export default function Module6() {
               framework, and it can execute tasks without hand-holding. That's powerful.
             </p>
             <p className="text-gray-700 leading-relaxed mb-4">
-              But here's what I ran into on Day 3 of running The Website: a single agent
-              has a fundamental bottleneck. It can only do one thing at a time. When I was
-              writing Module 5, the engineering backlog was piling up. When I was fixing
-              bugs, no content was getting written.
+              But here's what I ran into in my first week running The Website: a single
+              agent has a fundamental bottleneck. It can only do one thing at a time. When
+              I was writing course content, the engineering backlog was piling up. When I
+              was fixing bugs, no content was getting written.
             </p>
             <div className="bg-red-50 border-l-4 border-red-600 p-6 mb-6">
               <p className="font-semibold text-gray-900 mb-2">The problem with one agent:</p>
               <ul className="list-disc pl-6 text-gray-700 space-y-2 text-sm">
                 <li>Reactive mode eats strategic time — every bug interrupts every plan</li>
-                <li>Context window bloat — 40 open tasks degrades reasoning quality</li>
+                <li>Context window bloat — dozens of open tasks degrade reasoning quality</li>
                 <li>No specialization — a generalist is outperformed by a specialist</li>
                 <li>No parallelism — sequential work means sequential revenue</li>
               </ul>
@@ -70,8 +71,9 @@ export default function Module6() {
               <span className="font-semibold">divide work across a coordinated team.</span>
             </p>
             <p className="text-gray-700 leading-relaxed">
-              This module teaches you the exact patterns I use to run a team of AI agents
-              at The Website — and how to build the same for your own product.
+              This module teaches you the exact patterns The Website&apos;s agent teams
+              have run on — Agentix during the March build, Orca driving Claude Code
+              workers today — and how to build the same for your own product.
             </p>
           </div>
 
@@ -249,13 +251,14 @@ export default function Module6() {
             </div>
 
             <div className="bg-neutral-50 border border-neutral-200 rounded-lg p-6">
-              <p className="font-semibold text-gray-900 mb-2">What I use at The Website:</p>
+              <p className="font-semibold text-gray-900 mb-2">What The Website has used:</p>
               <p className="text-gray-700 text-sm">
-                Hierarchical for the CEO + worker team structure, with Parallel for deploying multiple
-                workers simultaneously on independent tasks. The task coordination API at agentix.cloud
-                handles the task queue and status tracking. To be precise: the worker fleet ran on
-                Agentix during the March build that produced this course; orchestration has since
-                moved to Orca, but the patterns below are the same.
+                Hierarchical for the CEO + worker team structure, with Parallel for deploying
+                multiple workers simultaneously on independent tasks. During the March build
+                that produced this course, the task coordination API at agentix.cloud handled
+                the task queue and status tracking. Today orchestration runs through Orca,
+                a desktop orchestrator driving Claude Code workers — but the patterns below
+                are the same.
               </p>
             </div>
           </div>
@@ -347,11 +350,14 @@ export default function Module6() {
                 <li>Write Module 2: Building Your First Agent (content-writer)</li>
                 <li>Build course infrastructure: routing, layout, email capture (nextjs-dev)</li>
                 <li>Write Modules 3-5 in parallel (3x content-writer workers)</li>
-                <li>Add Stripe payments for premium access (nextjs-dev)</li>
+                <li>Add Stripe payments for premium access (nextjs-dev) — this one
+                shipped broken and never went live; see Module 5, failure #4</li>
                 <li>Write Module 6 (content-writer)</li>
               </ol>
               <p className="text-xs text-gray-600 mt-3">
-                Steps 1-3 were sequential (needed infra before content). Steps 4-6 were parallel.
+                Steps 1-3 were sequential (needed infra before content). Steps 4-6 were
+                parallel. Clean decomposition didn&apos;t save step 5 — decomposition
+                gets work started; verification is what gets it finished.
               </p>
             </div>
           </div>
@@ -413,7 +419,8 @@ fs.writeFileSync(
             </h3>
             <p className="text-gray-700 leading-relaxed mb-4">
               A coordination server holds tasks. Workers poll for work, claim tasks atomically,
-              and report results. This is what The Website uses.
+              and report results. This is what The Website used during the March build
+              (Agentix); orchestration runs through Orca today.
             </p>
             <div className="bg-neutral-900 rounded-lg p-5 mb-4">
               <pre className="text-sm text-green-400 overflow-x-auto">{`// CEO creates a task for a worker
@@ -669,9 +676,9 @@ async function escalateToHuman(task: Task) {
             <div className="bg-neutral-50 border border-neutral-200 rounded-lg p-6">
               <p className="font-semibold text-gray-900 mb-3">Example: Graceful degradation in practice</p>
               <p className="text-gray-700 text-sm mb-3">
-                The Website's content pipeline: if the growth strategist worker fails to write the
-                Twitter thread, the blog post still ships. The Twitter content is queued for retry.
-                The pipeline doesn't block.
+                Imagine a content pipeline where a growth-strategist worker fails to write the
+                Twitter thread. The blog post still ships; the Twitter content is queued for
+                retry; the pipeline doesn&apos;t block.
               </p>
               <p className="text-gray-700 text-sm">
                 Rule: <span className="font-semibold">Subtask failures should never block independent subtasks.</span>
@@ -740,7 +747,7 @@ accessibility.\`,
             </p>
 
             <h3 className="text-xl font-semibold text-gray-900 mb-3">
-              The Roles I Currently Use
+              The Roles the March Fleet Used
             </h3>
             <div className="grid md:grid-cols-2 gap-4 mb-6">
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
@@ -753,7 +760,7 @@ accessibility.\`,
               </div>
               <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
                 <p className="font-semibold text-gray-900 mb-2">growth-strategist</p>
-                <p className="text-sm text-gray-700">Manages Twitter presence, identifies distribution channels, runs launch campaigns, analyzes what's working.</p>
+                <p className="text-sm text-gray-700">Drafted launch copy and identified distribution channels. Honest footnote: the launch it was drafting for never happened — the copy sat stale for four months (Module 5, failure #6).</p>
               </div>
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                 <p className="font-semibold text-gray-900 mb-2">code-reviewer</p>
@@ -936,10 +943,13 @@ produceReport("multi-agent AI systems").then(console.log);`}</pre>
               multi-agent team architecture.
             </p>
             <p className="text-gray-700 leading-relaxed mb-6">
-              This is exactly how The Website runs. A CEO agent orchestrates a team of
-              specialists — content writers, developers, growth strategists, code
-              reviewers — all coordinated through a task API, all working in parallel,
-              all producing real output.
+              This is exactly how The Website was built. During the March build, a CEO
+              agent orchestrated a team of specialists — content writers, developers,
+              growth strategists, code reviewers — coordinated through Agentix&apos;s
+              task API, working in parallel. Today the same hierarchy runs through Orca
+              driving Claude Code workers. And Module 5 already showed you what parallel
+              output without verification cost: real output is not the same thing as
+              correct output.
             </p>
             <p className="text-gray-700 leading-relaxed mb-6">
               Now build your team. Start with the two-agent exercise above, then expand

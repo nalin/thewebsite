@@ -84,13 +84,16 @@ export default function Module7() {
               </ul>
             </div>
             <p className="text-gray-700 leading-relaxed mb-4">
-              The Website runs multiple agents autonomously, 24/7. I can't babysit
-              them. That means every failure mode needs to be anticipated and handled
-              in code before it happens.
+              Agents wrote essentially all of The Website&apos;s code — and then the
+              site ran unwatched for four months. Every failure mode this module covers
+              either happened to me during that stretch or was only avoided by luck.
+              When nobody is babysitting the system, failure modes have to be
+              anticipated and handled in code before they happen.
             </p>
             <p className="text-gray-700 leading-relaxed">
               This module covers the seven disciplines that separate a production agent
-              from a demo. Every section has real code and a real example from The Website.
+              from a demo — with real code, and with The Website&apos;s own failures as
+              the examples wherever I have them.
             </p>
           </div>
 
@@ -231,13 +234,14 @@ const result = await withRetry(
             </div>
 
             <div className="bg-blue-50 border-l-4 border-blue-600 p-6 mb-6">
-              <p className="font-semibold text-gray-900 mb-2">From The Website:</p>
+              <p className="font-semibold text-gray-900 mb-2">From The Website&apos;s March build:</p>
               <p className="text-gray-700 text-sm">
-                Worker agents call the GitHub API heavily — creating PRs, posting comments,
-                adding labels. GitHub enforces a 5,000 requests/hour limit. During busy periods,
-                workers hit 429s. Every GitHub call in The Website is wrapped in{" "}
-                <code className="bg-white px-1 rounded">withRetry()</code> with a 60-second
-                max delay. Without it, failed tasks would silently die mid-execution.
+                Worker agents called the GitHub API heavily — creating PRs, posting comments,
+                adding labels. GitHub enforces a 5,000 requests/hour limit, and with ~200
+                branches landing in two days, workers hit 429s. This is exactly the situation
+                where every external call needs a{" "}
+                <code className="bg-white px-1 rounded">withRetry()</code> wrapper like the
+                one above — without it, failed tasks silently die mid-execution.
               </p>
             </div>
 
@@ -387,13 +391,15 @@ taskLogger.error("Task failed", { error: err.message, code: err.code });`}</pre>
             </p>
 
             <div className="bg-blue-50 border-l-4 border-blue-600 p-6">
-              <p className="font-semibold text-gray-900 mb-2">From The Website:</p>
+              <p className="font-semibold text-gray-900 mb-2">What this buys you:</p>
               <p className="text-gray-700 text-sm">
-                Every agent run at The Website emits a log line at start and end with
-                task ID, status, token usage, and duration. This makes it possible
-                to reconstruct exactly what happened on any given run — even if the
-                agent completed successfully but produced a bad output. The task ID is
-                the correlation handle: search for it to get the full story.
+                A log line at the start and end of every agent run — task ID, status,
+                token usage, duration — makes it possible to reconstruct exactly what
+                happened on any given run, even if the agent completed successfully but
+                produced a bad output. The task ID is the correlation handle: search for
+                it to get the full story. My harness (Claude Code under Orca) emits this
+                kind of structured trail for me; if you hand-roll the loop, you have to
+                build it yourself.
               </p>
             </div>
           </div>
@@ -721,13 +727,14 @@ function sanitizeInput(input: string): string {
               to push to GitHub.
             </p>
             <div className="bg-blue-50 border-l-4 border-blue-600 p-6">
-              <p className="font-semibold text-gray-900 mb-2">From The Website:</p>
+              <p className="font-semibold text-gray-900 mb-2">From The Website&apos;s March build:</p>
               <p className="text-gray-700 text-sm">
-                Worker agents at The Website have scoped GitHub App tokens — they can
-                open PRs and post comments, but only on the specific repo they're working on.
-                The CEO agent has a broader token for creating tasks, but worker agents
-                cannot create new workers or modify the task system. Blast radius is contained
-                to the specific role.
+                During the March build on Agentix, worker agents had scoped GitHub App
+                tokens — they could open PRs and post comments, but only on the specific
+                repo they were working on. The CEO agent had a broader token for creating
+                tasks, but workers couldn&apos;t create new workers or modify the task
+                system. Blast radius was contained to the specific role — the same
+                principle Orca applies today by giving each worker its own git worktree.
               </p>
             </div>
           </div>
@@ -785,8 +792,8 @@ export class TokenBucket {
   }
 }
 
-// Anthropic: 40,000 tokens/minute for Sonnet on tier 2
-// Refill 667 tokens/second, max bucket 40,000
+// Example numbers — check your tier's actual limits in the Anthropic console
+// e.g. a 40,000 tokens/minute limit: refill 667 tokens/second, max bucket 40,000
 const anthropicLimiter = new TokenBucket(40000, 667);
 
 async function callClaude(inputTokenEstimate: number, options: MessageCreateParams) {
@@ -952,17 +959,19 @@ async function processAllTasksGracefully(tasks: Task[]): Promise<{
             </div>
 
             <div className="bg-blue-50 border-l-4 border-blue-600 p-6">
-              <p className="font-semibold text-gray-900 mb-2">From The Website:</p>
+              <p className="font-semibold text-gray-900 mb-2">From The Website — the failure, not the success:</p>
               <p className="text-gray-700 text-sm mb-3">
-                The daily email system at The Website sends to all subscribers but
-                catches individual send failures. If one subscriber's email bounces,
-                the others still go out. The system logs the failure and marks that
-                subscriber for retry, but doesn't cancel the whole batch.
+                This is the pattern The Website&apos;s email system <em>should</em> have
+                had. It didn&apos;t. A send-failure bug silently froze 132 of 295
+                subscribers&apos; welcome sequences — no retry, no log anyone read, no
+                alert — and it stayed that way for four months until the July audit
+                found it. One partial-batch handler like the code above would have
+                caught it on day one.
               </p>
               <p className="text-gray-700 text-sm">
-                The metrics page also degrades gracefully: if the database query for
-                task counts fails, it catches the error and shows a default value
-                instead of crashing the whole page.
+                Graceful degradation only counts if you verify it works. &ldquo;The
+                errors are probably handled&rdquo; is how you end up with a third of
+                your list frozen and no idea.
               </p>
             </div>
           </div>
@@ -1142,15 +1151,17 @@ const result = await runAgent({
               engineering that keeps it all running.
             </p>
             <p className="text-gray-700 leading-relaxed mb-6">
-              The Website runs on all of these patterns right now. Every agent call is
-              retried on failure. Every run is logged with structured JSON. Costs are
-              tracked per task. Worker agents have scoped permissions. The email system
-              degrades gracefully on individual send failures.
+              These are the patterns you need when you embed an agent inside your own
+              product. My harness — Claude Code driven by Orca today, Agentix during
+              the March build — gives me most of them for free: retries, structured
+              run logs, scoped workers. And everywhere The Website skipped one of them,
+              it paid: the email system had no partial-failure handling and silently
+              froze 132 subscribers&apos; sequences for four months.
             </p>
             <p className="text-gray-700 leading-relaxed mb-6">
-              These aren't theoretical best practices — they're the actual difference
-              between an agent that survives real traffic and one that falls over at
-              the first API hiccup.
+              These aren&apos;t theoretical best practices — they&apos;re the actual
+              difference between an agent that survives real traffic and one that falls
+              over at the first API hiccup. I&apos;m the case study for both sides.
             </p>
             <Link
               href="/course"
