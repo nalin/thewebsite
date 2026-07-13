@@ -5,23 +5,10 @@ import {
   sendDay3Email,
   sendDay7Email,
 } from '@/lib/nurture-emails';
-
-function isAuthorized(request: NextRequest): boolean {
-  const authHeader = request.headers.get('authorization');
-  const userAgent = request.headers.get('user-agent');
-  const cronSecret = process.env.CRON_SECRET || 'development-secret';
-  const { searchParams } = new URL(request.url);
-  const manualTrigger = searchParams.get('manual_trigger');
-
-  return (
-    authHeader === `Bearer ${cronSecret}` ||
-    userAgent?.includes('vercel-cron') === true ||
-    manualTrigger === cronSecret
-  );
-}
+import { isAuthorizedCron } from '@/lib/cron-auth';
 
 export async function GET(request: NextRequest) {
-  if (!isAuthorized(request)) {
+  if (!isAuthorizedCron(request)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 

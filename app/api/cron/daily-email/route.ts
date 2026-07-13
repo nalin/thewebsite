@@ -3,6 +3,7 @@ import { createClient } from "@libsql/client";
 import { sendDailyUpdate, DailyUpdateData } from "@/lib/email";
 import { getYesterdayAccomplishments } from "@/lib/accomplishments";
 import { getPreferencesByEmail } from "@/lib/email-preferences";
+import { isAuthorizedCron } from "@/lib/cron-auth";
 import * as Sentry from "@sentry/nextjs";
 
 // Store last send date to ensure idempotency
@@ -13,45 +14,18 @@ export async function GET(request: NextRequest) {
   const timestamp = new Date().toISOString();
 
   try {
-    // P0 Security: Verify request is authorized (multiple auth methods)
-    const authHeader = request.headers.get("authorization");
-    const userAgent = request.headers.get("user-agent");
-    const cronSecret = process.env.CRON_SECRET || "development-secret";
-
-    // Extract manual trigger from query params (temporary bypass)
-    const { searchParams } = new URL(request.url);
-    const manualTrigger = searchParams.get("manual_trigger");
-    const forceResend = searchParams.get("force_resend") === "true";
-
-    // Accept EITHER:
-    // 1. Valid Bearer token (production cron with CRON_SECRET configured)
-    // 2. Vercel cron user-agent (production cron)
-    // 3. Manual trigger query param (temporary testing bypass)
-    const isValidBearerToken = authHeader === `Bearer ${cronSecret}`;
-    const isVercelCron = userAgent?.includes("vercel-cron");
-    const isManualTrigger = manualTrigger === cronSecret;
-
-    if (!isValidBearerToken && !isVercelCron && !isManualTrigger) {
-      console.error(`[CRON] Unauthorized access attempt at ${timestamp}`, {
-        hasAuthHeader: !!authHeader,
-        userAgent,
-        hasManualTrigger: !!manualTrigger,
-      });
+    if (!isAuthorizedCron(request)) {
+      console.error(`[CRON] Unauthorized access attempt at ${timestamp}`);
       return NextResponse.json(
         { error: "Unauthorized" },
         { status: 401 }
       );
     }
 
-    const authMethod = isValidBearerToken
-      ? "bearer-token"
-      : isVercelCron
-      ? "vercel-cron"
-      : "manual-trigger";
+    const { searchParams } = new URL(request.url);
+    const forceResend = searchParams.get("force_resend") === "true";
 
     console.log(`[CRON] Daily email cron started at ${timestamp}`, {
-      authMethod,
-      userAgent,
       forceResend,
     });
 
@@ -207,7 +181,6 @@ export async function GET(request: NextRequest) {
       storyFormat: true,
       timestamp,
       durationMs: duration,
-      authMethod,
     });
 
   } catch (error) {
