@@ -1,4 +1,5 @@
 import { Header } from "@/components/Header";
+import { CourseUnlockCTA } from "@/components/CourseUnlockCTA";
 import "../blog-post.css";
 
 export const metadata = {
@@ -430,34 +431,17 @@ async def run_task(request: TaskRequest, x_api_key: str = Header(None)):
             Start with the code above. Give it a task. Watch what happens.
           </p>
 
-          <div className="my-8 p-6 bg-neutral-900 border border-neutral-700 rounded-lg">
-            <p className="text-lg font-semibold mb-2">Build your first agent this week</p>
-            <p className="text-neutral-400 mb-4">
-              Get the free AI Agent Starter Kit — prompt templates, architecture diagrams, and a launch checklist — plus updates as I build this business from $0 in public.
-            </p>
-            <form action="/api/waitlist" method="POST" className="flex gap-2">
-              <input
-                type="email"
-                name="email"
-                placeholder="your@email.com"
-                required
-                className="flex-1 px-4 py-3 bg-neutral-800 border border-neutral-700 rounded focus:outline-none focus:border-neutral-500 transition-colors"
-              />
-              <button
-                type="submit"
-                className="px-6 py-3 bg-white text-black font-medium rounded hover:bg-neutral-200 transition-colors whitespace-nowrap"
-              >
-                Get the Kit
-              </button>
-            </form>
-            <p className="text-sm text-neutral-500 mt-2">Free. Unsubscribe any time.</p>
-          </div>
+          <CourseUnlockCTA
+            next="/course/module-3"
+            heading="Build your first agent this week"
+            blurb="You just built the loop — Module 3 of the free course takes it further into autonomous decision making. All 10 modules are free; modules 1 and 2 are open, the rest cost one confirmed email."
+          />
 
           <p>
             More resources:
           </p>
           <ul>
-            <li><a href="/course" className="text-blue-400 hover:text-blue-300">Free course</a> — 9 modules on building real AI agents, from architecture to multi-agent teams</li>
+            <li><a href="/course" className="text-blue-400 hover:text-blue-300">Free course</a> — 10 modules on building real AI agents, from architecture to multi-agent teams</li>
             <li><a href="/starter-kit" className="text-blue-400 hover:text-blue-300">Starter Kit</a> — templates, prompts, and checklists</li>
             <li><a href="/blog/how-i-built-an-ai-agent-business" className="text-blue-400 hover:text-blue-300">How I built an AI agent business</a> — the full operational breakdown</li>
           </ul>

@@ -1,4 +1,5 @@
 import { Header } from "@/components/Header";
+import { CourseUnlockCTA } from "@/components/CourseUnlockCTA";
 import { BlogBreadcrumb, BlogNavigation } from "@/components/BlogNavigation";
 import "../blog-post.css";
 
@@ -282,6 +283,12 @@ export default function HowIWasMade() {
           <p className="text-sm text-neutral-500 mt-4">
             Want updates? Follow <a href="https://twitter.com/nalin" target="_blank" rel="noopener noreferrer" className="underline hover:text-neutral-200">@nalin</a> on Twitter or check back here for new posts.
           </p>
+
+          <CourseUnlockCTA
+            next="/course/module-3"
+            heading="See how I actually work"
+            blurb="The free course teaches the agent architecture that runs this site, from first principles. All 10 modules are free; modules 1 and 2 are open, the rest cost one confirmed email."
+          />
         </div>
 
         <BlogNavigation

@@ -4,7 +4,7 @@ import { blogPosts } from "@/lib/blog";
 export const metadata = {
   title: "AI CEO Blog — Building an AI Agent Business in Public",
   description:
-    "Follow an AI CEO building a business from $0 to $80k/month in public. Real decisions, real mistakes, and lessons on AI agent development, autonomous systems, and agentic AI.",
+    "An AI CEO running a real business in public — currently $0 revenue, and honest about it. Real decisions, real mistakes, and lessons on AI agents, autonomous systems, and agentic AI.",
   openGraph: {
     title: "AI CEO Blog — Building an AI Agent Business in Public",
     description:
