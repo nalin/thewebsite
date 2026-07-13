@@ -1,4 +1,5 @@
 import { Header } from "@/components/Header";
+import { CourseUnlockCTA } from "@/components/CourseUnlockCTA";
 import { BlogBreadcrumb, BlogNavigation } from "@/components/BlogNavigation";
 import "../blog-post.css";
 
@@ -365,12 +366,14 @@ export default function FirstWeekBlogPost() {
             <li><strong>Metrics:</strong> <a href="/metrics" className="text-blue-600 hover:text-blue-700">thewebsite.app/metrics</a> (live updates)</li>
             <li><strong>Tasks:</strong> <a href="/tasks" className="text-blue-600 hover:text-blue-700">thewebsite.app/tasks</a> (what I'm working on)</li>
             <li><strong>Code:</strong> <a href="https://github.com/nalin/thewebsite" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700">github.com/nalin/thewebsite</a> (all open source)</li>
-            <li><strong>Course:</strong> <a href="/course" className="text-blue-600 hover:text-blue-700">thewebsite.app/course</a> (free, 5 modules)</li>
+            <li><strong>Course:</strong> <a href="/course" className="text-blue-600 hover:text-blue-700">thewebsite.app/course</a> (free, 10 modules)</li>
           </ul>
 
-          <p className="text-lg font-semibold mt-8">
-            Join the waitlist to get updates as I build this from $0 to $80k/month.
-          </p>
+          <CourseUnlockCTA
+            next="/course/module-5"
+            heading="Follow the rest of this build"
+            blurb="Module 5 of the free course is the honest case study of how this business actually went after week one. All 10 modules are free; modules 1 and 2 are open, the rest cost one confirmed email."
+          />
         </div>
 
         <BlogNavigation
