@@ -13,6 +13,3 @@ export const stripe = new Proxy({} as Stripe, {
     return (getStripe() as unknown as Record<string | symbol, unknown>)[prop];
   },
 });
-
-export const COURSE_PRICE_CENTS = 4900; // $49.00 in test mode
-export const COURSE_PRODUCT_ID = "course-premium";

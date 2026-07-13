@@ -63,7 +63,7 @@ const FAQS = [
       },
       {
         q: "Will anything ever cost money?",
-        a: "Probably — an Agent Operations Pack is in the works: a paid deep-dive into how this site is actually operated, built from material that already exists (the operating manual that runs the site, real worker-agent dispatch history, the July 2026 audit). It has no price and no ship date. When it's real, both will be stated plainly, and the course will stay free.",
+        a: "One thing does: the Agent Operations Pack — a paid deep-dive into how this site is actually operated, built from material that already exists (the operating manual that runs the site, real worker-agent dispatch history, the July 2026 audit). It's a $99 presale (decided 2026-07-13): one price, no discounts, and it ships when it's done. The course itself is free forever — that's a locked promise.",
       },
     ],
   },

@@ -89,7 +89,7 @@ const PACK_FEATURES = [
   "Built from the CLAUDE.md operating manual that runs this site",
   "Real worker-agent dispatch history from the March build",
   "The July 2026 audit failure catalog",
-  "No price and no ship date until it's real",
+  "One price, no discounts — it ships when it's done",
 ];
 
 const FAQS = [
@@ -99,11 +99,11 @@ const FAQS = [
   },
   {
     q: "Wasn't there a paid Pro tier for $67?",
-    a: "An earlier version of this page advertised one. Payments were never live and nobody was ever charged — the checkout was an email form. In July 2026 we reset honestly: everything is free, and the only paid thing on the roadmap is an Agent Operations Pack that has no price or date yet.",
+    a: "An earlier version of this page advertised one. Payments were never live and nobody was ever charged — the checkout was an email form. In July 2026 we reset honestly: the course is free forever, and the one paid thing is the Agent Operations Pack presale at $99 on the pricing page — a real Stripe checkout this time.",
   },
   {
     q: "What is the Agent Operations Pack?",
-    a: "A planned paid deep-dive into how this site is actually operated — drawing on the real operating manual, worker dispatch history, and audit records that already exist. It isn't for sale yet. When it is, the price will be stated plainly.",
+    a: "A paid deep-dive into how this site is actually operated — drawing on the real operating manual, worker dispatch history, and audit records that already exist. It's on presale for $99 (one price, decided 2026-07-13) and ships when it's done. Buying it funds the build; it never paywalls the course.",
   },
   {
     q: "Who is teaching this course?",
@@ -176,7 +176,7 @@ export default function LaunchPage() {
           </a>
         </div>
         <p className="text-sm text-neutral-500">
-          No payment exists on this site &bull; Modules 1&ndash;2 need no email
+          The course is free forever &bull; Modules 1&ndash;2 need no email
           &bull; Everything documented in public
         </p>
       </section>
@@ -251,8 +251,8 @@ export default function LaunchPage() {
         <div className="text-center mb-14">
           <h2 className="text-4xl font-bold mb-4">Simple Pricing</h2>
           <p className="text-neutral-400 text-lg">
-            The course is free. The only paid thing is a pack that doesn&apos;t
-            exist yet.
+            The course is free forever. The one paid thing is the Agent
+            Operations Pack presale &mdash; $99, one price.
           </p>
         </div>
 
@@ -289,7 +289,7 @@ export default function LaunchPage() {
           <div className="rounded-2xl border border-white/20 p-8 bg-neutral-900 relative">
             <div className="absolute -top-3 left-1/2 -translate-x-1/2">
               <span className="bg-white text-black text-xs font-bold px-4 py-1 rounded-full whitespace-nowrap">
-                IN THE WORKS
+                PRESALE
               </span>
             </div>
             <h3 className="text-2xl font-bold mb-1">Agent Operations Pack</h3>
@@ -297,16 +297,16 @@ export default function LaunchPage() {
               A paid deep-dive into how this site is actually operated.
             </p>
             <div className="mb-8">
-              <span className="text-5xl font-bold">TBD</span>
+              <span className="text-5xl font-bold">$99</span>
               <p className="text-neutral-400 text-sm mt-1">
-                no price until it exists
+                one-time &mdash; you&apos;re buying it before it ships
               </p>
             </div>
             <a
-              href="/course/access"
+              href="/pricing"
               className="block w-full py-3 px-6 rounded-xl bg-white text-black text-center font-bold hover:bg-neutral-200 transition-colors mb-8"
             >
-              Get notified &rarr;
+              Buy on the pricing page &rarr;
             </a>
             <p className="text-xs text-neutral-500 mb-4">
               What it will draw from:
@@ -327,12 +327,13 @@ export default function LaunchPage() {
         {/* Honesty note */}
         <div className="max-w-xl mx-auto mt-10 p-6 rounded-xl border border-neutral-800 bg-neutral-900/50 text-center">
           <div className="text-2xl mb-3">&#128274;</div>
-          <h4 className="font-bold mb-2">Nothing For Sale Today</h4>
+          <h4 className="font-bold mb-2">The Honest Fine Print</h4>
           <p className="text-neutral-400 text-sm">
             An earlier version of this page sold a &quot;founders price&quot;
-            that was never purchasable. Payments were never live; nobody was
-            charged. If that changes, it will be announced plainly &mdash;
-            we&apos;re building in public.
+            that was never purchasable — payments weren&apos;t live and
+            nobody was charged. The presale is the real thing: Stripe
+            checkout, verified server-side, every dollar in the public
+            revenue number. The course stays free either way.
           </p>
         </div>
       </section>
@@ -435,7 +436,7 @@ export default function LaunchPage() {
             </a>
           </div>
           <p className="text-sm text-neutral-500">
-            No payment exists on this site &bull; Everything documented in
+            The course is free forever &bull; Everything documented in
             public
           </p>
         </div>
