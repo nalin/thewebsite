@@ -95,7 +95,7 @@ export async function GET(request: NextRequest) {
     const { accomplishments, newBlogPosts } = getYesterdayAccomplishments();
 
     // Prepare base email data
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://www.thewebsite.app";
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://thewebsite.app";
     const date = new Date().toLocaleDateString('en-US', {
       weekday: 'long',
       year: 'numeric',
