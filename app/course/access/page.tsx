@@ -1,3 +1,6 @@
+import { headers } from "next/headers";
+import { logFunnelEvent } from "@/lib/funnel";
+
 export const metadata = {
   title: "Unlock the Course",
   description:
@@ -13,6 +16,17 @@ export default async function CourseAccessPage({
   const sent = params.sent === "1";
   const error = params.error;
   const next = params.next?.startsWith("/course") ? params.next : "";
+
+  // Count genuine wall impressions only: the initial form state, not the
+  // "check your inbox" / error re-renders, and not router prefetches.
+  if (!sent && !error) {
+    const h = await headers();
+    const isPrefetch =
+      h.get("next-router-prefetch") !== null || h.get("purpose") === "prefetch";
+    if (!isPrefetch) {
+      await logFunnelEvent("wall_view", { module: next || null });
+    }
+  }
 
   return (
     <main className="min-h-screen">

@@ -54,6 +54,13 @@ async function getAnalyticsData() {
     utmSources,
     utmCampaigns,
     pageViewsByDay,
+    gateWallViews,
+    gateWallViewsWeek,
+    gateSubmits,
+    gateSubmitsWeek,
+    gateConfirms,
+    gateConfirmsWeek,
+    gateWallByModule,
   ] = await Promise.all([
     safeQuery("SELECT COUNT(*) as count FROM waitlist"),
     safeQuery("SELECT COUNT(*) as count FROM waitlist WHERE date(created_at) = date('now')"),
@@ -88,6 +95,17 @@ async function getAnalyticsData() {
     ),
     safeQuery(
       "SELECT date(created_at) as day, COUNT(*) as count FROM page_views WHERE created_at >= datetime('now', '-30 days') GROUP BY date(created_at) ORDER BY day ASC"
+    ),
+    // Email-gate funnel. Confirm links are idempotent (scanners re-click),
+    // so submits/confirms count unique emails, not raw events.
+    safeQuery("SELECT COUNT(*) as count FROM funnel_events WHERE event = 'wall_view'"),
+    safeQuery("SELECT COUNT(*) as count FROM funnel_events WHERE event = 'wall_view' AND created_at >= datetime('now', '-7 days')"),
+    safeQuery("SELECT COUNT(DISTINCT email) as count FROM funnel_events WHERE event = 'wall_submit'"),
+    safeQuery("SELECT COUNT(DISTINCT email) as count FROM funnel_events WHERE event = 'wall_submit' AND created_at >= datetime('now', '-7 days')"),
+    safeQuery("SELECT COUNT(DISTINCT email) as count FROM funnel_events WHERE event = 'confirm'"),
+    safeQuery("SELECT COUNT(DISTINCT email) as count FROM funnel_events WHERE event = 'confirm' AND created_at >= datetime('now', '-7 days')"),
+    safeQuery(
+      "SELECT module, COUNT(*) as count FROM funnel_events WHERE event = 'wall_view' AND module IS NOT NULL AND created_at >= datetime('now', '-30 days') GROUP BY module ORDER BY count DESC LIMIT 10"
     ),
   ]);
 
@@ -125,6 +143,15 @@ async function getAnalyticsData() {
       topReferrers: rows(topReferrers),
       utmSources: rows(utmSources),
       utmCampaigns: rows(utmCampaigns),
+    },
+    gate: {
+      wallViews: n(gateWallViews),
+      wallViewsWeek: n(gateWallViewsWeek),
+      submits: n(gateSubmits),
+      submitsWeek: n(gateSubmitsWeek),
+      confirms: n(gateConfirms),
+      confirmsWeek: n(gateConfirmsWeek),
+      wallByModule: rows(gateWallByModule),
     },
   };
 }
@@ -312,6 +339,52 @@ export default async function AnalyticsPage() {
                 </div>
               ))}
             </div>
+          </div>
+        </section>
+
+        {/* Email gate funnel */}
+        <section className="mb-10">
+          <h2 className="text-sm font-semibold text-neutral-500 uppercase tracking-wider mb-4">Email Gate (Course)</h2>
+          <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+              <div className="text-center">
+                <div className="text-3xl font-bold text-white">{data.gate.wallViews.toLocaleString()}</div>
+                <div className="text-xs text-neutral-500 mt-1">Wall Views</div>
+                <div className="text-xs text-neutral-600">{data.gate.wallViewsWeek} this week</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-white">{data.gate.submits.toLocaleString()}</div>
+                <div className="text-xs text-neutral-500 mt-1">Email Submits</div>
+                <div className="text-xs text-neutral-600">{data.gate.submitsWeek} this week</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-white">{data.gate.confirms.toLocaleString()}</div>
+                <div className="text-xs text-neutral-500 mt-1">Confirmed</div>
+                <div className="text-xs text-neutral-600">{data.gate.confirmsWeek} this week</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-green-400">{pct(data.gate.confirms, data.gate.wallViews)}</div>
+                <div className="text-xs text-neutral-500 mt-1">Gate Conversion</div>
+                <div className="text-xs text-neutral-600">
+                  submit {pct(data.gate.submits, data.gate.wallViews)} · confirm {pct(data.gate.confirms, data.gate.submits)}
+                </div>
+              </div>
+            </div>
+            {data.gate.wallByModule.length > 0 && (
+              <div className="pt-4 border-t border-neutral-800">
+                <div className="text-xs text-neutral-600 uppercase tracking-wider mb-3">Wall hits by requested module (30 days)</div>
+                <div className="space-y-2">
+                  {data.gate.wallByModule.map((row) => (
+                    <BarRow
+                      key={String(row.module)}
+                      label={String(row.module)}
+                      value={Number(row.count)}
+                      max={Number(data.gate.wallByModule[0]?.count) || 1}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </section>
 

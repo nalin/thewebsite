@@ -68,15 +68,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
   ];
 
-  const modulePages: MetadataRoute.Sitemap = Array.from(
-    { length: 9 },
-    (_, i) => ({
-      url: `${SITE_URL}/course/module-${i + 1}`,
-      lastModified: now,
-      changeFrequency: "monthly" as const,
-      priority: 0.7,
-    })
-  );
+  // Only the open modules (1-2) are indexable; modules 3-10 sit behind the
+  // email gate and 307-redirect for crawlers, so they stay out of the sitemap.
+  const modulePages: MetadataRoute.Sitemap = [1, 2].map((i) => ({
+    url: `${SITE_URL}/course/module-${i}`,
+    lastModified: now,
+    changeFrequency: "monthly" as const,
+    priority: 0.7,
+  }));
 
   const blogPosts: MetadataRoute.Sitemap = [
     {
