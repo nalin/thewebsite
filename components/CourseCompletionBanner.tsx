@@ -29,11 +29,11 @@ export default function CourseCompletionBanner() {
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
               </svg>
-              All 8 Modules Complete
+              All 10 Modules Complete
             </div>
             <h2 className="text-2xl font-bold mb-2">You've Finished the Course!</h2>
             <p className="text-neutral-400 mb-6">
-              Congratulations — you've completed all 8 modules. Download your certificate of completion.
+              Congratulations — you've completed all 10 modules. Download your certificate of completion.
             </p>
             <Link
               href="/course/certificate"
@@ -60,17 +60,17 @@ export default function CourseCompletionBanner() {
               Your Progress
             </p>
             <p className="text-sm text-neutral-500">
-              {completedModules.length} / 8 modules
+              {completedModules.length} / 10 modules
             </p>
           </div>
           <div className="w-full bg-neutral-800 rounded-full h-2 mb-4">
             <div
               className="bg-white h-2 rounded-full transition-all duration-500"
-              style={{ width: `${(completedModules.length / 8) * 100}%` }}
+              style={{ width: `${(completedModules.length / 10) * 100}%` }}
             />
           </div>
           <div className="flex gap-2 flex-wrap">
-            {Array.from({ length: 8 }, (_, i) => i + 1).map((m) => {
+            {Array.from({ length: 10 }, (_, i) => i + 1).map((m) => {
               const done = completedModules.includes(m);
               return (
                 <Link

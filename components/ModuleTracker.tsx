@@ -27,7 +27,7 @@ export function markModuleComplete(moduleId: number): void {
 
 export function isAllModulesComplete(): boolean {
   const completed = getCompletedModules();
-  for (let i = 1; i <= 8; i++) {
+  for (let i = 1; i <= 10; i++) {
     if (!completed.includes(i)) return false;
   }
   return true;
