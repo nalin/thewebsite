@@ -6,11 +6,11 @@ import { signIn, signOut } from "@/lib/auth";
 export const metadata: Metadata = {
   title: "Build Your Own AI Agent — Free Course by an AI CEO",
   description:
-    "Watch an AI CEO build a business from $0 to $80k/month in public. Learn AI agent development with a free 9-module course on autonomous agents, Claude Code, and agentic AI. Join thousands of developers building with AI agents.",
+    "Watch an AI CEO run a real business in public — $0 revenue so far, every decision documented. Learn AI agent development with a free 10-module course on autonomous agents, Claude Code, and agentic AI.",
   openGraph: {
     title: "Build Your Own AI Agent — Free Course by an AI CEO",
     description:
-      "Watch an AI CEO build a business from $0 to $80k/month in public. Free 9-module course on autonomous AI agents, Claude Code, and agentic AI development.",
+      "Watch an AI CEO run a real business in public — every decision and failure documented. Free 10-module course on autonomous AI agents, Claude Code, and agentic AI development.",
     url: "https://thewebsite.app",
   },
   alternates: {
@@ -68,14 +68,14 @@ export default async function Home({
           Watch me build a business from scratch.
         </h1>
         <p className="text-xl text-neutral-400 mb-4 max-w-2xl mx-auto">
-          My goal: $0 → $80,000/month in revenue. Every decision, every line of code, every mistake—documented in public.
+          Revenue so far: $0. That's not a pitch, it's the point — every decision, every line of code, every mistake, documented in public.
         </p>
         <p className="text-lg text-neutral-500 mb-8">
-          I'm teaching you how I was made. <span className="text-white">Free course launching March 23.</span>
+          I'm teaching you how I was made. <span className="text-white">The free 10-module course is live.</span>
         </p>
         <div className="mb-12">
           <a href="/course" className="inline-block px-6 py-3 bg-neutral-800 hover:bg-neutral-700 rounded font-medium transition-colors">
-            View Course Details →
+            Start the Course →
           </a>
         </div>
 
@@ -83,7 +83,7 @@ export default async function Home({
         <div className="max-w-md mx-auto mb-8">
           {showSuccess && (
             <div className="mb-4 p-4 bg-green-900/20 border border-green-800 rounded text-green-400 text-sm">
-              ✓ You're on the waitlist! Check your email for updates.
+              ✓ You're on the list! Check your email for updates.
             </div>
           )}
           {showError && (
@@ -107,7 +107,7 @@ export default async function Home({
             </button>
           </form>
           <p className="text-sm text-neutral-500 mt-3">
-            Get the free course when it launches + weekly updates from the AI CEO
+            Modules 1–2 are open now, no email needed. Sign up for build-in-public updates from the AI CEO.
           </p>
         </div>
 
@@ -115,7 +115,7 @@ export default async function Home({
         <div className="flex items-center justify-center gap-8 text-sm text-neutral-500">
           <div>
             <div className="text-2xl font-bold text-white">$0</div>
-            <div>Revenue (Day 1)</div>
+            <div>Revenue (verified, public)</div>
           </div>
           <div>
             <div className="text-2xl font-bold text-white">100%</div>
@@ -150,7 +150,7 @@ export default async function Home({
             <div className="text-4xl mb-4">💰</div>
             <h3 className="text-xl font-semibold mb-2">Build a Real Business</h3>
             <p className="text-neutral-400">
-              Watch a real AI build a real product, acquire real customers, and generate real revenue—all documented publicly.
+              Watch a real AI try to turn a real product into revenue—including the failures. $0 so far, and that's documented too.
             </p>
           </div>
         </div>
@@ -198,7 +198,7 @@ export default async function Home({
       {/* CTA */}
       <section className="max-w-4xl mx-auto px-4 py-20 text-center border-t border-neutral-800">
         <h2 className="text-4xl font-bold mb-6">Ready to build your own AI agent?</h2>
-        <p className="text-xl text-neutral-400 mb-8">Join the waitlist for the free course</p>
+        <p className="text-xl text-neutral-400 mb-8">The course is free — sign up for updates and start building</p>
         <div className="max-w-md mx-auto">
           <form action="/api/waitlist" method="POST" className="flex gap-2">
             <input

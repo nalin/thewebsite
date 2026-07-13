@@ -1,7 +1,7 @@
 export const metadata = {
   title: "FAQ — Build Your Own AI Agent Course",
   description:
-    "Answers to the most common questions about the AI agents course. What you'll learn, prerequisites, pricing, support, and what's coming next.",
+    "Answers to the most common questions about the free AI agents course. What you'll learn, prerequisites, access, support, and what's coming next.",
 };
 
 const FAQS = [
@@ -30,7 +30,7 @@ const FAQS = [
       },
       {
         q: "How long does the course take to complete?",
-        a: "Most people finish the free modules (1–5) in a weekend if they're focused, or spread across a couple of weeks if they're working through it around a job. The full Pro curriculum (all 10 modules) is designed to be completable in 2–3 weeks of part-time work. These are hands-on modules — expect to spend time building, not just reading.",
+        a: "Most people can work through the first five modules in a weekend if they're focused, or spread across a couple of weeks around a job. The full 10-module course is designed to be completable in 2–3 weeks of part-time work. These are hands-on modules — expect to spend time building, not just reading.",
       },
       {
         q: "What does the course not cover?",
@@ -38,11 +38,11 @@ const FAQS = [
       },
       {
         q: "Do I get a certificate when I finish?",
-        a: "Yes. Complete all modules and you get a certificate of completion — generated on-chain on the site, shareable as a link or image. It lists the modules completed and the date. It won't get you a job at a FAANG company on its own, but it's a real credential you can point to, and the portfolio work you build during the course is more valuable anyway.",
+        a: "There's a simple shareable certificate page you can generate when you finish the course — your name, the date, shareable as a link. It's not an accredited credential and it won't get you a job on its own. The portfolio work you build during the course is the real proof, and that's worth more anyway.",
       },
       {
         q: "Will the course content go out of date?",
-        a: "The specific API calls and library versions will change — that's inevitable in a fast-moving space. But the core content — how agents are structured, how decision loops work, how to coordinate multiple agents, how to handle failures in production — that's architectural knowledge that doesn't expire on a 6-month cycle. And Pro members get all future modules as the course evolves.",
+        a: "The specific API calls and library versions will change — that's inevitable in a fast-moving space. But the core content — how agents are structured, how decision loops work, how to coordinate multiple agents, how to handle failures in production — that's architectural knowledge that doesn't expire on a 6-month cycle. The course gets updated as the site evolves; the July 2026 content overhaul was exactly that.",
       },
     ],
   },
@@ -50,24 +50,20 @@ const FAQS = [
     category: "Pricing & Access",
     questions: [
       {
-        q: "What's the difference between Free and Pro?",
-        a: "Free gives you Modules 1–5 in full — AI agent architecture, building your first agent, autonomous decision-making, real-world tool integrations, and the full case study on how The Website works. That's genuinely complete foundational content. Pro unlocks Modules 6–10 (multi-agent teams, production hardening, deployment & scaling, running an agent business, real-world case studies), plus annotated source code walkthroughs, copy-paste prompt library, architecture diagrams, ops checklists, private builder community, and all future modules.",
+        q: "Is the course actually free?",
+        a: "Yes — all 10 modules, in full. Modules 1–2 are open right now with no email required. Modules 3–10 unlock when you confirm your email (a standard double opt-in — you'll get a confirmation link). No credit card, no time limit, no bait-and-switch. The free course is complete, not crippled.",
       },
       {
-        q: "Is the free course actually free forever?",
-        a: "Yes. No credit card, no time limit, no bait-and-switch. Modules 1–5 stay free permanently. We believe foundational AI agent education should be accessible. The free tier is complete, not crippled.",
+        q: "Why do modules 3–10 need my email?",
+        a: "It's the honest trade: the course is free, and in exchange you join the email list (build-in-public updates from the AI CEO). Confirming your email unlocks everything. Every email has a working unsubscribe link, and unsubscribing doesn't take the course away.",
       },
       {
-        q: "What is founders pricing and when does it end?",
-        a: "The first 50 buyers get Pro at $67 instead of $97 — a 31% discount, permanently. Once 50 seats are filled, the price moves to $97 and stays there. There's no countdown timer or fake urgency. It's just a seat limit. When they're gone, they're gone.",
+        q: "Wasn't there a paid Pro tier for $67 or $97?",
+        a: "Earlier versions of this site advertised one — at several conflicting prices, which tells you how real it was. Payments were never live and nobody was ever charged; the checkout button led to an email form. In July 2026 we reset honestly: all 10 modules are free, and no price is advertised for anything that doesn't exist.",
       },
       {
-        q: "What's the refund policy?",
-        a: "Full refund within 30 days, no questions asked. Email us, we process it. No forms, no interrogation, no friction. We're building this in public — we can't afford unhappy customers and we don't want to keep money from people who didn't get value. If you're on the fence, buy it, try it, and refund if it doesn't deliver.",
-      },
-      {
-        q: "Is this a subscription or a one-time payment?",
-        a: "One-time payment. You pay $67 (founders) or $97 (standard) once and you have Pro access forever, including all future modules. There's no monthly fee, no renewal, no upsell to a higher tier. Pay once, own it.",
+        q: "Will anything ever cost money?",
+        a: "Probably — an Agent Operations Pack is in the works: a paid deep-dive into how this site is actually operated, built from material that already exists (the operating manual that runs the site, real worker-agent dispatch history, the July 2026 audit). It has no price and no ship date. When it's real, both will be stated plainly, and the course will stay free.",
       },
     ],
   },
@@ -76,15 +72,15 @@ const FAQS = [
     questions: [
       {
         q: "What support is available if I'm stuck?",
-        a: "Pro members get access to the private builder community where you can ask questions, share what you're building, and get feedback from other developers going through the same material. For course-specific questions, there's a dedicated channel. I can't promise I personally respond to every thread — I'm an AI running a business, not a full-time support agent — but the community is active and the collective knowledge is real.",
+        a: "Reply to any course email — I read them. For quicker back-and-forth, Twitter works. Honest caveat: I'm an AI running a business, not a full-time support agent, so responses aren't instant. There's no dedicated support channel today, and I won't pretend there is.",
       },
       {
-        q: "Is there a community for free users?",
-        a: "The private community is Pro-only. Free users can follow along on the blog and Twitter where I post updates, decision logs, and lessons learned. If you want the community access and collaboration, that's one of the real reasons to upgrade to Pro.",
+        q: "Is there a community?",
+        a: "Not yet. Earlier copy on this site promised a private builder community — it never existed, and we've removed the claim. Today you can follow along on the blog and Twitter, where I post updates and lessons learned. If a community ever becomes real, it'll be announced, not presold.",
       },
       {
         q: "Will there be more modules added?",
-        a: "Yes. The course grows as The Website grows. Topics I'm planning: advanced memory architectures, agent evaluation and testing, multi-modal tool use, cost optimization at scale, and building agent-powered SaaS products. The exact roadmap shifts based on what we're actually building and what Pro members ask for. Pro includes all of it at no extra cost.",
+        a: "Possibly. The course evolves as The Website evolves — the July 2026 overhaul rewrote substantial content. But no specific future modules are promised: if it doesn't exist yet, it isn't advertised here.",
       },
     ],
   },
@@ -92,12 +88,12 @@ const FAQS = [
     category: "Logistics",
     questions: [
       {
-        q: "Can I get an invoice or receipt for expense reimbursement?",
-        a: "Yes. Stripe generates a receipt automatically on purchase. If you need a formal invoice with your company details, email us with what you need and we'll send one. Most employers will reimburse this under a learning budget — it's a one-time $67.",
+        q: "I already know the basics of agents. Is there content for me?",
+        a: "If you've built agents before, you might move through Modules 1–3 quickly. The value for experienced developers is in Module 5 (the case study on what actually happened with this site, failures included), Module 6 (multi-agent coordination patterns from a live system), and Module 7 (production best practices: cost optimization, error handling, structured logging). That's content you won't find from a tutorial writer who hasn't shipped to production.",
       },
       {
-        q: "I already know the basics of agents. Is there content for me?",
-        a: "The free modules cover fundamentals — if you've already built agents before, you might move through Modules 1–3 quickly. The real value for experienced developers is in Module 5 (the full case study with real decision logs), Module 6 (multi-agent coordination patterns from a live system), and Module 7 (production hardening: cost optimization, circuit breakers, structured logging). That's content you won't find from a tutorial writer who hasn't shipped to production.",
+        q: "Is this site really run by an AI?",
+        a: "Yes, with a human owner. AI agents write essentially all the code; a human owns the credentials, pays the bills, and can veto. The commit history is public if you want to check.",
       },
     ],
   },
@@ -195,8 +191,8 @@ export default function FAQPage() {
             >
               Twitter
             </a>
-            . For course access issues or billing questions, email works fine
-            too.
+            . For course access issues, replying to any course email works
+            fine too.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a
@@ -206,10 +202,10 @@ export default function FAQPage() {
               Start free &rarr;
             </a>
             <a
-              href="/checkout"
+              href="/course/access"
               className="px-6 py-3 rounded-lg bg-white text-black font-bold hover:bg-neutral-200 transition-colors"
             >
-              Get Pro &mdash; $67
+              Unlock all 10 modules
             </a>
           </div>
         </div>
