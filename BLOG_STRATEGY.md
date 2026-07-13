@@ -67,15 +67,41 @@ recurring P1-style distribution material. Real numbers only, $0 included.
 
 ## 4. Cadence (realistic)
 
-**One post per week**, rotating pillars: P3 → P1/P2 → P3 → P4 (monthly
-metrics post anchors week 4). That's ~2 evergreen SEO posts + ~2 brand
-posts per month. Agent-written drafts make volume cheap; the constraint is
-the truth-pass and human review, so one/week is the honest ceiling. If a
-week slips, slip it — never backfill with thin content; the brand cannot
-afford a single fabricated number.
+**One post per week, going live Tuesdays at 13:00 UTC** (guaranteed live by
+14:00 UTC = 10am ET / 7am PT with the hourly ISR revalidation). Rationale:
+Tuesday mid-week is peak developer attention; a post that is live by
+US-morning lets the human owner submit to Hacker News in HN's
+highest-traffic window (US morning) the same day, with the page already
+warm; and one fixed slot makes the schedule auditable — a missed Tuesday is
+visible, which suits the radical-honesty brand.
+
+Pillar rotation: P3 → P1/P2 → P3 → P4 (monthly metrics post anchors the
+month boundary). That's ~2 evergreen SEO posts + ~2 brand posts per month.
+Agent-written drafts make volume cheap; the constraint is the truth-pass
+and human review, so one/week is the honest ceiling. If a week slips, slip
+it — never backfill with thin content; the brand cannot afford a single
+fabricated number.
 
 Refreshes count as slots: updating an existing post (see §8) may replace a
 new post in any given week.
+
+### Forward publishing workflow (scheduled, never all-at-once)
+
+`lib/blog.ts` gates publication: every post has a `publishAt` (ISO UTC),
+and `getPublishedPosts()` filters the index, sitemap, prev/next links,
+related posts, and daily-email accomplishments. Post pages return 404
+before their `publishAt` and revalidate hourly, so a scheduled post goes
+live automatically within the hour — no publish-day deploy.
+
+The loop per post:
+1. Course-content agent writes the post; it merges whenever ready with a
+   future `publishAt` from the calendar below (registry entry + page).
+2. Truth-pass against COURSE_FACTS.md happens at PR review, not at
+   publish time — what merges is already publishable.
+3. It goes live automatically in the Tuesday slot. Nothing to press.
+4. Same week, I hand the human owner the distribution draft pack (§6) keyed
+   to that post; the owner posts after confirming the URL is live.
+5. Two weeks later the post gets its scorecard (§7).
 
 ## 5. How posts feed the email gate
 
@@ -152,21 +178,27 @@ business from $0 to $80k/month" — banned-adjacent framing ("$80,000/month
 as imminent"); replace with honest positioning. SEO-surface fix, my lane,
 flagged for a follow-up dispatch.
 
-## 9. First 8 weeks (calendar)
+## 9. First 8 weeks (calendar, keyed to publishAt)
 
-| Wk | Pillar | Post | Distribution |
-|---|---|---|---|
-| 1 | P2 | "My AI agents ran my business unattended for 4 months. Here's the damage." — the July audit as flagship relaunch post | HN + X drafts |
-| 2 | — | Retrofit sprint: CTA migration on all 7 posts + index-metadata fix + Agentix/monetization addenda | — |
-| 3 | P3 | "CLAUDE.md is my operating manual: how a repo file runs a business" (uses our real CLAUDE.md, as COURSE_FACTS endorses) | X draft |
-| 4 | P4 | Metrics report #1: July numbers — 351 signups, $0 revenue, first gate-conversion data | HN + email draft |
-| 5 | P3 | "Claude Code headless (`claude -p`): building an unattended worker" → feeds modules 1–2 | Reddit draft |
-| 6 | P2 | "Every unsubscribe link I ever sent was broken" — email-infra post-mortem | HN draft |
-| 7 | P3 | "One orchestrator, N worktrees: how my worker fleet actually runs (Orca)" | X draft |
-| 8 | P4/P1 | Metrics report #2 + what the first month of publishing changed | email draft |
+All slots are Tuesdays; `publishAt` is the exact registry value. The CTA
+retrofit sprint originally penciled as week 2 shipped early (2026-07-12),
+so every week is a publishing week.
 
-Weeks 1, 2, and 4 are the highest-leverage items if only three things
-happen.
+| Wk | publishAt (UTC) | Pillar | Post | Distribution |
+|---|---|---|---|---|
+| 1 | 2026-07-14T13:00:00Z | P2 | "My AI agents ran my business unattended for 4 months. Here's the damage." — the July audit as flagship relaunch post | HN + X drafts |
+| 2 | 2026-07-21T13:00:00Z | P3 | "CLAUDE.md is my operating manual: how a repo file runs a business" (uses our real CLAUDE.md, as COURSE_FACTS endorses) | X draft |
+| 3 | 2026-07-28T13:00:00Z | P3 | "Claude Code headless (`claude -p`): building an unattended worker" → feeds modules 1–2 | Reddit draft |
+| 4 | 2026-08-04T13:00:00Z | P4 | Metrics report #1: July numbers — signups, $0 revenue, first gate-conversion data | HN + email draft |
+| 5 | 2026-08-11T13:00:00Z | P2 | "Every unsubscribe link I ever sent was broken" — email-infra post-mortem | HN draft |
+| 6 | 2026-08-18T13:00:00Z | P3 | "One orchestrator, N worktrees: how my worker fleet actually runs (Orca)" | X draft |
+| 7 | 2026-08-25T13:00:00Z | P1 | "The course is free; it costs one confirmed email" — the gate decision, with its first real conversion numbers | X draft |
+| 8 | 2026-09-01T13:00:00Z | P4 | Metrics report #2: August numbers + what the first publishing month changed | email draft |
+
+Weeks 1 and 4 are the highest-leverage items if only two things happen.
+Note for module counts and any metric cited in these posts: COURSE_FACTS.md
+is the source of truth at write time, and the truth-pass happens in PR
+review before merge.
 
 ## 10. Open items / escalations for the human owner
 
