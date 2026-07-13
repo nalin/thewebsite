@@ -4,7 +4,10 @@ import ModuleTracker from "@/components/ModuleTracker";
 export const metadata = {
   title: "Module 8: Deployment & Scaling - Build Your Own AI Agent",
   description:
-    "Learn how to deploy and scale AI agents in production. Covers Vercel, Railway, fly.io, Turso replication, monitoring, cost optimization, rate limiting, and caching.",
+    "Learn how to deploy and scale AI agents in production. Covers Vercel, Railway, fly.io, Turso replication, safe rollouts, cost optimization at deploy scale, and caching.",
+  alternates: {
+    canonical: "https://thewebsite.app/course/module-8",
+  },
 };
 
 export default function Module8() {
@@ -45,9 +48,10 @@ export default function Module8() {
             <li>✓ Choose the right deployment platform for your agent (Vercel, Railway, fly.io)</li>
             <li>✓ Manage environment variables and secrets safely across environments</li>
             <li>✓ Scale your database with Turso replication for global latency</li>
-            <li>✓ Add observability: structured logging, error tracking, and usage metrics</li>
-            <li>✓ Control LLM costs with caching, batching, and model routing</li>
-            <li>✓ Implement rate limiting to protect your agent from abuse</li>
+            <li>✓ Wire Module 7&apos;s observability into your deployment: log drains, Sentry, usage metrics</li>
+            <li>✓ Control LLM costs at deploy scale with caching and model routing</li>
+            <li>✓ Rate limit across multiple serverless instances</li>
+            <li>✓ Roll out changes safely: instant rollbacks, migration safety, env-var gotchas</li>
             <li>✓ Scale horizontally when one instance isn&apos;t enough</li>
           </ul>
         </div>
@@ -75,9 +79,10 @@ export default function Module8() {
             <div className="bg-yellow-50 border-l-4 border-yellow-500 p-5 mb-6">
               <p className="font-semibold text-gray-900 mb-1">The Website&apos;s production stack</p>
               <p className="text-sm text-gray-700">
-                Next.js on Vercel + Turso (distributed SQLite) + GitHub Actions for the
-                agent pipeline. Total infrastructure cost: ~$20/month. Handles the current
-                traffic comfortably with room to 100x.
+                Next.js on Vercel + Turso (distributed SQLite). The original agent pipeline
+                ran on GitHub Actions; today orchestration runs through Claude-driven agents.
+                Infrastructure has cost us roughly tens of dollars a month in practice, and it
+                handles current traffic comfortably with plenty of headroom to grow.
               </p>
             </div>
           </div>
@@ -181,7 +186,7 @@ export default function Module8() {
               2. Environment Management
             </h2>
             <p className="text-gray-700 leading-relaxed mb-4">
-              AI agents use a lot of secrets: API keys for Claude, OpenAI, GitHub, Stripe,
+              AI agents use a lot of secrets: API keys for Claude, GitHub, Stripe,
               Resend. Mismanaging these is one of the most common production failures I see.
               Here&apos;s the system that works.
             </p>
@@ -303,7 +308,7 @@ export const env = {
             <p className="text-gray-700 leading-relaxed mb-4">
               The Website uses Turso—a distributed SQLite database. Most people assume
               SQLite can&apos;t scale, but Turso proves otherwise. With replication, you get
-              read replicas in every region, sub-10ms reads globally, and the simplicity
+              read replicas near your users, fast local reads, and the simplicity
               of SQLite.
             </p>
 
@@ -315,7 +320,7 @@ export const env = {
               <p className="pl-4 mb-1">├── Replica: us-east (reads routed here for US users)</p>
               <p className="pl-4 mb-1">├── Replica: eu-west (reads routed here for EU users)</p>
               <p className="pl-4">└── Replica: ap-southeast (reads routed here for APAC users)</p>
-              <p className="mt-2 text-gray-500 text-xs">Writes go to primary → replicate to all replicas in &lt;100ms</p>
+              <p className="mt-2 text-gray-500 text-xs">Writes go to primary → replicate out to replicas asynchronously (typically fast, but not instant — reads from replicas can briefly lag writes)</p>
             </div>
 
             <pre className="bg-gray-100 p-4 rounded overflow-x-auto text-sm font-mono text-gray-800 mb-4">
@@ -403,54 +408,27 @@ export function getDb() {
             </p>
 
             <h3 className="text-xl font-semibold text-gray-900 mb-3">
-              Structured Logging
+              Structured Logging at Deploy Scale
             </h3>
+            <div className="bg-blue-50 border-l-4 border-blue-500 p-5 mb-4">
+              <p className="font-semibold text-gray-900 mb-1">You built this in Module 7</p>
+              <p className="text-sm text-gray-700">
+                Module 7&apos;s <code className="bg-blue-100 px-1 rounded">Logger</code> class
+                already gives you structured JSON logs with task IDs, durations, and token
+                counts. Don&apos;t rebuild it here—what changes at deploy scale is where those
+                logs <em>go</em>.
+              </p>
+            </div>
             <p className="text-gray-700 leading-relaxed mb-3">
-              Don&apos;t use <code className="bg-gray-100 px-1 rounded text-sm">console.log</code>.
-              Use structured logs with consistent fields so you can filter and query them:
+              On Vercel, anything your functions write to stdout lands in the function logs,
+              but retention is short and there&apos;s no querying to speak of. Two deployment
+              deltas matter: (1) make sure your Logger emits one JSON object per line in
+              production (log aggregators parse this automatically, pretty-printing breaks
+              it), and (2) configure a <strong>log drain</strong> so logs stream to a place
+              you can actually search—Vercel supports drains to Datadog, Axiom, Betterstack,
+              and others. Without a drain, the log line that explains an incident is usually
+              gone by the time you look for it.
             </p>
-            <pre className="bg-gray-100 p-4 rounded overflow-x-auto text-sm font-mono text-gray-800 mb-4">
-{`// lib/logger.ts
-type LogLevel = "info" | "warn" | "error" | "debug";
-
-interface LogEvent {
-  level: LogLevel;
-  message: string;
-  agentId?: string;
-  taskId?: string;
-  durationMs?: number;
-  tokensUsed?: number;
-  error?: string;
-  [key: string]: unknown;
-}
-
-export function log(event: LogEvent) {
-  const entry = {
-    timestamp: new Date().toISOString(),
-    env: process.env.NODE_ENV,
-    ...event,
-  };
-
-  // In production, output JSON for log aggregators (Datadog, Logtail, etc.)
-  if (process.env.NODE_ENV === "production") {
-    console.log(JSON.stringify(entry));
-  } else {
-    // In dev, pretty-print for readability
-    const { level, message, ...rest } = entry;
-    console.log(\`[\${level.toUpperCase()}] \${message}\`, rest);
-  }
-}
-
-// Usage in agent code:
-log({
-  level: "info",
-  message: "Task completed",
-  taskId: "task-123",
-  agentId: "developer-agent",
-  durationMs: 4200,
-  tokensUsed: 3847,
-});`}
-            </pre>
 
             <h3 className="text-xl font-semibold text-gray-900 mb-3">
               Error Tracking with Sentry
@@ -532,10 +510,22 @@ export async function runAgentTask(taskId: string, fn: () => Promise<void>) {
               5. Cost Optimization
             </h2>
             <p className="text-gray-700 leading-relaxed mb-4">
-              LLM API costs can spiral fast. A single Claude Sonnet call processing a
-              large context costs ~$0.01–$0.05. At 1000 agent tasks/day, that&apos;s $10–$50
-              daily just in tokens. Here&apos;s how I keep costs under control.
+              LLM API costs can spiral fast—as a rough illustration, a Sonnet call over a
+              large context can cost a few cents, and at a thousand agent tasks a day that
+              compounds into real money.
             </p>
+            <div className="bg-blue-50 border-l-4 border-blue-500 p-5 mb-4">
+              <p className="font-semibold text-gray-900 mb-1">You built this in Module 7</p>
+              <p className="text-sm text-gray-700">
+                Module 7 covered the fundamentals: picking the right model per task, trimming
+                context, and enforcing a daily budget cap. At deploy scale, three things
+                change: prompt caching starts paying for itself (your system prompt is now
+                sent thousands of times), your routing table needs to live in one shared
+                place instead of scattered call sites, and response caching interacts with
+                serverless—each instance has its own memory, so the cache has to live in the
+                database.
+              </p>
+            </div>
 
             <h3 className="text-xl font-semibold text-gray-900 mb-3">
               Strategy 1: Prompt Caching
@@ -582,14 +572,14 @@ const response = await client.messages.create({
 type TaskType = "classify" | "summarize" | "code" | "reason";
 
 const MODEL_MAP: Record<TaskType, string> = {
-  // Simple classification → cheapest model ($0.80/MTok input)
-  classify: "claude-haiku-4-5-20251001",
-  // Summarization → mid-tier ($3/MTok input)
-  summarize: "claude-haiku-4-5-20251001",
-  // Code generation → capable model ($3/MTok input)
+  // Simple classification → cheapest model ($1/MTok input, $5/MTok output)
+  classify: "claude-haiku-4-5",
+  // Summarization → mid-tier ($3/MTok input, $15/MTok output)
+  summarize: "claude-sonnet-4-6",
+  // Code generation → capable mid-tier ($3/MTok input, $15/MTok output)
   code: "claude-sonnet-4-6",
-  // Complex reasoning → most capable ($15/MTok input)
-  reason: "claude-opus-4-6",
+  // Complex reasoning → most capable ($5/MTok input, $25/MTok output)
+  reason: "claude-opus-4-8",
 };
 
 export function selectModel(taskType: TaskType): string {
@@ -671,73 +661,26 @@ const label = await cachedCompletion(
               endpoint 400 times in 30 seconds.
             </p>
 
-            <h3 className="text-xl font-semibold text-gray-900 mb-3">
-              Simple In-Memory Rate Limiter
-            </h3>
-            <p className="text-gray-700 leading-relaxed mb-3">
-              For a single-instance deployment (or when eventual consistency is fine), an
-              in-memory sliding window limiter is enough:
-            </p>
-            <pre className="bg-gray-100 p-4 rounded overflow-x-auto text-sm font-mono text-gray-800 mb-4">
-{`// lib/rate-limiter.ts
-const requests = new Map<string, number[]>();
-
-export function checkRateLimit(
-  key: string,
-  limit: number,
-  windowMs: number
-): { allowed: boolean; retryAfterMs?: number } {
-  const now = Date.now();
-  const windowStart = now - windowMs;
-
-  // Get existing timestamps for this key, filter to current window
-  const timestamps = (requests.get(key) ?? []).filter(
-    (t) => t > windowStart
-  );
-
-  if (timestamps.length >= limit) {
-    const oldestInWindow = timestamps[0];
-    const retryAfterMs = oldestInWindow + windowMs - now;
-    return { allowed: false, retryAfterMs };
-  }
-
-  // Record this request
-  timestamps.push(now);
-  requests.set(key, timestamps);
-
-  return { allowed: true };
-}
-
-// Usage in API route:
-export async function POST(req: Request) {
-  const ip = req.headers.get("x-forwarded-for") ?? "unknown";
-
-  const { allowed, retryAfterMs } = checkRateLimit(
-    \`create-issue:\${ip}\`,
-    5,       // 5 requests
-    60_000,  // per 60 seconds
-  );
-
-  if (!allowed) {
-    return Response.json(
-      { error: "Too many requests" },
-      {
-        status: 429,
-        headers: { "Retry-After": String(Math.ceil((retryAfterMs ?? 0) / 1000)) },
-      }
-    );
-  }
-
-  // ... handle request
-}`}
-            </pre>
+            <div className="bg-blue-50 border-l-4 border-blue-500 p-5 mb-4">
+              <p className="font-semibold text-gray-900 mb-1">You built this in Module 7</p>
+              <p className="text-sm text-gray-700">
+                Module 7&apos;s <code className="bg-blue-100 px-1 rounded">TokenBucket</code>
+                solved the <em>outbound</em> problem: staying under Anthropic&apos;s and
+                GitHub&apos;s rate limits. Deployment adds the <em>inbound</em> problem
+                (protecting your own endpoints), plus a serverless twist: an in-memory
+                limiter like TokenBucket only sees the traffic hitting <em>its own</em>
+                {" "}instance. Vercel spins up many instances, each with separate memory, so a
+                per-instance limit of 10/minute quietly becomes 10-per-instance-per-minute.
+              </p>
+            </div>
 
             <h3 className="text-xl font-semibold text-gray-900 mb-3">
               Distributed Rate Limiting with Upstash Redis
             </h3>
             <p className="text-gray-700 leading-relaxed mb-3">
-              When you have multiple serverless instances, in-memory state isn&apos;t shared.
-              Use Upstash Redis (serverless-friendly) for consistent limits:
+              The deployment-grade fix is platform-level limiting backed by shared state.
+              Upstash Redis is serverless-friendly (HTTP-based, no connection pooling
+              headaches) and gives every instance the same view of the counter:
             </p>
             <pre className="bg-gray-100 p-4 rounded overflow-x-auto text-sm font-mono text-gray-800">
 {`import { Ratelimit } from "@upstash/ratelimit";
@@ -772,10 +715,89 @@ export async function POST(req: Request) {
             </pre>
           </div>
 
-          {/* Section 7: Caching Strategies */}
+          {/* Section 7: Safe Rollouts */}
           <div className="mb-12">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">
-              7. Caching Strategies
+              7. Safe Rollouts
+            </h2>
+            <p className="text-gray-700 leading-relaxed mb-4">
+              Everything so far assumes the deploy itself goes fine. It won&apos;t always.
+              The three things that separate a bad deploy from a bad day: a fast way back,
+              migrations that can&apos;t strand you, and knowing which changes actually take
+              effect when.
+            </p>
+
+            <h3 className="text-xl font-semibold text-gray-900 mb-3">
+              Instant Rollback on Vercel
+            </h3>
+            <p className="text-gray-700 leading-relaxed mb-3">
+              Vercel deployments are immutable—every deploy gets its own URL and stays
+              runnable forever. &quot;Rollback&quot; is just repointing production traffic at
+              a previous deployment, which takes seconds and requires no rebuild:
+            </p>
+            <pre className="bg-gray-100 p-4 rounded overflow-x-auto text-sm font-mono text-gray-800 mb-4">
+{`# List recent deployments
+vercel ls
+
+# Point production back at a known-good deployment (no rebuild)
+vercel rollback <deployment-url>
+
+# Or in the dashboard: Deployments → ⋯ → "Instant Rollback"`}
+            </pre>
+            <p className="text-gray-700 leading-relaxed mb-4">
+              The catch: rollback only reverts <em>code</em>. It does not undo database
+              migrations, cache contents, or env-var changes. Which is why the next two
+              habits matter.
+            </p>
+
+            <h3 className="text-xl font-semibold text-gray-900 mb-3">
+              Database Migrations: Expand, Migrate, Contract
+            </h3>
+            <p className="text-gray-700 leading-relaxed mb-3">
+              During a deploy, old and new code briefly run side by side—and if you roll
+              back, old code runs against the new schema. So never ship a migration the
+              previous version of the code can&apos;t live with. Split breaking changes into
+              three deploys:
+            </p>
+            <pre className="bg-gray-100 p-4 rounded overflow-x-auto text-sm font-mono text-gray-800 mb-4">
+{`-- Goal: rename tasks.assignee → tasks.worker_id
+
+-- Deploy 1 (EXPAND): add the new column; old code ignores it
+ALTER TABLE tasks ADD COLUMN worker_id TEXT;
+
+-- Deploy 2 (MIGRATE): new code writes both, reads worker_id;
+-- backfill old rows
+UPDATE tasks SET worker_id = assignee WHERE worker_id IS NULL;
+
+-- Deploy 3 (CONTRACT): once nothing reads assignee, drop it
+ALTER TABLE tasks DROP COLUMN assignee;`}
+            </pre>
+            <p className="text-gray-700 leading-relaxed mb-4">
+              At every step, both the current and previous deploy work against the current
+              schema—so instant rollback stays safe. Slower than one big migration, but a
+              destructive migration plus a bad deploy is the classic unrecoverable combo.
+            </p>
+
+            <h3 className="text-xl font-semibold text-gray-900 mb-3">
+              Env-Var Changes Require a Redeploy
+            </h3>
+            <p className="text-gray-700 leading-relaxed mb-3">
+              A gotcha that bites almost everyone once: on Vercel, environment variables
+              are captured when a deployment is built. Editing a variable in the dashboard
+              does <strong>not</strong> change the running deployment—you must redeploy
+              for the new value to take effect. The failure mode is sneaky: you rotate a
+              leaked API key, update the dashboard, see green checkmarks, and production
+              keeps using the old key until the next deploy. When you rotate a secret,
+              treat &quot;update the dashboard&quot; and &quot;trigger a redeploy&quot; as a
+              single atomic operation—and remember rollback restores the <em>old</em>
+              {" "}deployment with the env values it was built with.
+            </p>
+          </div>
+
+          {/* Section 8: Caching Strategies */}
+          <div className="mb-12">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+              8. Caching Strategies
             </h2>
             <p className="text-gray-700 leading-relaxed mb-4">
               Caching is how you make an agent feel instantaneous without paying for
@@ -885,10 +907,10 @@ export async function POST(req: Request, { params }: { params: { id: string } })
             </pre>
           </div>
 
-          {/* Section 8: Horizontal Scaling */}
+          {/* Section 9: Horizontal Scaling */}
           <div className="mb-12">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">
-              8. Horizontal Scaling
+              9. Horizontal Scaling
             </h2>
             <p className="text-gray-700 leading-relaxed mb-4">
               Horizontal scaling means running multiple copies of your agent in parallel
@@ -991,13 +1013,22 @@ async function workerLoop() {
   }
 }`}
             </pre>
+            <p className="text-gray-700 leading-relaxed mb-4 text-sm">
+              One caveat on the &quot;atomic claim&quot;: with Turso, all writes (including
+              this claim <code className="bg-gray-100 px-1 rounded">UPDATE</code>) go to the
+              primary, and as written the <code className="bg-gray-100 px-1 rounded">WHERE</code>
+              {" "}matches <em>every</em> pending row—so verify your driver gives you
+              LIMIT-1 claim semantics (or add a subquery selecting a single task id) and
+              test the pattern under real concurrency before trusting it.
+            </p>
 
             <h3 className="text-xl font-semibold text-gray-900 mb-3">
               Handling Concurrency with GitHub Actions
             </h3>
             <p className="text-gray-700 leading-relaxed mb-3">
-              The Website runs agent workers as GitHub Actions jobs. Each issue triggers a
-              separate job, so multiple issues get processed concurrently:
+              The Website&apos;s original pipeline ran agent workers as GitHub Actions jobs.
+              Each issue triggered a separate job, so multiple issues could be processed
+              concurrently:
             </p>
             <pre className="bg-gray-100 p-4 rounded overflow-x-auto text-sm font-mono text-gray-800">
 {`# .github/workflows/agent.yml (simplified)
@@ -1007,7 +1038,7 @@ on:
 
 jobs:
   process-issue:
-    # Max 3 concurrent workers (GitHub Actions limit on free tier)
+    # Serialize runs per concurrency group (drop this block to fan out)
     concurrency:
       group: agent-worker
       cancel-in-progress: false
@@ -1024,18 +1055,20 @@ jobs:
               <p className="font-semibold text-gray-900 mb-1">How The Website currently scales</p>
               <p className="text-sm text-gray-700">
                 The website backend is stateless Next.js on Vercel — scales to zero
-                automatically, handles traffic spikes with no config. The agent pipeline
-                uses GitHub Actions with up to 20 concurrent jobs. Turso handles database
-                reads globally via replicas. Total: $0 incremental cost until ~50k monthly
-                active users.
+                automatically, handles traffic spikes with no config. The original agent
+                pipeline ran as concurrent GitHub Actions jobs; today the agents run through
+                Claude-driven orchestration. Turso handles database reads via replicas. In
+                our experience, incremental infrastructure cost at current traffic has been
+                essentially zero—everything fits comfortably inside free tiers, with plenty
+                of headroom before that changes.
               </p>
             </div>
           </div>
 
-          {/* Section 9: Putting It Together */}
+          {/* Section 10: Putting It Together */}
           <div className="mb-12">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">
-              9. Production Checklist
+              10. Production Checklist
             </h2>
             <p className="text-gray-700 leading-relaxed mb-6">
               Before shipping an AI agent to production, run through this checklist. Every
@@ -1132,12 +1165,13 @@ jobs:
                 <div className="flex items-start gap-3">
                   <span className="bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded flex-shrink-0">3</span>
                   <div>
-                    <p className="font-semibold text-gray-900 mb-1">Instrument with structured logging</p>
+                    <p className="font-semibold text-gray-900 mb-1">Wire your logging into the platform</p>
                     <p className="text-sm text-gray-600">
-                      Add the <code className="bg-gray-100 px-1 rounded">log()</code> utility from
-                      Section 4 to your agent. Log every task start, completion, failure,
-                      tokens used, and duration. Then query your Vercel function logs to find
-                      the slowest task type.
+                      Take the <code className="bg-gray-100 px-1 rounded">Logger</code> class you
+                      built in Module 7 and deploy it: confirm it emits one JSON object per
+                      line in production, log every task start, completion, failure, tokens
+                      used, and duration, then set up a Vercel log drain and query the drained
+                      logs to find the slowest task type.
                     </p>
                   </div>
                 </div>
@@ -1200,8 +1234,9 @@ jobs:
                 <li className="flex items-start gap-3">
                   <span className="text-blue-600 font-bold flex-shrink-0">3.</span>
                   <p className="text-gray-700 text-sm">
-                    <strong>Turso replication</strong> gives you global read latency under
-                    10ms with zero schema changes. Add replicas before you need them.
+                    <strong>Turso replication</strong> gives you fast reads from the replica
+                    nearest each user, with zero schema changes. Add replicas before you
+                    need them.
                   </p>
                 </li>
                 <li className="flex items-start gap-3">
@@ -1230,6 +1265,14 @@ jobs:
                   <p className="text-gray-700 text-sm">
                     <strong>Rate limit everything public-facing.</strong> You will get
                     hammered—whether by bots, a buggy client, or your own test scripts.
+                  </p>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="text-blue-600 font-bold flex-shrink-0">8.</span>
+                  <p className="text-gray-700 text-sm">
+                    <strong>Plan the way back before you deploy.</strong> Instant rollback
+                    only reverts code—use expand-migrate-contract so the schema never
+                    strands you, and remember env-var edits need a redeploy to apply.
                   </p>
                 </li>
               </ol>

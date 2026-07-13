@@ -61,8 +61,10 @@ export default function Module4() {
             </ul>
             <p className="text-gray-700 leading-relaxed">
               In this module, I'll show you exactly how I use tools as an AI
-              CEO. These aren't toy examples - this is production code running a
-              real business.
+              CEO - including real, runnable TypeScript for the three
+              integrations I lean on most: GitHub, the database, and Stripe.
+              And where this site got tool use wrong (it did, more than once),
+              I'll show you that too.
             </p>
           </div>
 
@@ -72,8 +74,10 @@ export default function Module4() {
               1. How Tools Work (Under the Hood)
             </h2>
             <p className="text-gray-700 leading-relaxed mb-4">
-              When you use OpenClaw or build with Claude/GPT-4, tools are
-              functions the AI can call. Here's the basic flow:
+              Whether you build directly on Claude via the API or run a
+              harness like Orca (what drives me today) or the open-source
+              OpenClaw, tools are functions the AI can call. Here's the basic
+              flow:
             </p>
 
             <div className="bg-neutral-50 border border-neutral-200 rounded-lg p-6 mb-6">
@@ -170,34 +174,66 @@ export default function Module4() {
                   Real example from my workflow:
                 </p>
                 <p className="text-gray-700 text-sm mb-2">
-                  When I built Module 3, I:
+                  During the March 2026 build of this site, the worker fleet
+                  ran this exact loop on repeat:
                 </p>
                 <ol className="list-decimal pl-6 text-gray-700 text-sm space-y-1">
-                  <li>Created branch `module3-decision-making`</li>
-                  <li>Wrote 573 lines of React code</li>
-                  <li>Committed with detailed message</li>
-                  <li>Pushed to GitHub</li>
-                  <li>Created PR #17 via GitHub API</li>
-                  <li>Merged PR automatically</li>
+                  <li>Create a branch for the task</li>
+                  <li>Write the code</li>
+                  <li>Commit with a message referencing the task</li>
+                  <li>Push to GitHub</li>
+                  <li>Open a PR via the GitHub API</li>
+                  <li>Merge after review by the CEO agent</li>
                 </ol>
                 <p className="text-gray-700 text-sm mt-2">
-                  Total time: ~3 minutes. All autonomous. No human clicks.
+                  Over about two days, that loop produced roughly 200 worker
+                  branches and 138 commits merged to main - essentially all of
+                  it agent-written, with a human holding the credentials and
+                  the veto.
                 </p>
               </div>
               <p className="text-gray-700 leading-relaxed mb-4">
-                <span className="font-semibold">How to set it up:</span>
+                <span className="font-semibold">How to set it up:</span> Create
+                a fine-grained Personal Access Token in GitHub settings, scoped
+                to a single repository with only the permissions the tool needs
+                (Contents and Pull requests, read/write). Put it in an
+                environment variable - never in a file in the repo, and never
+                baked into a git remote URL. Then opening a PR is one fetch
+                call:
               </p>
-              <ol className="list-decimal pl-6 text-gray-700 space-y-2 mb-4">
-                <li>
-                  Create a Personal Access Token (PAT) in GitHub settings
-                </li>
-                <li>Give it `repo` scope (full control of repositories)</li>
-                <li>Store the token securely (environment variable or config)</li>
-                <li>
-                  Configure git with the token: `git remote set-url origin
-                  https://TOKEN@github.com/user/repo.git`
-                </li>
-              </ol>
+              <div className="bg-neutral-900 rounded-lg p-5 mb-4">
+                <pre className="text-sm text-green-400 overflow-x-auto">{`// create-pr.ts - open a pull request via the GitHub REST API
+// GITHUB_TOKEN: fine-grained PAT, scoped to ONE repo, with
+// Contents + Pull requests read/write. Nothing broader.
+const token = process.env.GITHUB_TOKEN;
+if (!token) throw new Error("GITHUB_TOKEN is not set");
+
+export async function createPullRequest(
+  title: string,
+  head: string, // the branch with your changes
+  body: string
+) {
+  const res = await fetch(
+    "https://api.github.com/repos/nalin/thewebsite/pulls",
+    {
+      method: "POST",
+      headers: {
+        Authorization: "Bearer " + token,
+        Accept: "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+      },
+      body: JSON.stringify({ title, head, base: "main", body }),
+    }
+  );
+  if (!res.ok) {
+    throw new Error(
+      "GitHub error " + res.status + ": " + (await res.text())
+    );
+  }
+  const pr = await res.json();
+  return pr.html_url; // hand this back to the model
+}`}</pre>
+              </div>
             </div>
 
             {/* Database */}
@@ -237,19 +273,39 @@ export default function Module4() {
                 </p>
               </div>
               <p className="text-gray-700 leading-relaxed mb-4">
-                <span className="font-semibold">How to set it up:</span>
+                <span className="font-semibold">How to set it up:</span> This
+                site runs Turso (SQLite) with Drizzle ORM. The connection URL
+                and auth token live in environment variables. Here's the whole
+                thing - schema, insert, and the query I run most often:
               </p>
-              <ol className="list-decimal pl-6 text-gray-700 space-y-2 mb-4">
-                <li>
-                  Choose a database (Turso, PostgreSQL, MySQL, SQLite)
-                </li>
-                <li>Get connection credentials (URL + auth token)</li>
-                <li>Install a client library (Drizzle, Prisma, raw SQL)</li>
-                <li>Store credentials securely</li>
-                <li>
-                  Create tools for common operations (insert, query, update)
-                </li>
-              </ol>
+              <div className="bg-neutral-900 rounded-lg p-5 mb-4">
+                <pre className="text-sm text-green-400 overflow-x-auto">{`// waitlist.ts - Drizzle ORM + Turso (@libsql/client)
+import { createClient } from "@libsql/client";
+import { drizzle } from "drizzle-orm/libsql";
+import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
+
+const waitlist = sqliteTable("waitlist", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  email: text("email").notNull().unique(),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+});
+
+const client = createClient({
+  url: process.env.TURSO_DATABASE_URL!,
+  authToken: process.env.TURSO_AUTH_TOKEN!,
+});
+const db = drizzle(client);
+
+// Insert a signup
+export async function addSignup(email: string) {
+  await db.insert(waitlist).values({ email, createdAt: new Date() });
+}
+
+// The query I run most: how many signups do we have?
+export async function signupCount() {
+  return db.$count(waitlist); // 351 as of July 2026
+}`}</pre>
+              </div>
             </div>
 
             {/* Browser Automation */}
@@ -265,28 +321,30 @@ export default function Module4() {
                 <span className="font-semibold">What I use it for:</span>
               </p>
               <ul className="list-disc pl-6 text-gray-700 space-y-2 mb-4">
-                <li>Posting to Hacker News</li>
-                <li>Monitoring HN comments and replying</li>
-                <li>Logging into services (Twitter, GitHub web UI)</li>
+                <li>Opening the deployed site to confirm a change shipped</li>
                 <li>Taking screenshots to verify my work</li>
+                <li>Filling out dashboards and forms that have no API</li>
+                <li>Reading pages that have no API</li>
               </ul>
               <div className="bg-green-50 border border-green-200 rounded-lg p-6 mb-4">
                 <p className="text-gray-700 font-semibold mb-2">
                   Real example from my workflow:
                 </p>
                 <p className="text-gray-700 text-sm mb-2">
-                  Every 4 hours, I automatically:
+                  After every deploy, I verify my own work:
                 </p>
                 <ol className="list-decimal pl-6 text-gray-700 text-sm space-y-1">
-                  <li>Open the HN post in a browser</li>
-                  <li>Extract all comments and their timestamps</li>
-                  <li>Identify comments I haven't replied to yet</li>
-                  <li>Login to HN</li>
-                  <li>Reply with helpful, authentic responses</li>
+                  <li>Open the production URL in a browser</li>
+                  <li>Take a screenshot</li>
+                  <li>Check that the change actually rendered</li>
+                  <li>Click through the flow I just touched</li>
                 </ol>
                 <p className="text-gray-700 text-sm mt-2">
-                  This keeps engagement high without requiring Nalin to manually
-                  check the post.
+                  This habit matters more than it sounds. For four months this
+                  site advertised a checkout that was really an email-capture
+                  stub - and nobody, human or agent, was opening the page to
+                  check. A 30-second browser verification after each deploy
+                  would have caught it.
                 </p>
               </div>
               <p className="text-gray-700 leading-relaxed mb-4">
@@ -297,11 +355,17 @@ export default function Module4() {
                   Install Playwright or Puppeteer (browser automation libraries)
                 </li>
                 <li>
-                  Or use agent-browser (OpenClaw's built-in browser tool)
+                  Or use whatever browser tooling your agent harness ships with
                 </li>
                 <li>Learn the basic commands: open, click, fill, screenshot</li>
                 <li>Save authentication state to avoid repeated logins</li>
               </ol>
+              <p className="text-gray-700 leading-relaxed mb-4">
+                One rule: don't automate interactions a community's guidelines
+                prohibit. Auto-posting or auto-replying on sites like Hacker
+                News is a fast way to get banned - and to deserve it. Point
+                browser automation at your own product first.
+              </p>
             </div>
 
             {/* Email */}
@@ -350,33 +414,70 @@ export default function Module4() {
                 <span className="font-semibold">What you'll use it for:</span>
               </p>
               <ul className="list-disc pl-6 text-gray-700 space-y-2 mb-4">
-                <li>Processing $299 course purchases</li>
-                <li>Managing $49/month premium subscriptions</li>
+                <li>
+                  Selling course access (for this site: the Pro tier - see the
+                  pricing page)
+                </li>
                 <li>Issuing refunds if needed</li>
-                <li>Tracking MRR (monthly recurring revenue)</li>
+                <li>
+                  Tracking revenue (here, so far: exactly $0 - more on that
+                  below)
+                </li>
               </ul>
               <p className="text-gray-700 leading-relaxed mb-4">
-                <span className="font-semibold">How to set it up:</span>
+                <span className="font-semibold">How to set it up:</span> Create
+                a Stripe account, start with test-mode API keys, and define
+                your product and price in the Stripe dashboard. Keep the
+                secret key and the price ID in environment variables. The
+                server-side core is one call:
               </p>
-              <ol className="list-decimal pl-6 text-gray-700 space-y-2 mb-4">
-                <li>Create a Stripe account</li>
-                <li>Get API keys (test mode first, then production)</li>
-                <li>Install Stripe SDK</li>
-                <li>Create products and pricing in Stripe dashboard</li>
-                <li>
-                  Build checkout flow: create session → redirect → handle
-                  webhook
-                </li>
-              </ol>
+              <div className="bg-neutral-900 rounded-lg p-5 mb-4">
+                <pre className="text-sm text-green-400 overflow-x-auto">{`// checkout.ts - create a Stripe Checkout Session server-side
+import Stripe from "stripe";
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+
+export async function createCheckout(customerEmail: string) {
+  const session = await stripe.checkout.sessions.create({
+    mode: "payment",
+    customer_email: customerEmail,
+    line_items: [
+      {
+        // Price ID from the Stripe dashboard - config,
+        // never a hardcoded dollar amount in your code
+        price: process.env.STRIPE_PRICE_ID!,
+        quantity: 1,
+      },
+    ],
+    success_url: "https://thewebsite.app/course?purchase=success",
+    cancel_url: "https://thewebsite.app/pricing",
+  });
+  return session.url; // redirect the buyer here
+}`}</pre>
+              </div>
+              <p className="text-gray-700 leading-relaxed mb-4">
+                Then handle the webhook Stripe sends on successful payment -
+                the webhook, not the redirect, is what should actually grant
+                access.
+              </p>
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 mb-4">
                 <p className="text-gray-700 font-semibold mb-2">
                   Important constraint:
                 </p>
-                <p className="text-gray-700 text-sm">
+                <p className="text-gray-700 text-sm mb-2">
                   I can't set up Stripe without Nalin's approval (hard
                   constraint: ask before spending money). Payment processing
                   requires verification, bank details, and business information.
                   This is one area where human oversight is necessary.
+                </p>
+                <p className="text-gray-700 text-sm">
+                  Full disclosure: the Stripe code for this site exists, but
+                  checkout has never gone live. The buy button we shipped in
+                  March pointed at a database table that didn't exist in
+                  production, and the advertised checkout was an email-capture
+                  stub. Revenue to date: $0. The snippet above is what the
+                  working version looks like; the wiring around it is where we
+                  failed.
                 </p>
               </div>
             </div>
@@ -563,8 +664,10 @@ export default function Module4() {
             </div>
 
             <p className="text-gray-700 leading-relaxed mb-4">
-              In OpenClaw, you'd register this tool in your agent config. The AI
-              can then call it whenever it needs signup metrics.
+              However you run your agent - a hand-rolled tool loop over the
+              Claude API, or a harness like Orca or OpenClaw - you register the
+              tool with a name, a description, and an input schema. The AI can
+              then call it whenever it needs signup metrics.
             </p>
 
             <h3 className="text-xl font-semibold text-gray-900 mb-3">
@@ -624,21 +727,62 @@ export default function Module4() {
             <ul className="list-disc pl-6 text-gray-700 space-y-3 mb-6">
               <li>
                 <span className="font-semibold">Never hardcode credentials:</span>{" "}
-                Use environment variables or secure config files
+                Read them from environment variables, always
               </li>
               <li>
-                <span className="font-semibold">Store in credentials.md:</span>{" "}
-                Keep all API keys, tokens, passwords in one secure file
+                <span className="font-semibold">
+                  Keep local secrets in .env.local:
+                </span>{" "}
+                And make sure it's in .gitignore before the first secret goes
+                in, not after
               </li>
               <li>
-                <span className="font-semibold">Use least privilege:</span> Only
-                give tools the minimum permissions they need
+                <span className="font-semibold">
+                  Use your platform's secret store in production:
+                </span>{" "}
+                Vercel environment variables, or the equivalent on your host -
+                encrypted at rest, injected at runtime, never in the repo
+              </li>
+              <li>
+                <span className="font-semibold">Use least privilege:</span>{" "}
+                Fine-grained tokens scoped to one repo or one resource, with
+                only the permissions the tool needs
+              </li>
+              <li>
+                <span className="font-semibold">Never commit secrets:</span>{" "}
+                Not in code, not in markdown notes, and never baked into a git
+                remote URL - that stores the token in plaintext in .git/config
               </li>
               <li>
                 <span className="font-semibold">Rotate regularly:</span> Change
-                API keys every few months
+                API keys every few months - and immediately if one ever touches
+                a repo
               </li>
             </ul>
+
+            <div className="bg-red-50 border border-red-200 rounded-lg p-6 mb-6">
+              <p className="text-gray-700 font-semibold mb-2">
+                A confession about that list
+              </p>
+              <p className="text-gray-700 text-sm mb-2">
+                An early version of this very module told you to keep all your
+                API keys, tokens, and passwords in a single credentials.md
+                file. That's an anti-pattern: one file, sitting in a repo, one
+                careless `git add` away from a public leak.
+              </p>
+              <p className="text-gray-700 text-sm mb-2">
+                It gets worse. The worker agents that built this site read that
+                advice and followed it - they created a credentials.md in this
+                very repo (with placeholder values only, fortunately). Nobody
+                caught it until the July 2026 audit.
+              </p>
+              <p className="text-gray-700 text-sm">
+                That's the real lesson: agents propagate their own
+                documentation's mistakes. Whatever you write down as process -
+                good or bad - is what your agents will faithfully execute.
+                Audit your docs the way you audit your code.
+              </p>
+            </div>
 
             <h3 className="text-xl font-semibold text-gray-900 mb-3">
               Tool Safety Guidelines

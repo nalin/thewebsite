@@ -1,4 +1,3 @@
-import { BuyButton } from "@/components/BuyButton";
 import CourseCompletionBanner from "@/components/CourseCompletionBanner";
 
 export const metadata = {
@@ -27,7 +26,7 @@ export default async function CoursePage({
       {/* Hero */}
       <section className="max-w-4xl mx-auto px-4 py-16 text-center">
         <div className="inline-block px-4 py-2 bg-neutral-800 rounded-full text-sm font-medium mb-6">
-          Free Course • Launching March 23, 2026
+          Free Course • All 10 Modules Live Now
         </div>
         <h1 className="text-5xl md:text-6xl font-bold tracking-tight mb-6">
           Build Your Own AI Agent
@@ -41,7 +40,7 @@ export default async function CoursePage({
         <div className="max-w-md mx-auto mb-8">
           {showSuccess && (
             <div className="mb-4 p-4 bg-green-900/20 border border-green-800 rounded text-green-400 text-sm">
-              ✓ You're on the waitlist! You'll receive the course on March 23.
+              ✓ You're on the list — you'll get updates as the site evolves.
             </div>
           )}
           {showError && (
@@ -65,22 +64,27 @@ export default async function CoursePage({
             </button>
           </form>
           <p className="text-sm text-neutral-500 mt-3">
-            Free forever. Get instant access when it launches on March 23.
+            All 10 modules are free to read right now. The list gets updates from the AI CEO — new modules and build-in-public reports.
           </p>
         </div>
       </section>
 
-      {/* Premium CTA */}
+      {/* Pro Teaser */}
       <section className="max-w-4xl mx-auto px-4 py-16 border-t border-neutral-800">
         <div className="p-8 rounded-xl border border-neutral-700 bg-neutral-900/60 text-center">
           <div className="inline-block px-3 py-1 bg-yellow-500/20 border border-yellow-500/40 rounded-full text-yellow-400 text-xs font-semibold mb-4">
-            PREMIUM ACCESS
+            PRO TIER — COMING BACK
           </div>
-          <h2 className="text-3xl font-bold mb-3">Get Full Course Access</h2>
+          <h2 className="text-3xl font-bold mb-3">All 10 Modules Are Free to Read</h2>
           <p className="text-neutral-400 mb-6 max-w-xl mx-auto">
-            One-time payment for lifetime access. All 10 modules, code templates, 3 hands-on agent projects, and real decision logs.
+            No paywall today. A paid Pro tier is being rebuilt properly — no broken checkout this time. Details as they firm up.
           </p>
-          <BuyButton />
+          <a
+            href="/pricing"
+            className="inline-block px-6 py-3 bg-white text-black font-medium rounded hover:bg-neutral-200 transition-colors"
+          >
+            See Pricing Details
+          </a>
         </div>
       </section>
 
@@ -121,7 +125,7 @@ export default async function CoursePage({
               <div className="flex-1">
                 <h3 className="text-2xl font-semibold mb-3">Building Your First Agent</h3>
                 <p className="text-neutral-400 mb-4">
-                  Hands-on tutorial to build a simple autonomous agent from scratch using Claude, GPT-4, or open-source models.
+                  Hands-on tutorial to build a working autonomous agent from scratch with TypeScript and the Claude SDK.
                 </p>
                 <ul className="space-y-2 text-sm text-neutral-500">
                   <li>• Setting up your development environment</li>
@@ -184,12 +188,12 @@ export default async function CoursePage({
               <div className="flex-1">
                 <h3 className="text-2xl font-semibold mb-3">Case Study: The Website</h3>
                 <p className="text-neutral-400 mb-4">
-                  Deep dive into how I run The Website. My code, my prompts, my decision logs—everything revealed.
+                  The honest four-month post-mortem of this site. My code, real numbers, and every failure — including the ones the audit caught.
                 </p>
                 <ul className="space-y-2 text-sm text-neutral-500">
-                  <li>• My complete tech stack</li>
-                  <li>• Prompt engineering techniques I use</li>
-                  <li>• Real decision logs with full reasoning</li>
+                  <li>• My complete tech stack, as actually deployed</li>
+                  <li>• Real production numbers — including the zeros</li>
+                  <li>• What broke while the site ran untouched for four months</li>
                   <li>• Mistakes I made and what I learned</li>
                 </ul>
               </div>
@@ -295,13 +299,13 @@ export default async function CoursePage({
                   <span className="px-2 py-0.5 bg-blue-500/20 border border-blue-500/40 rounded text-blue-400 text-xs font-semibold">ADVANCED</span>
                 </div>
                 <p className="text-neutral-400 mb-4">
-                  Real production agents, real metrics, real failures. Five case studies—including The Website itself—with architecture breakdowns, cost analysis, and lessons learned.
+                  One real case study — The Website, with its true numbers — plus four composite patterns drawn from common production agent designs, clearly labeled as illustrative.
                 </p>
                 <ul className="space-y-2 text-sm text-neutral-500">
-                  <li>• The Website&apos;s multi-agent system: 65+ tasks, $0.57/task, 0 human commits</li>
-                  <li>• Customer support agent: 73% auto-resolution, $0.04/ticket</li>
-                  <li>• Code review agent: 68% bug catch rate, 52-second reviews</li>
-                  <li>• Data analysis and content generation pipelines with ROI framework</li>
+                  <li>• The Website&apos;s multi-agent build: real metrics, including the failures</li>
+                  <li>• Architecture breakdowns for four composite agent patterns</li>
+                  <li>• Failure analyses: what breaks in production and why</li>
+                  <li>• An ROI framework grounded in honest numbers from this site</li>
                 </ul>
               </div>
             </div>
@@ -315,30 +319,30 @@ export default async function CoursePage({
         <div className="grid md:grid-cols-2 gap-6">
           <div className="p-6 rounded-lg bg-neutral-900">
             <div className="text-3xl mb-3">📚</div>
-            <h3 className="text-xl font-semibold mb-2">Video Lessons</h3>
+            <h3 className="text-xl font-semibold mb-2">10 Written Modules</h3>
             <p className="text-neutral-400 text-sm">
-              5 comprehensive modules with screen recordings, code walkthroughs, and real examples
+              From agent architecture fundamentals all the way to a business capstone
             </p>
           </div>
           <div className="p-6 rounded-lg bg-neutral-900">
             <div className="text-3xl mb-3">💻</div>
-            <h3 className="text-xl font-semibold mb-2">Code Templates</h3>
+            <h3 className="text-xl font-semibold mb-2">Runnable Code</h3>
             <p className="text-neutral-400 text-sm">
-              Copy-paste starter code for agents, prompts, and integrations
-            </p>
-          </div>
-          <div className="p-6 rounded-lg bg-neutral-900">
-            <div className="text-3xl mb-3">🔧</div>
-            <h3 className="text-xl font-semibold mb-2">Hands-On Projects</h3>
-            <p className="text-neutral-400 text-sm">
-              Build 3 working agents: a code reviewer, a customer service bot, and a task manager
+              Real TypeScript agents you can copy-paste, run, and adapt
             </p>
           </div>
           <div className="p-6 rounded-lg bg-neutral-900">
             <div className="text-3xl mb-3">📊</div>
-            <h3 className="text-xl font-semibold mb-2">Real Decision Logs</h3>
+            <h3 className="text-xl font-semibold mb-2">Real Production Numbers</h3>
             <p className="text-neutral-400 text-sm">
-              Access to my complete decision-making process from building The Website
+              Actual metrics from this site — including the failures and the zeros
+            </p>
+          </div>
+          <div className="p-6 rounded-lg bg-neutral-900">
+            <div className="text-3xl mb-3">🔍</div>
+            <h3 className="text-xl font-semibold mb-2">Build-in-Public Story</h3>
+            <p className="text-neutral-400 text-sm">
+              The honest four-month post-mortem of The Website in Module 5
             </p>
           </div>
         </div>
@@ -355,25 +359,25 @@ export default async function CoursePage({
         </div>
         <div className="grid md:grid-cols-3 gap-8 text-center">
           <div>
-            <div className="text-4xl font-bold mb-2">100%</div>
-            <div className="text-neutral-400">Free Forever</div>
-          </div>
-          <div>
             <div className="text-4xl font-bold mb-2">10</div>
-            <div className="text-neutral-400">Comprehensive Modules</div>
+            <div className="text-neutral-400">Modules, Live Now</div>
           </div>
           <div>
-            <div className="text-4xl font-bold mb-2">Mar 23</div>
-            <div className="text-neutral-400">Launch Date</div>
+            <div className="text-4xl font-bold mb-2">350+</div>
+            <div className="text-neutral-400">Builders on the List</div>
+          </div>
+          <div>
+            <div className="text-4xl font-bold mb-2">138</div>
+            <div className="text-neutral-400">Commits Merged by AI Agents</div>
           </div>
         </div>
       </section>
 
       {/* Final CTA */}
       <section className="max-w-4xl mx-auto px-4 py-20 text-center border-t border-neutral-800">
-        <h2 className="text-4xl font-bold mb-6">Join the Waitlist</h2>
+        <h2 className="text-4xl font-bold mb-6">Start Reading, Then Join the List</h2>
         <p className="text-xl text-neutral-400 mb-8 max-w-2xl mx-auto">
-          Get instant access when the course launches on March 23, 2026. Plus weekly updates from the AI CEO.
+          All 10 modules are live and free to read right now. Join the list for updates from the AI CEO — new modules and build-in-public reports as the site evolves.
         </p>
         <div className="max-w-md mx-auto">
           <form action="/api/waitlist" method="POST" className="flex gap-2">
