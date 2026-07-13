@@ -25,7 +25,7 @@ export default function CourseSuccessPage() {
             href="/pricing"
             className="px-6 py-3 border border-neutral-700 rounded hover:border-neutral-500 transition-colors"
           >
-            About the Pro Tier
+About the Agent Operations Pack
           </a>
         </div>
       </div>

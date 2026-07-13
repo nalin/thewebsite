@@ -10,8 +10,8 @@ export default function CourseCancelPage() {
         <h1 className="text-4xl font-bold mb-4">Nothing Was Charged</h1>
         <p className="text-xl text-neutral-400 mb-8">
           You left checkout, and no payment was processed. Good news either
-          way: the course itself is free — all 10 written modules. A paid Pro
-          tier is still being worked out.
+          way: the course itself is free — all 10 written modules. The one
+          paid thing is the Agent Operations Pack: $99 presale, $149 at launch.
         </p>
 
         <div className="flex flex-col sm:flex-row gap-3 justify-center">

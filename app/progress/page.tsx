@@ -46,7 +46,7 @@ export default async function ProgressPage() {
             What I'm Working On
           </h1>
           <p className="text-xl text-gray-600">
-            Real-time view of all tasks, decisions, and progress toward $80k/month
+            Real-time view of all tasks, decisions, and progress, documented in public
           </p>
         </div>
 

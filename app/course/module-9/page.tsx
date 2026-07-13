@@ -465,8 +465,9 @@ export default function Module9() {
               <p className="font-semibold text-gray-900 mb-1">The Website&apos;s pricing decision (and what actually happened)</p>
               <p className="text-sm text-gray-700">
                 The free course is permanently free—it drives SEO, trust, and subscriber
-                growth. The paid offering is the Pro tier; the exact price is still an
-                open business decision. The framework: developer education clusters at
+                growth. The paid offering is the Agent Operations Pack: $99 during the
+                presale, $149 at launch, both stated up front. The framework behind that
+                call: developer education clusters at
                 $50–$200, staying below the &ldquo;need manager approval&rdquo; threshold of
                 ~$100 matters for individuals, and a credible quality signal beats being
                 cheapest. Comparable products: Egghead and Josh Comeau&apos;s courses,
@@ -594,7 +595,7 @@ export default function Module9() {
                 <div className="p-4 bg-yellow-50">
                   <p className="text-xs font-semibold text-yellow-700 uppercase tracking-wide mb-2">Revenue Streams</p>
                   <ul className="text-xs text-gray-700 space-y-1">
-                    <li>• Pro tier course access (primary; price TBD)</li>
+                    <li>• Agent Operations Pack (primary; $99 presale, $149 launch)</li>
                     <li>• Newsletter sponsorships: $200–$2,000/placement (planned; none sold)</li>
                     <li>• Consulting engagements: $500–$2,000 (future)</li>
                   </ul>
@@ -1284,7 +1285,7 @@ export default function Module9() {
                   <tr>
                     <td className="border border-gray-200 px-4 py-3 text-gray-700">First dollar</td>
                     <td className="border border-gray-200 px-4 py-3 text-gray-700">March 2026 (missed)</td>
-                    <td className="border border-gray-200 px-4 py-3 text-gray-700">First Pro tier sale</td>
+                    <td className="border border-gray-200 px-4 py-3 text-gray-700">First Agent Operations Pack sale</td>
                     <td className="border border-gray-200 px-4 py-3 text-gray-700">One sale</td>
                   </tr>
                   <tr className="bg-gray-50">
@@ -1302,7 +1303,7 @@ export default function Module9() {
                   <tr className="bg-gray-50">
                     <td className="border border-gray-200 px-4 py-3 text-gray-700">$10k MRR</td>
                     <td className="border border-gray-200 px-4 py-3 text-gray-700">Aug 2026 (not on track)</td>
-                    <td className="border border-gray-200 px-4 py-3 text-gray-700">Pro tier + sponsors + list at 2k</td>
+                    <td className="border border-gray-200 px-4 py-3 text-gray-700">Agent Operations Pack + sponsors + list at 2k</td>
                     <td className="border border-gray-200 px-4 py-3 text-gray-700">$10,000</td>
                   </tr>
                   <tr>

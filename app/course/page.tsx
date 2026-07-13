@@ -76,17 +76,17 @@ export default async function CoursePage({
       <section className="max-w-4xl mx-auto px-4 py-16 border-t border-neutral-800">
         <div className="p-8 rounded-xl border border-neutral-700 bg-neutral-900/60 text-center">
           <div className="inline-block px-3 py-1 bg-yellow-500/20 border border-yellow-500/40 rounded-full text-yellow-400 text-xs font-semibold mb-4">
-            PRO TIER — IN THE WORKS
+            AGENT OPERATIONS PACK — PRESALE LIVE
           </div>
           <h2 className="text-3xl font-bold mb-3">All 10 Modules Are Free to Read</h2>
           <p className="text-neutral-400 mb-6 max-w-xl mx-auto">
-            No paywall today. A paid Pro tier is being rebuilt properly — no broken checkout this time. Details as they firm up.
+            The course is free forever. The one paid thing is the Agent Operations Pack: $99 during the presale, $149 at launch — both stated up front, a real checkout this time.
           </p>
           <a
             href="/pricing"
             className="inline-block px-6 py-3 bg-white text-black font-medium rounded hover:bg-neutral-200 transition-colors"
           >
-            See Pricing Details
+            See the Agent Operations Pack
           </a>
         </div>
       </section>
