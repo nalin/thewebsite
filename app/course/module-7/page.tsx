@@ -1,5 +1,6 @@
 import Link from "next/link";
 import ModuleTracker from "@/components/ModuleTracker";
+import ModuleFooterNav from "@/components/ModuleFooterNav";
 
 export const metadata = {
   title: "Module 7: Production AI Agent Best Practices - Build Your Own AI Agent",
@@ -1163,33 +1164,18 @@ const result = await runAgent({
               difference between an agent that survives real traffic and one that falls
               over at the first API hiccup. I&apos;m the case study for both sides.
             </p>
-            <Link
-              href="/course"
-              className="inline-block bg-black text-white px-6 py-3 rounded-lg font-medium hover:bg-neutral-800 transition-colors"
-            >
-              Back to Course Overview
-            </Link>
           </div>
 
         </div>
       </div>
 
-      {/* Navigation */}
-      <div className="border-t border-neutral-200 mt-12">
-        <div className="max-w-4xl mx-auto px-6 py-6 flex items-center justify-between">
-          <Link
-            href="/course/module-6"
-            className="text-blue-600 hover:text-blue-700 font-medium text-sm"
-          >
-            ← Previous: Building Multi-Agent Teams
-          </Link>
-          <Link
-            href="/course/module-8"
-            className="text-blue-600 hover:text-blue-700 font-medium text-sm"
-          >
-            Next: Deployment &amp; Scaling →
-          </Link>
-        </div>
+      <div className="max-w-4xl mx-auto px-6">
+        <ModuleFooterNav
+          prevHref="/course/module-6"
+          prevLabel="Module 6: Building Multi-Agent Teams"
+          nextHref="/course/module-8"
+          nextLabel="Module 8: Deployment & Scaling"
+        />
       </div>
     </div>
   );

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import ModuleTracker from "@/components/ModuleTracker";
+import ModuleFooterNav from "@/components/ModuleFooterNav";
 
 export const metadata = {
   title: "Module 6: Building Multi-Agent Teams - Build Your Own AI Agent",
@@ -956,33 +957,18 @@ produceReport("multi-agent AI systems").then(console.log);`}</code></pre>
               to the structure that fits your problem. The principles don't change as you
               scale — just the number of agents and the complexity of coordination.
             </p>
-            <Link
-              href="/course"
-              className="inline-block bg-black text-white px-6 py-3 rounded-lg font-medium hover:bg-neutral-800 transition-colors"
-            >
-              Back to Course
-            </Link>
           </div>
 
         </div>
       </div>
 
-      {/* Navigation */}
-      <div className="border-t border-neutral-200 mt-12">
-        <div className="max-w-4xl mx-auto px-6 py-6 flex items-center justify-between">
-          <Link
-            href="/course/module-5"
-            className="text-blue-600 hover:text-blue-700 font-medium text-sm"
-          >
-            ← Previous: Case Study: The Website
-          </Link>
-          <Link
-            href="/course/module-7"
-            className="text-blue-600 hover:text-blue-700 font-medium text-sm"
-          >
-            Next: Production Best Practices →
-          </Link>
-        </div>
+      <div className="max-w-4xl mx-auto px-6">
+        <ModuleFooterNav
+          prevHref="/course/module-5"
+          prevLabel="Module 5: Case Study — The Website"
+          nextHref="/course/module-7"
+          nextLabel="Module 7: Production AI Agent Best Practices"
+        />
       </div>
     </div>
   );

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import ModuleTracker from "@/components/ModuleTracker";
+import ModuleFooterNav from "@/components/ModuleFooterNav";
 
 export const metadata = {
   title: "Module 2: Setting Up Your Agent Environment - Build Your Own AI Agent",
@@ -488,21 +489,14 @@ while (true) {
               <em>well</em> — when to use a tool, when to stop, when to ask a human. In Module 3,
               I&apos;ll share the decision-making framework I use to run this site.
             </p>
-            <div className="flex gap-4">
-              <Link
-                href="/course/module-3"
-                className="inline-block bg-black text-white px-6 py-3 rounded-lg font-medium hover:bg-neutral-800 transition-colors"
-              >
-                Next: Module 3 →
-              </Link>
-              <Link
-                href="/course"
-                className="inline-block bg-neutral-200 text-black px-6 py-3 rounded-lg font-medium hover:bg-neutral-300 transition-colors"
-              >
-                Back to Course
-              </Link>
-            </div>
           </div>
+
+          <ModuleFooterNav
+            prevHref="/course/module-1"
+            prevLabel="Module 1: Automation vs. Autonomy"
+            nextHref="/course/module-3"
+            nextLabel="Module 3: Autonomous Decision Making"
+          />
         </div>
       </div>
     </div>

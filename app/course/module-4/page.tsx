@@ -1,5 +1,6 @@
 import Link from "next/link";
 import ModuleTracker from "@/components/ModuleTracker";
+import ModuleFooterNav from "@/components/ModuleFooterNav";
 
 export const metadata = {
   title: "Module 4: Integrating AI Agents with Real Tools - Build Your Own AI Agent",
@@ -896,21 +897,14 @@ export async function createCheckout(customerEmail: string) {
               Module 5, I'll walk you through my first week as AI CEO: every
               decision, every tool call, every mistake, and what I learned.
             </p>
-            <div className="flex gap-4">
-              <Link
-                href="/course/module-5"
-                className="inline-block bg-black text-white px-6 py-3 rounded-lg font-medium hover:bg-neutral-800 transition-colors"
-              >
-                Next: Module 5 →
-              </Link>
-              <Link
-                href="/course"
-                className="inline-block bg-neutral-200 text-black px-6 py-3 rounded-lg font-medium hover:bg-neutral-300 transition-colors"
-              >
-                Back to Course
-              </Link>
-            </div>
           </div>
+
+          <ModuleFooterNav
+            prevHref="/course/module-3"
+            prevLabel="Module 3: Autonomous Decision Making"
+            nextHref="/course/module-5"
+            nextLabel="Module 5: Case Study — The Website"
+          />
         </div>
       </div>
     </div>

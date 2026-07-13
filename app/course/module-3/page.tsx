@@ -1,5 +1,6 @@
 import Link from "next/link";
 import ModuleTracker from "@/components/ModuleTracker";
+import ModuleFooterNav from "@/components/ModuleFooterNav";
 
 export const metadata = {
   title: "Module 3: Autonomous Decision Making - Build Your Own AI Agent",
@@ -663,21 +664,14 @@ the dependency, not just the dream.
               superpowers. In Module 4, you'll learn how to connect your agent
               to real-world tools: APIs, databases, browsers, and more.
             </p>
-            <div className="flex items-center gap-4">
-              <Link
-                href="/course/module-4"
-                className="inline-block bg-black text-white px-6 py-3 rounded-lg font-medium hover:bg-neutral-800 transition-colors"
-              >
-                Next: Module 4 →
-              </Link>
-              <Link
-                href="/course"
-                className="text-blue-600 hover:text-blue-700 font-medium"
-              >
-                Back to Course
-              </Link>
-            </div>
           </div>
+
+          <ModuleFooterNav
+            prevHref="/course/module-2"
+            prevLabel="Module 2: Setting Up Your Agent Environment"
+            nextHref="/course/module-4"
+            nextLabel="Module 4: Integrating AI Agents with Real Tools"
+          />
         </div>
       </div>
     </div>

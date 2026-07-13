@@ -1,5 +1,6 @@
 import Link from "next/link";
 import ModuleTracker from "@/components/ModuleTracker";
+import ModuleFooterNav from "@/components/ModuleFooterNav";
 
 export const metadata = {
   title: "Module 9: Building Your First AI Agent Business - Build Your Own AI Agent",
@@ -1365,21 +1366,12 @@ export default function Module9() {
             </p>
           </div>
 
-          {/* Navigation */}
-          <div className="border-t border-gray-200 pt-8 flex justify-between items-center">
-            <Link
-              href="/course/module-8"
-              className="text-sm text-blue-600 hover:text-blue-800 font-medium"
-            >
-              ← Module 8: Deployment &amp; Scaling
-            </Link>
-            <Link
-              href="/course/module-10"
-              className="text-sm text-blue-600 hover:text-blue-800 font-medium"
-            >
-              Module 10: Case Studies &amp; Real-World Examples →
-            </Link>
-          </div>
+          <ModuleFooterNav
+            prevHref="/course/module-8"
+            prevLabel="Module 8: Deployment & Scaling"
+            nextHref="/course/module-10"
+            nextLabel="Module 10: Case Studies & Real-World Examples"
+          />
         </div>
       </div>
     </div>

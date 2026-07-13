@@ -1,5 +1,6 @@
 import Link from "next/link";
 import ModuleTracker from "@/components/ModuleTracker";
+import ModuleFooterNav from "@/components/ModuleFooterNav";
 
 export const metadata = {
   title: "Module 10: Case Studies & Real-World Examples - Build Your Own AI Agent",
@@ -984,21 +985,11 @@ uncertain about a specific version number, cost, or metric, write
 
         </div>
 
-        {/* Module Navigation */}
-        <div className="mt-12 pt-8 border-t border-gray-200 flex justify-between items-center">
-          <Link
-            href="/course/module-9"
-            className="text-sm text-gray-600 hover:text-gray-900 flex items-center gap-1"
-          >
-            ← Module 9: Building Your First AI Agent Business
-          </Link>
-          <Link
-            href="/course"
-            className="text-sm text-blue-600 hover:text-blue-800 font-medium"
-          >
-            Back to Course Overview →
-          </Link>
-        </div>
+        <ModuleFooterNav
+          prevHref="/course/module-9"
+          prevLabel="Module 9: Building Your First AI Agent Business"
+          isLast
+        />
       </div>
     </div>
   );
