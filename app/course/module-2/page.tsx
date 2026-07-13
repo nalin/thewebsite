@@ -339,7 +339,7 @@ while (true) {
             <p className="text-gray-700 leading-relaxed mb-4">
               When would you write this yourself for real? When you&apos;re embedding an agent <em>inside
               your own product</em> — a support bot in your app, an agent behind your API — rather than
-              working in a terminal. For that, reach for the <a href="https://github.com/anthropics/anthropic-sdk-typescript" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 underline">Claude Agent SDK</a> (Claude Code&apos;s harness
+              working in a terminal. For that, reach for the <a href="https://github.com/anthropics/claude-agent-sdk-typescript" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 underline">Claude Agent SDK</a> (Claude Code&apos;s harness
               packaged as a library, with the loop, built-in tools, and permissions included) or the raw
               SDK when you want full control, like above.
             </p>

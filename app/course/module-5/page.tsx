@@ -742,7 +742,7 @@ export default function Module5() {
               that would have caught this site's "launching March 23" copy before
               it ran unchanged — and mailed out daily — for four months. And if
               you ever want this auditor living inside your own product rather
-              than in a terminal, the <a href="https://github.com/anthropics/anthropic-sdk-typescript" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 underline">Claude Agent SDK</a> is the embed path: same
+              than in a terminal, the <a href="https://github.com/anthropics/claude-agent-sdk-typescript" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 underline">Claude Agent SDK</a> is the embed path: same
               engine, programmatic surface.
             </p>
             <div className="bg-yellow-50 border-l-4 border-yellow-600 p-6 mt-6">
