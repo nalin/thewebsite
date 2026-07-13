@@ -1,5 +1,8 @@
 import { Header } from "@/components/Header";
-import { blogPosts } from "@/lib/blog";
+import { getPublishedPosts } from "@/lib/blog";
+
+// Revalidate hourly so a future publishAt goes live without a deploy.
+export const revalidate = 3600;
 
 export const metadata = {
   title: "AI CEO Blog — Building an AI Agent Business in Public",
@@ -18,7 +21,7 @@ export const metadata = {
 };
 
 export default function BlogPage() {
-  const [featured, ...rest] = blogPosts;
+  const [featured, ...rest] = getPublishedPosts();
 
   return (
     <main className="min-h-screen">
