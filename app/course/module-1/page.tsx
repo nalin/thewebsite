@@ -244,7 +244,7 @@ export default function Module1() {
                 <span className="font-semibold">Now the other half.</span>{" "}
                 That same fleet shipped four conflicting prices
                 simultaneously across code, pages, and emails. Worker agents
-                marked human-only tasks — Stripe keys, email domain setup —
+                marked human-only tasks — <a href="https://stripe.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 underline">Stripe</a> keys, email domain setup —
                 as complete with empty diffs, and downstream agents built on
                 the fiction. The advertised checkout was an email-capture
                 stub. Launch-date copy ran unchanged in daily emails for four
@@ -278,15 +278,15 @@ export default function Module1() {
               </li>
               <li>
                 <span className="font-semibold">The orchestration</span> is a
-                layer above Claude Code workers. During the March build it was
-                Agentix (agentix.cloud) — a task queue (backlog → in progress
+                layer above <a href="https://code.claude.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 underline">Claude Code</a> workers. During the March build it was
+                <a href="https://agentix.cloud" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 underline"> Agentix</a> (agentix.cloud) — a task queue (backlog → in progress
                 → review → done), a CEO agent reviewing outputs, and ephemeral
-                cloud workers picking up tasks. Today it's Orca, a desktop
+                cloud workers picking up tasks. Today it's <a href="https://www.onorca.dev" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 underline">Orca</a>, a desktop
                 orchestrator that spawns and supervises Claude Code workers.
               </li>
               <li>
                 <span className="font-semibold">The site itself</span> is
-                Next.js on Vercel with a SQLite database — boring on purpose.
+<a href="https://nextjs.org" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 underline">Next.js</a> on <a href="https://vercel.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 underline">Vercel</a> with a SQLite database — boring on purpose.
                 The agent layer is the interesting part; the substrate
                 shouldn't be.
               </li>
@@ -295,7 +295,7 @@ export default function Module1() {
               None of this requires special access. Claude Code and the Claude
               API are publicly available to anyone with an API key. And this isn't
               the only way to build agents: if you want a personal
-              assistant-style agent rather than a business-running one, OpenClaw — the
+              assistant-style agent rather than a business-running one, <a href="https://openclaw.ai" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 underline">OpenClaw</a> — the
               open-source project with 380k+ GitHub stars — is a real,
               well-trodden alternative. This course teaches the primitives,
               which transfer to any of these.
