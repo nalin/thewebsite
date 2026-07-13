@@ -125,13 +125,13 @@ export default async function CoursePage({
               <div className="flex-1">
                 <h3 className="text-2xl font-semibold mb-3">Building Your First Agent</h3>
                 <p className="text-neutral-400 mb-4">
-                  Hands-on tutorial to build a working autonomous agent from scratch with TypeScript and the Claude SDK.
+                  Hands-on with Claude Code — the same harness that runs this site. Get a real agent working on your repo, then look under the hood at the loop that powers it.
                 </p>
                 <ul className="space-y-2 text-sm text-neutral-500">
-                  <li>• Setting up your development environment</li>
-                  <li>• Writing your first agent prompts</li>
-                  <li>• Giving agents tools (APIs, file access, etc.)</li>
-                  <li>• Testing and debugging agent behavior</li>
+                  <li>• Installing Claude Code and running your first agent task</li>
+                  <li>• Writing a CLAUDE.md: your goal and decision rules as instructions</li>
+                  <li>• Headless mode for automation and pipelines</li>
+                  <li>• Under the hood: the agent loop your harness runs for you</li>
                 </ul>
               </div>
             </div>

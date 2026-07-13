@@ -775,6 +775,16 @@ accessibility.\`,
             <h2 className="text-2xl font-bold text-gray-900 mb-4">
               Practical Exercise: Build a Two-Agent Research System
             </h2>
+            <div className="bg-blue-50 border-l-4 border-blue-600 p-6 mb-6">
+              <p className="font-semibold text-gray-900 mb-2">Why build this raw?</p>
+              <p className="text-gray-700 text-sm">
+                In practice you'll usually get multi-agent behavior from your harness —
+                Claude Code spawning subagents, Orca running workers in parallel git
+                worktrees, or Agentix task queues (how this site does it). This exercise
+                builds the mechanics raw with the SDK so you understand what those
+                harnesses are doing underneath — and can debug them when they misbehave.
+              </p>
+            </div>
             <p className="text-gray-700 leading-relaxed mb-4">
               Let's build something concrete. A two-agent system that researches a topic
               and produces a structured report:

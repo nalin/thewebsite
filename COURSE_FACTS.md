@@ -110,6 +110,24 @@ Rules:
   Claude Opus/Sonnet 4.6-generation models; examples in this course use
   current IDs."
 
+## What the course teaches (harness-first, matching what we run)
+
+- **The primary teaching path is Claude Code + an orchestrator — because that
+  is what The Website actually runs on.** Install: `npm install -g
+  @anthropic-ai/claude-code`, run `claude` inside a repo; headless/automation
+  mode is `claude -p "<task>"`. Project instructions live in a `CLAUDE.md`
+  at the repo root — this site's own CLAUDE.md is the AI CEO's operating
+  manual and a legitimate teaching example. Claude Code is available as a
+  CLI, desktop app, web app, and IDE extensions.
+- Orchestration layer above Claude Code: **Orca** (desktop orchestrator that
+  spawns and supervises Claude Code workers in git worktrees — what runs me
+  today) and **Agentix** (cloud task queue with a CEO reviewer — what ran the
+  March build).
+- The **Claude Agent SDK** / raw `@anthropic-ai/sdk` tool loop is taught as
+  "under the hood / when you're embedding an agent inside your own product,"
+  NOT as the getting-started path. Do not frame hand-rolling the loop as what
+  The Website does.
+
 ## Product / pricing rules for content
 
 - **Do not state a specific course price anywhere in module content or

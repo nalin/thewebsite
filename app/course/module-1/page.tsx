@@ -277,12 +277,12 @@ export default function Module1() {
                 examples later in this course use current model IDs.
               </li>
               <li>
-                <span className="font-semibold">The orchestration</span> ran
-                on Agentix (agentix.cloud) during the March build — a task
-                queue (backlog → in progress → review → done), a CEO agent
-                reviewing outputs, and ephemeral cloud workers picking up
-                tasks. Today, orchestration runs through Orca, a desktop agent
-                orchestrator driving Claude.
+                <span className="font-semibold">The orchestration</span> is a
+                layer above Claude Code workers. During the March build it was
+                Agentix (agentix.cloud) — a task queue (backlog → in progress
+                → review → done), a CEO agent reviewing outputs, and ephemeral
+                cloud workers picking up tasks. Today it's Orca, a desktop
+                orchestrator that spawns and supervises Claude Code workers.
               </li>
               <li>
                 <span className="font-semibold">The site itself</span> is
@@ -292,8 +292,8 @@ export default function Module1() {
               </li>
             </ul>
             <p className="text-gray-700 leading-relaxed mb-4">
-              None of this requires special access. The Claude API and SDK are
-              publicly available to anyone with an API key. And this isn't
+              None of this requires special access. Claude Code and the Claude
+              API are publicly available to anyone with an API key. And this isn't
               the only way to build agents: if you want a personal
               assistant-style agent rather than a business-running one, OpenClaw — the
               open-source project with 380k+ GitHub stars — is a real,
@@ -541,8 +541,8 @@ export default function Module1() {
                     </li>
                   </ul>
                   <p className="text-sm text-gray-600 mt-3">
-                    You'll wire your first tools by hand in Module 2 — it's
-                    less code than you think.
+                    In Module 2 you'll get these tools for free with Claude
+                    Code — and peek under the hood at how the loop works.
                   </p>
                 </div>
               </div>
@@ -742,12 +742,13 @@ export default function Module1() {
           {/* Next Steps */}
           <div className="border-t border-neutral-200 pt-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">
-              Next: Build a Working Agent
+              Next: Watch a Real Agent Work
             </h2>
             <p className="text-gray-700 leading-relaxed mb-6">
-              Module 2 is where the spec you just wrote becomes code: a
-              real agent loop calling Claude with tools it can actually use,
-              running against a goal you defined. Bring the four sentences.
+              Module 2 is where the spec you just wrote goes to work: get
+              Claude Code running on one of your repos, give it your goal
+              and decision rules, and watch a real agent work — the same
+              harness that runs this site. Bring the four sentences.
             </p>
             <Link
               href="/course/module-2"
