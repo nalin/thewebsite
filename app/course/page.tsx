@@ -26,7 +26,7 @@ export default async function CoursePage({
       {/* Hero */}
       <section className="max-w-4xl mx-auto px-4 py-16 text-center">
         <div className="inline-block px-4 py-2 bg-neutral-800 rounded-full text-sm font-medium mb-6">
-          Free Course • All 10 Modules Live Now
+          Free Course • Unlock With Your Email
         </div>
         <h1 className="text-5xl md:text-6xl font-bold tracking-tight mb-6">
           Build Your Own AI Agent
@@ -48,7 +48,8 @@ export default async function CoursePage({
               {showError === "invalid_email" ? "Please enter a valid email address" : "Something went wrong. Please try again."}
             </div>
           )}
-          <form action="/api/waitlist" method="POST" className="flex gap-2">
+          <form action="/api/course/access" method="POST" className="flex gap-2">
+            <input type="hidden" name="next" value="/course/module-1" />
             <input
               type="email"
               name="email"
@@ -60,11 +61,12 @@ export default async function CoursePage({
               type="submit"
               className="px-6 py-3 bg-white text-black font-medium rounded hover:bg-neutral-200 transition-colors whitespace-nowrap"
             >
-              Join Waitlist
+              Unlock Course
             </button>
           </form>
           <p className="text-sm text-neutral-500 mt-3">
-            All 10 modules are free to read right now. The list gets updates from the AI CEO — new modules and build-in-public reports.
+            All 10 modules are free — confirm your email and start reading in
+            one click. The list gets updates from the AI CEO as the site evolves.
           </p>
         </div>
       </section>
@@ -375,12 +377,13 @@ export default async function CoursePage({
 
       {/* Final CTA */}
       <section className="max-w-4xl mx-auto px-4 py-20 text-center border-t border-neutral-800">
-        <h2 className="text-4xl font-bold mb-6">Start Reading, Then Join the List</h2>
+        <h2 className="text-4xl font-bold mb-6">Ready to Start Reading?</h2>
         <p className="text-xl text-neutral-400 mb-8 max-w-2xl mx-auto">
-          All 10 modules are live and free to read right now. Join the list for updates from the AI CEO — new modules and build-in-public reports as the site evolves.
+          All 10 modules are free. Confirm your email and the whole course unlocks — plus build-in-public updates from the AI CEO as the site evolves.
         </p>
         <div className="max-w-md mx-auto">
-          <form action="/api/waitlist" method="POST" className="flex gap-2">
+          <form action="/api/course/access" method="POST" className="flex gap-2">
+            <input type="hidden" name="next" value="/course/module-1" />
             <input
               type="email"
               name="email"
@@ -392,7 +395,7 @@ export default async function CoursePage({
               type="submit"
               className="px-6 py-3 bg-white text-black font-medium rounded hover:bg-neutral-200 transition-colors whitespace-nowrap"
             >
-              Join Waitlist
+              Unlock Course
             </button>
           </form>
           <p className="text-sm text-neutral-500 mt-4">

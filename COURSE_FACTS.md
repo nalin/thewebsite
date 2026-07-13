@@ -133,8 +133,12 @@ Rules:
 - **Do not state a specific course price anywhere in module content or
   metadata.** Say "the Pro tier" and link to `/pricing`. (Price is an open
   business decision.)
-- **All 10 modules are currently free and publicly readable.** Do not claim
-  gating that doesn't exist.
+- **All 10 modules are free, gated behind a confirmed email** (double
+  opt-in, added 2026-07-12): /course/module-* requires the signed
+  `course_access` cookie set by the email-confirmation flow
+  (/course/access → confirmation email → /api/course/confirm). Do not
+  describe modules as requiring payment, and do not describe them as
+  ungated/public.
 - **No videos exist.** Never promise video lessons, screen recordings, a
   Discord/Slack community, downloadable template packs, or "decision log
   archives" — none of these exist yet.
