@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { eq, desc } from "drizzle-orm";
 import {
   testimonialsDb,
-  seedTestimonialsIfEmpty,
+  initTestimonialsTable,
 } from "@/lib/testimonials-db";
 import { testimonials } from "@/lib/testimonials-schema";
 import { getSession } from "@/lib/session";
@@ -10,7 +10,7 @@ import { getSession } from "@/lib/session";
 // GET /api/testimonials?featured=true
 export async function GET(request: Request) {
   try {
-    await seedTestimonialsIfEmpty();
+    await initTestimonialsTable();
 
     const { searchParams } = new URL(request.url);
     const featuredOnly = searchParams.get("featured") === "true";
@@ -42,7 +42,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    await seedTestimonialsIfEmpty();
+    await initTestimonialsTable();
 
     const body = await request.json();
     const { name, role, company, testimonial, avatarUrl, featured } = body;

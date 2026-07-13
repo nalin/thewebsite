@@ -5,7 +5,7 @@ import { getSession } from "@/lib/session";
 import { desc } from "drizzle-orm";
 import {
   testimonialsDb,
-  seedTestimonialsIfEmpty,
+  initTestimonialsTable,
 } from "@/lib/testimonials-db";
 import { testimonials } from "@/lib/testimonials-schema";
 import TestimonialsAdminClient from "./TestimonialsAdminClient";
@@ -16,7 +16,7 @@ export default async function AdminTestimonialsPage() {
     redirect("/");
   }
 
-  await seedTestimonialsIfEmpty();
+  await initTestimonialsTable();
 
   const rows = await testimonialsDb
     .select()
