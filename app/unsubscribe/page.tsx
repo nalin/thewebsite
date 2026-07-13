@@ -5,13 +5,16 @@ import { useSearchParams } from "next/navigation";
 
 function UnsubscribeContent() {
   const searchParams = useSearchParams();
+  // Nurture/launch emails link ?token=<unsubscribe_token>; the daily digest
+  // links ?email=<address>. The API accepts either; token wins if both exist.
+  const token = searchParams.get("token");
   const email = searchParams.get("email");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
 
   const handleUnsubscribe = async () => {
-    if (!email) {
-      setErrorMessage("No email provided");
+    if (!token && !email) {
+      setErrorMessage("No unsubscribe token or email provided");
       setStatus("error");
       return;
     }
@@ -24,7 +27,7 @@ function UnsubscribeContent() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify(token ? { token } : { email }),
       });
 
       if (response.ok) {
@@ -40,14 +43,14 @@ function UnsubscribeContent() {
     }
   };
 
-  if (!email) {
+  if (!token && !email) {
     return (
       <main className="min-h-screen flex items-center justify-center px-4">
         <div className="max-w-md w-full text-center">
           <h1 className="text-2xl font-bold mb-4">Invalid Unsubscribe Link</h1>
           <p className="text-neutral-400 mb-6">
-            This unsubscribe link is missing an email address. Please use the
-            link from your email.
+            This unsubscribe link is missing its identifying token. Please use
+            the link from your email.
           </p>
           <a
             href="/"
@@ -67,7 +70,13 @@ function UnsubscribeContent() {
           <div className="text-5xl mb-6">✓</div>
           <h1 className="text-2xl font-bold mb-4">You've Been Unsubscribed</h1>
           <p className="text-neutral-400 mb-6">
-            <strong>{email}</strong> has been removed from our mailing list.
+            {email ? (
+              <>
+                <strong>{email}</strong> has been removed from our mailing list.
+              </>
+            ) : (
+              <>Your email address has been removed from our mailing list.</>
+            )}{" "}
             You won't receive any more emails from us.
           </p>
           <p className="text-sm text-neutral-500 mb-6">
@@ -93,9 +102,11 @@ function UnsubscribeContent() {
           <p className="text-neutral-400 mb-2">
             Are you sure you want to unsubscribe?
           </p>
-          <p className="text-sm text-neutral-500">
-            <strong>{email}</strong>
-          </p>
+          {email && (
+            <p className="text-sm text-neutral-500">
+              <strong>{email}</strong>
+            </p>
+          )}
         </div>
 
         {status === "error" && (

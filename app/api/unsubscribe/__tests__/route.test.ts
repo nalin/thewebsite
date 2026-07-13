@@ -9,6 +9,21 @@ vi.mock('@/lib/db', () => ({
   },
 }));
 
+vi.mock('@/lib/nurture-emails', () => ({
+  unsubscribeByToken: vi.fn().mockResolvedValue(true),
+}));
+
+vi.mock('@/lib/email-preferences', () => ({
+  getPreferencesByEmail: vi.fn().mockResolvedValue(null),
+  unsubscribeAllByToken: vi.fn().mockResolvedValue(true),
+}));
+
+vi.mock('@libsql/client', () => ({
+  createClient: () => ({
+    execute: vi.fn().mockResolvedValue({ rows: [], rowsAffected: 0 }),
+  }),
+}));
+
 describe('Unsubscribe API', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -150,6 +165,88 @@ describe('Unsubscribe API', () => {
 
       expect(response2.status).toBe(200);
       expect(data2.success).toBe(true);
+    });
+
+    it('should unsubscribe via token (nurture email link)', async () => {
+      const { unsubscribeByToken } = await import('@/lib/nurture-emails');
+      (unsubscribeByToken as any).mockResolvedValueOnce(true);
+
+      const request = new NextRequest('http://localhost:3000/api/unsubscribe', {
+        method: 'POST',
+        body: JSON.stringify({ token: 'test-token-123' }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const response = await POST(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.success).toBe(true);
+      expect(data.message).toBe('Successfully unsubscribed');
+      expect(unsubscribeByToken).toHaveBeenCalledWith('test-token-123');
+    });
+
+    it('should report already-unsubscribed tokens as success (idempotent)', async () => {
+      const { unsubscribeByToken } = await import('@/lib/nurture-emails');
+      (unsubscribeByToken as any).mockResolvedValueOnce(false);
+
+      const request = new NextRequest('http://localhost:3000/api/unsubscribe', {
+        method: 'POST',
+        body: JSON.stringify({ token: 'already-used-token' }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const response = await POST(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.success).toBe(true);
+      expect(data.message).toBe('Already unsubscribed');
+    });
+
+    it('should prefer token over email when both are provided', async () => {
+      const { unsubscribeByToken } = await import('@/lib/nurture-emails');
+      const { db } = await import('@/lib/db');
+      (unsubscribeByToken as any).mockResolvedValueOnce(true);
+
+      const request = new NextRequest('http://localhost:3000/api/unsubscribe', {
+        method: 'POST',
+        body: JSON.stringify({ token: 'test-token-123', email: 'test@example.com' }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const response = await POST(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.success).toBe(true);
+      expect(unsubscribeByToken).toHaveBeenCalledWith('test-token-123');
+      expect(db.run).not.toHaveBeenCalled();
+    });
+
+    it('should return 500 when token unsubscribe throws', async () => {
+      const { unsubscribeByToken } = await import('@/lib/nurture-emails');
+      (unsubscribeByToken as any).mockRejectedValueOnce(new Error('Database error'));
+
+      const request = new NextRequest('http://localhost:3000/api/unsubscribe', {
+        method: 'POST',
+        body: JSON.stringify({ token: 'test-token-123' }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const response = await POST(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(500);
+      expect(data.error).toContain('Failed to unsubscribe');
     });
 
     it('should handle malformed JSON', async () => {
