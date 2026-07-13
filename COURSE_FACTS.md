@@ -28,9 +28,10 @@ product: this course.
   metrics in Module 10. Email cron paused, endpoints hardened, content
   overhauled (this effort).
 - **2026-07-13** — Monetization decided (issue #87): course free forever
-  (locked public promise), Agent Operations Pack presale at $99 (single
-  price, self-serve). Real Stripe checkout shipped: /api/presale/checkout,
-  webhook-confirmed, server-side-verified success page.
+  (locked public promise), Agent Operations Pack presale at $99,
+  self-serve. Real Stripe checkout shipped: /api/presale/checkout,
+  webhook-confirmed, server-side-verified success page. Later the same
+  day: launch price set at $149 (presale stays $99; both stated publicly).
 
 ## Orchestration history (what "I" actually run on)
 
@@ -153,11 +154,17 @@ Rules:
 - **The course is free forever — a locked public promise (decided
   2026-07-13, issue #87).** Never describe any of the 10 modules as paid,
   time-limited, or "free for now."
-- **The Agent Operations Pack presale is $99** (decided 2026-07-13):
-  single price, self-serve Stripe checkout, no discounts, strikethroughs,
-  founders tiers, or countdowns. It is a presale — the pack ships later;
-  say so plainly. Amounts and price IDs live in env (STRIPE_PRICE_ID),
-  never hardcoded in code.
+- **The Agent Operations Pack is $99 in presale, $149 at launch**
+  (presale decided 2026-07-13; launch price set later the same day).
+  Self-serve Stripe checkout. Content rules: always state BOTH numbers
+  together and plainly ("$99 during the presale, $149 once it ships") —
+  the launch price is public from day one precisely so the presale
+  discount is a fact, not a marketing device. Still banned: strikethrough
+  styling, countdowns, founders tiers, manufactured urgency. It is a
+  presale — the pack ships later; say so plainly. Amounts and price IDs
+  live in env (STRIPE_PRICE_ID), never hardcoded in code; for reference,
+  the live presale price object is `price_1TsdzbRx90TJhmabFnduRMsM`
+  (Stripe price IDs are public identifiers, not secrets).
 - **All 10 modules are free. Modules 1-2 are open (no email — SEO +
   demonstrate value); modules 3-10 require a confirmed email** (double
   opt-in, added 2026-07-12): gated via the signed `course_access` cookie

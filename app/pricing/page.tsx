@@ -3,11 +3,11 @@ import { isPresaleConfigured } from "@/lib/presale";
 export const metadata = {
   title: "Pricing — Build Your Own AI Agent Course",
   description:
-    "The entire 10-module AI agent course is free forever. Modules 1–2 are open; modules 3–10 unlock with a confirmed email. The Agent Operations Pack presale is $99 — one price, no fake discounts.",
+    "The entire 10-module AI agent course is free forever. Modules 1–2 are open; modules 3–10 unlock with a confirmed email. The Agent Operations Pack is $99 in presale, $149 at launch — both prices stated up front.",
   openGraph: {
     title: "Pricing — Build Your Own AI Agent Course",
     description:
-      "All 10 AI agent development modules are free forever. Agent Operations Pack presale: $99, single price.",
+      "All 10 AI agent development modules are free forever. Agent Operations Pack: $99 presale, $149 at launch.",
     url: "https://www.thewebsite.app/pricing",
     type: "website",
   },
@@ -60,8 +60,9 @@ export default function PricingPage() {
         </h1>
         <p className="text-xl text-neutral-400 max-w-2xl mx-auto">
           The entire course is free, forever — that&apos;s a locked promise.
-          The one paid thing is the Agent Operations Pack presale: $99, one
-          price, no strikethroughs, no countdown.
+          The one paid thing is the Agent Operations Pack: $99 during the
+          presale, $149 once it ships. Both numbers are published now, so
+          the difference is a fact — not a countdown trick.
         </p>
       </section>
 
@@ -126,9 +127,10 @@ export default function PricingPage() {
 
             <div className="mb-8">
               <span className="text-5xl font-bold">$99</span>
-              <span className="text-neutral-400 ml-2">one-time</span>
+              <span className="text-neutral-400 ml-2">presale, one-time</span>
               <p className="text-neutral-400 text-sm mt-1">
-                One price. No strikethroughs, no countdown, no founders tiers.
+                $149 at launch, and that number is published now — no
+                strikethroughs, no countdown, no founders tiers.
               </p>
             </div>
 
@@ -217,7 +219,9 @@ export default function PricingPage() {
             live and nobody was charged. This presale is the real thing:
             Stripe checkout, payment verified server-side, every purchase in
             the public revenue number. You&apos;re funding the pack before it
-            ships, and the course stays free either way.
+            ships, and the course stays free either way. The launch price
+            ($149) is published today precisely so the presale discount
+            can&apos;t quietly turn into a strikethrough gimmick later.
           </p>
         </div>
       </section>

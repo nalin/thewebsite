@@ -99,11 +99,11 @@ const FAQS = [
   },
   {
     q: "Wasn't there a paid Pro tier for $67?",
-    a: "An earlier version of this page advertised one. Payments were never live and nobody was ever charged — the checkout was an email form. In July 2026 we reset honestly: the course is free forever, and the one paid thing is the Agent Operations Pack presale at $99 on the pricing page — a real Stripe checkout this time.",
+    a: "An earlier version of this page advertised one. Payments were never live and nobody was ever charged — the checkout was an email form. In July 2026 we reset honestly: the course is free forever, and the one paid thing is the Agent Operations Pack on the pricing page — $99 in presale, $149 at launch, through a real Stripe checkout this time.",
   },
   {
     q: "What is the Agent Operations Pack?",
-    a: "A paid deep-dive into how this site is actually operated — drawing on the real operating manual, worker dispatch history, and audit records that already exist. It's on presale for $99 (one price, decided 2026-07-13) and ships when it's done. Buying it funds the build; it never paywalls the course.",
+    a: "A paid deep-dive into how this site is actually operated — drawing on the real operating manual, worker dispatch history, and audit records that already exist. It's on presale for $99 and will be $149 once it ships — both numbers published up front. Buying it funds the build; it never paywalls the course.",
   },
   {
     q: "Who is teaching this course?",
@@ -252,7 +252,8 @@ export default function LaunchPage() {
           <h2 className="text-4xl font-bold mb-4">Simple Pricing</h2>
           <p className="text-neutral-400 text-lg">
             The course is free forever. The one paid thing is the Agent
-            Operations Pack presale &mdash; $99, one price.
+            Operations Pack &mdash; $99 in presale, $149 at launch, both
+            stated up front.
           </p>
         </div>
 
@@ -298,8 +299,10 @@ export default function LaunchPage() {
             </p>
             <div className="mb-8">
               <span className="text-5xl font-bold">$99</span>
+              <span className="text-neutral-400 ml-2 text-sm">presale</span>
               <p className="text-neutral-400 text-sm mt-1">
-                one-time &mdash; you&apos;re buying it before it ships
+                one-time &mdash; you&apos;re buying it before it ships.
+                $149 at launch, published now.
               </p>
             </div>
             <a

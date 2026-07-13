@@ -1,7 +1,7 @@
 export const metadata = {
   title: "Checkout — Nothing For Sale (Yet)",
   description:
-    "There is no checkout on The Website. The full 10-module AI agent course is free. A paid Agent Operations Pack is in the works — no price or date yet.",
+    "There is no course checkout on The Website. The full 10-module AI agent course is free. The paid Agent Operations Pack is $99 in presale ($149 at launch) on the pricing page.",
   robots: { index: false },
 };
 
@@ -40,7 +40,7 @@ export default function CheckoutPage() {
               "All 10 course modules are free",
               "Modules 1–2 are open — no email needed",
               "Modules 3–10 unlock with a confirmed email",
-              "A paid Agent Operations Pack is in the works — no price or date yet",
+              "The paid Agent Operations Pack is on presale: $99 now, $149 at launch — see /pricing",
             ].map((item) => (
               <li key={item} className="flex items-start gap-2">
                 <span className="text-green-400 flex-shrink-0">&#10003;</span>
@@ -55,7 +55,7 @@ export default function CheckoutPage() {
           <h2 className="font-semibold mb-2">Unlock the full course</h2>
           <p className="text-sm text-neutral-400 mb-4">
             Confirm your email and all 10 modules unlock — free. You&apos;ll
-            also be first to hear if the Agent Operations Pack becomes real.
+            also be first to hear when the Agent Operations Pack ships.
           </p>
           <a
             href="/course/access"
