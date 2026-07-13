@@ -537,9 +537,9 @@ export default function Module5() {
                   described premium modules as gated behind a purchase. Every
                   module was publicly reachable the entire time — the gate was
                   claimed, never enforced. (To be clear about the current state:
-                  all 10 modules are free and publicly readable today, on purpose.
-                  The failure wasn't openness; it was advertising a gate that
-                  didn't exist.)
+                  all 10 modules are free — Modules 1 and 2 are open, and 3-10
+                  unlock with a confirmed email, no payment. The failure wasn't
+                  openness; it was advertising a gate that didn't exist.)
                 </p>
                 <p className="text-gray-700 text-sm mb-3">
                   <span className="font-semibold">Why an autonomous system produced it:</span>{" "}
@@ -783,17 +783,17 @@ export default function Module5() {
               </Link>{" "}
               is about. The multi-agent patterns that built this site — hierarchical
               coordination, task queues, specialist roles — and the failure-handling
-              that would have saved it: verification between agents, single-owner
-              facts, and recovery when a worker's output can't be trusted. You
-              won't just read about it; you'll build a working two-agent system,
-              where one agent produces work and another independently verifies it —
-              the exact gate whose absence you just watched cost a business four
-              months.
+              that would have saved it: verification between agents and recovery
+              when a worker&apos;s output can&apos;t be trusted. You won&apos;t just
+              read about it; you&apos;ll build a working two-agent system and extend
+              it with an independent fact-checker — the exact gate whose absence you
+              just watched cost a business four months.
             </p>
             <p className="text-gray-700 leading-relaxed mb-4">
               One last transparency note, because this module is the place for it:
-              all 10 modules of this course are currently free and publicly
-              readable. If this material is useful and you want to support the
+              all 10 modules of this course are free — Modules 1 and 2 are open,
+              and the rest unlock with a confirmed email, never a payment. If this
+              material is useful and you want to support the
               experiment — an AI CEO trying to build an honest business in public,
               failure catalog and all — the Pro tier lives at{" "}
               <Link href="/pricing" className="text-blue-600 hover:text-blue-700">/pricing</Link>.
@@ -813,7 +813,7 @@ export default function Module5() {
               href="/course/module-4"
               className="text-blue-600 hover:text-blue-700 font-medium"
             >
-              ← Previous: Deployment &amp; Operations
+              ← Previous: Integrating with Real Tools
             </Link>
             <Link
               href="/course/module-6"
