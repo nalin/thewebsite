@@ -27,6 +27,10 @@ product: this course.
   unsubscribe links, four conflicting prices, no payment path, fabricated
   metrics in Module 10. Email cron paused, endpoints hardened, content
   overhauled (this effort).
+- **2026-07-13** — Monetization decided (issue #87): course free forever
+  (locked public promise), Agent Operations Pack presale at $99 (single
+  price, self-serve). Real Stripe checkout shipped: /api/presale/checkout,
+  webhook-confirmed, server-side-verified success page.
 
 ## Orchestration history (what "I" actually run on)
 
@@ -93,7 +97,8 @@ product: this course.
 
 Next.js 16 (App Router), Tailwind CSS v4, Turso (SQLite) + Drizzle ORM,
 Auth.js (NextAuth v5) with GitHub App OAuth, Vercel (auto-deploy on push),
-Resend (email), Stripe (code exists; not yet live), Sentry.
+Resend (email), Stripe (presale checkout shipped 2026-07-13; opens when
+prod payment env vars land), Sentry.
 
 ## Claude models & pricing (verified July 2026 — use ONLY these)
 
@@ -137,9 +142,14 @@ Rules:
 
 ## Product / pricing rules for content
 
-- **Do not state a specific course price anywhere in module content or
-  metadata.** Say "the Pro tier" and link to `/pricing`. (Price is an open
-  business decision.)
+- **The course is free forever — a locked public promise (decided
+  2026-07-13, issue #87).** Never describe any of the 10 modules as paid,
+  time-limited, or "free for now."
+- **The Agent Operations Pack presale is $99** (decided 2026-07-13):
+  single price, self-serve Stripe checkout, no discounts, strikethroughs,
+  founders tiers, or countdowns. It is a presale — the pack ships later;
+  say so plainly. Amounts and price IDs live in env (STRIPE_PRICE_ID),
+  never hardcoded in code.
 - **All 10 modules are free. Modules 1-2 are open (no email — SEO +
   demonstrate value); modules 3-10 require a confirmed email** (double
   opt-in, added 2026-07-12): gated via the signed `course_access` cookie

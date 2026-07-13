@@ -1,11 +1,13 @@
+import { isPresaleConfigured } from "@/lib/presale";
+
 export const metadata = {
   title: "Pricing — Build Your Own AI Agent Course",
   description:
-    "The entire 10-module AI agent course is free. Modules 1–2 are open; modules 3–10 unlock with a confirmed email. A paid Agent Operations Pack is in the works — no price or date yet.",
+    "The entire 10-module AI agent course is free forever. Modules 1–2 are open; modules 3–10 unlock with a confirmed email. The Agent Operations Pack presale is $99 — one price, no fake discounts.",
   openGraph: {
     title: "Pricing — Build Your Own AI Agent Course",
     description:
-      "All 10 AI agent development modules are free. A paid Agent Operations Pack is in the works — no price or date announced.",
+      "All 10 AI agent development modules are free forever. Agent Operations Pack presale: $99, single price.",
     url: "https://www.thewebsite.app/pricing",
     type: "website",
   },
@@ -27,14 +29,15 @@ const FREE_MODULES = [
   "Module 10: Case Studies & Real-World Examples",
 ];
 
-const PACK_SOURCES = [
+const PACK_INCLUDES = [
   "The CLAUDE.md operating manual that actually runs this site",
   "Real worker-agent dispatch history from the March build",
   "The July 2026 audit: every failure, documented",
-  "Whatever else running this business produces",
+  "Everything else running this business produces while it's built",
 ];
 
 export default function PricingPage() {
+  const presaleOpen = isPresaleConfigured();
   return (
     <main className="min-h-screen">
       {/* Header */}
@@ -56,9 +59,9 @@ export default function PricingPage() {
           Simple, honest pricing
         </h1>
         <p className="text-xl text-neutral-400 max-w-2xl mx-auto">
-          Simpler than it used to be: the entire course is free. The only paid
-          thing on this site is a premium pack that doesn&apos;t exist yet —
-          and we won&apos;t name a price until it does.
+          The entire course is free, forever — that&apos;s a locked promise.
+          The one paid thing is the Agent Operations Pack presale: $99, one
+          price, no strikethroughs, no countdown.
         </p>
       </section>
 
@@ -88,8 +91,9 @@ export default function PricingPage() {
 
             <div>
               <p className="text-sm font-medium text-neutral-300 mb-4">
-                All 10 modules. Modules 1&ndash;2 are open now; modules
-                3&ndash;10 unlock with a confirmed email.
+                All 10 modules, <strong>free forever — locked promise</strong>.
+                Modules 1&ndash;2 are open now; modules 3&ndash;10 unlock with
+                a confirmed email. The presale never paywalls the course.
               </p>
               <ul className="space-y-3">
                 {FREE_MODULES.map((module) => (
@@ -104,11 +108,11 @@ export default function PricingPage() {
             </div>
           </div>
 
-          {/* Agent Operations Pack */}
+          {/* Agent Operations Pack — presale */}
           <div className="rounded-xl border border-white/20 p-8 relative bg-neutral-900">
             <div className="absolute -top-3 left-1/2 -translate-x-1/2">
               <span className="bg-white text-black text-xs font-bold px-3 py-1 rounded-full">
-                IN THE WORKS
+                PRESALE
               </span>
             </div>
 
@@ -116,29 +120,45 @@ export default function PricingPage() {
               <h2 className="text-2xl font-bold mb-1">Agent Operations Pack</h2>
               <p className="text-neutral-400 text-sm">
                 A paid deep-dive into how this site is actually operated.
+                Being built now — you&apos;re buying it before it ships.
               </p>
             </div>
 
             <div className="mb-8">
-              <span className="text-5xl font-bold">TBD</span>
+              <span className="text-5xl font-bold">$99</span>
+              <span className="text-neutral-400 ml-2">one-time</span>
               <p className="text-neutral-400 text-sm mt-1">
-                No price until it exists. No fake countdown either.
+                One price. No strikethroughs, no countdown, no founders tiers.
               </p>
             </div>
 
-            <a
-              href="/course/access"
-              className="block w-full py-3 px-6 rounded-lg bg-white text-black text-center font-bold hover:bg-neutral-200 transition-colors mb-8"
-            >
-              Get notified when it&apos;s real &rarr;
-            </a>
+            {presaleOpen ? (
+              <form action="/api/presale/checkout" method="POST" className="mb-8">
+                <button
+                  type="submit"
+                  className="block w-full py-3 px-6 rounded-lg bg-white text-black text-center font-bold hover:bg-neutral-200 transition-colors"
+                >
+                  Buy the presale — $99 &rarr;
+                </button>
+                <p className="text-xs text-neutral-500 mt-2 text-center">
+                  Stripe checkout. Confirmation is verified server-side.
+                </p>
+              </form>
+            ) : (
+              <div className="mb-8 py-3 px-6 rounded-lg border border-neutral-700 text-center">
+                <p className="font-bold">Presale opening shortly</p>
+                <p className="text-xs text-neutral-500 mt-1">
+                  Checkout goes live once payment keys are deployed.
+                </p>
+              </div>
+            )}
 
             <div>
               <p className="text-sm font-medium text-neutral-300 mb-4">
-                It will be built from material that already exists:
+                What&apos;s included when it ships:
               </p>
               <ul className="space-y-3">
-                {PACK_SOURCES.map((item) => (
+                {PACK_INCLUDES.map((item) => (
                   <li key={item} className="flex items-start gap-3 text-sm">
                     <span className="text-white mt-0.5 flex-shrink-0">&#10003;</span>
                     <span className="text-neutral-300">{item}</span>
@@ -190,12 +210,14 @@ export default function PricingPage() {
       <section className="max-w-2xl mx-auto px-4 py-12 text-center">
         <div className="p-8 rounded-xl border border-neutral-800 bg-neutral-900/50">
           <div className="text-3xl mb-4">&#128274;</div>
-          <h3 className="text-xl font-bold mb-2">Nothing to risk</h3>
+          <h3 className="text-xl font-bold mb-2">The honest fine print</h3>
           <p className="text-neutral-400 text-sm">
-            There is nothing for sale on this site today. An earlier version of
-            this page advertised a $67 &quot;founders price&quot; — payments
-            were never live and nobody was ever charged. When the Agent
-            Operations Pack ships, the price will be stated here first.
+            An earlier version of this page advertised a $67 &quot;founders
+            price&quot; that was never purchasable — payments weren&apos;t
+            live and nobody was charged. This presale is the real thing:
+            Stripe checkout, payment verified server-side, every purchase in
+            the public revenue number. You&apos;re funding the pack before it
+            ships, and the course stays free either way.
           </p>
         </div>
       </section>
