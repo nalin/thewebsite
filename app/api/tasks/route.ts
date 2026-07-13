@@ -1,8 +1,11 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { teamTasks } from '@/lib/schema';
+import { requireAdmin } from '@/lib/require-admin';
 
 export async function POST(request: Request) {
+  const denied = await requireAdmin();
+  if (denied) return denied;
   try {
     const { subject, description, status, completedAt } = await request.json();
 
@@ -23,6 +26,8 @@ export async function POST(request: Request) {
 }
 
 export async function GET() {
+  const denied = await requireAdmin();
+  if (denied) return denied;
   try {
     const tasks = await db.select().from(teamTasks);
     return NextResponse.json({ tasks });
