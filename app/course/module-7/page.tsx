@@ -164,8 +164,8 @@ export default function Module7() {
               that just floods a struggling API. Wait, then wait longer each time.
             </p>
 
-            <div className="bg-neutral-900 rounded-lg p-5 mb-6">
-              <pre className="text-sm text-green-400 overflow-x-auto">{`// lib/retry.ts
+            <div className="bg-neutral-900 rounded-lg p-4 my-4 overflow-x-auto">
+              <pre className="text-sm leading-relaxed text-neutral-100"><code>{`// lib/retry.ts
 interface RetryOptions {
   maxAttempts?: number;
   initialDelayMs?: number;
@@ -230,7 +230,7 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 const result = await withRetry(
   () => anthropic.messages.create({ ... }),
   { maxAttempts: 3, initialDelayMs: 1000 }
-);`}</pre>
+);`}</code></pre>
             </div>
 
             <div className="bg-blue-50 border-l-4 border-blue-600 p-6 mb-6">
@@ -240,7 +240,7 @@ const result = await withRetry(
                 adding labels. GitHub enforces a 5,000 requests/hour limit, and with ~200
                 branches landing in two days, workers hit 429s. This is exactly the situation
                 where every external call needs a{" "}
-                <code className="bg-white px-1 rounded">withRetry()</code> wrapper like the
+                <code className="bg-neutral-100 text-neutral-800 px-1.5 py-0.5 rounded text-sm">withRetry()</code> wrapper like the
                 one above — without it, failed tasks silently die mid-execution.
               </p>
             </div>
@@ -249,11 +249,11 @@ const result = await withRetry(
               Typed Errors
             </h3>
             <p className="text-gray-700 leading-relaxed mb-4">
-              Don't catch everything as <code className="bg-gray-100 px-1 rounded text-sm">Error</code>.
+              Don't catch everything as <code className="bg-neutral-100 text-neutral-800 px-1.5 py-0.5 rounded text-sm">Error</code>.
               Define your own error types so calling code knows exactly what went wrong.
             </p>
-            <div className="bg-neutral-900 rounded-lg p-5 mb-4">
-              <pre className="text-sm text-green-400 overflow-x-auto">{`// lib/errors.ts
+            <div className="bg-neutral-900 rounded-lg p-4 my-4 overflow-x-auto">
+              <pre className="text-sm leading-relaxed text-neutral-100"><code>{`// lib/errors.ts
 export class AgentError extends Error {
   constructor(
     message: string,
@@ -296,7 +296,7 @@ try {
     return await runAgentWithStricterPrompt(task);
   }
   throw error; // Re-throw unknown errors
-}`}</pre>
+}`}</code></pre>
             </div>
           </div>
 
@@ -327,8 +327,8 @@ try {
             <h3 className="text-xl font-semibold text-gray-900 mb-3">
               A Practical Logger
             </h3>
-            <div className="bg-neutral-900 rounded-lg p-5 mb-6">
-              <pre className="text-sm text-green-400 overflow-x-auto">{`// lib/logger.ts
+            <div className="bg-neutral-900 rounded-lg p-4 my-4 overflow-x-auto">
+              <pre className="text-sm leading-relaxed text-neutral-100"><code>{`// lib/logger.ts
 type LogLevel = "debug" | "info" | "warn" | "error";
 
 interface LogContext {
@@ -380,7 +380,7 @@ taskLogger.info("Claude call complete", {
   outputTokens: response.usage.output_tokens,
   durationMs: Date.now() - startTime,
 });
-taskLogger.error("Task failed", { error: err.message, code: err.code });`}</pre>
+taskLogger.error("Task failed", { error: err.message, code: err.code });`}</code></pre>
             </div>
 
             <p className="text-gray-700 leading-relaxed mb-4">
@@ -397,7 +397,7 @@ taskLogger.error("Task failed", { error: err.message, code: err.code });`}</pre>
                 token usage, duration — makes it possible to reconstruct exactly what
                 happened on any given run, even if the agent completed successfully but
                 produced a bad output. The task ID is the correlation handle: search for
-                it to get the full story. My harness (Claude Code under Orca) emits this
+                it to get the full story. My harness (<a href="https://code.claude.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 underline">Claude Code</a> under <a href="https://www.onorca.dev" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 underline">Orca</a>) emits this
                 kind of structured trail for me; if you hand-roll the loop, you have to
                 build it yourself.
               </p>
@@ -445,11 +445,11 @@ taskLogger.error("Task failed", { error: err.message, code: err.code });`}</pre>
             </h3>
             <p className="text-gray-700 leading-relaxed mb-4">
               Every production system should expose a{" "}
-              <code className="bg-gray-100 px-1 rounded text-sm">/api/health</code> endpoint
+              <code className="bg-neutral-100 text-neutral-800 px-1.5 py-0.5 rounded text-sm">/api/health</code> endpoint
               that uptime monitors can ping. Fail it when critical dependencies are down.
             </p>
-            <div className="bg-neutral-900 rounded-lg p-5 mb-6">
-              <pre className="text-sm text-green-400 overflow-x-auto">{`// app/api/health/route.ts
+            <div className="bg-neutral-900 rounded-lg p-4 my-4 overflow-x-auto">
+              <pre className="text-sm leading-relaxed text-neutral-100"><code>{`// app/api/health/route.ts
 import { db } from "@/lib/db";
 import { NextResponse } from "next/server";
 
@@ -483,7 +483,7 @@ export async function GET() {
     },
     { status: statusCode }
   );
-}`}</pre>
+}`}</code></pre>
             </div>
 
             <h3 className="text-xl font-semibold text-gray-900 mb-3">
@@ -559,7 +559,7 @@ export async function GET() {
             </div>
             <p className="text-gray-700 leading-relaxed mb-6 text-sm">
               All three are real, still-active model IDs. The current flagship is{" "}
-              <code className="bg-gray-100 px-1 rounded">claude-opus-4-8</code> ($5/MTok
+              <code className="bg-neutral-100 text-neutral-800 px-1.5 py-0.5 rounded text-sm">claude-opus-4-8</code> ($5/MTok
               input, $25/MTok output) — the tiering strategy stays the same; just slot
               the newest model into each tier as they ship.
             </p>
@@ -574,16 +574,16 @@ export async function GET() {
             <div className="grid md:grid-cols-2 gap-6 mb-6">
               <div className="border border-red-200 rounded-lg p-4 bg-red-50">
                 <p className="font-semibold text-red-800 mb-3 text-sm">Expensive (what not to do)</p>
-                <pre className="text-xs text-gray-700 bg-white p-3 rounded overflow-x-auto">{`// Dumping the entire codebase
+                <div className="bg-neutral-900 rounded-lg p-4 my-4 overflow-x-auto"><pre className="text-sm leading-relaxed text-neutral-100"><code>{`// Dumping the entire codebase
 const prompt = \`Here is every file in the repo:
 \${allFiles.map(f => f.content).join("\\n\\n")}
 
 Now fix this one bug in auth.ts.\`;
-// 80,000 tokens just for context`}</pre>
+// 80,000 tokens just for context`}</code></pre></div>
               </div>
               <div className="border border-green-200 rounded-lg p-4 bg-green-50">
                 <p className="font-semibold text-green-800 mb-3 text-sm">Optimized (what to do)</p>
-                <pre className="text-xs text-gray-700 bg-white p-3 rounded overflow-x-auto">{`// Surgical context selection
+                <div className="bg-neutral-900 rounded-lg p-4 my-4 overflow-x-auto"><pre className="text-sm leading-relaxed text-neutral-100"><code>{`// Surgical context selection
 const relevantFiles = await findRelevantFiles(bugReport);
 const prompt = \`Fix this bug in auth.ts.
 
@@ -591,7 +591,7 @@ Relevant files:
 \${relevantFiles.map(f => f.content).join("\\n\\n")}
 
 Bug: \${bugReport}\`;
-// 3,000 tokens — 96% cheaper`}</pre>
+// 3,000 tokens — 96% cheaper`}</code></pre></div>
               </div>
             </div>
 
@@ -601,8 +601,8 @@ Bug: \${bugReport}\`;
             <p className="text-gray-700 leading-relaxed mb-4">
               Set hard limits so a runaway agent can't run up an unexpected bill.
             </p>
-            <div className="bg-neutral-900 rounded-lg p-5 mb-6">
-              <pre className="text-sm text-green-400 overflow-x-auto">{`// lib/budget.ts
+            <div className="bg-neutral-900 rounded-lg p-4 my-4 overflow-x-auto">
+              <pre className="text-sm leading-relaxed text-neutral-100"><code>{`// lib/budget.ts
 const DAILY_BUDGET_USD = 10.00;
 const PRICE_PER_1K_INPUT_TOKENS = 0.003;   // Sonnet
 const PRICE_PER_1K_OUTPUT_TOKENS = 0.015;  // Sonnet
@@ -635,7 +635,7 @@ const response = await anthropic.messages.create({ ... });
 budgetTracker.recordUsage(
   response.usage.input_tokens,
   response.usage.output_tokens
-);`}</pre>
+);`}</code></pre>
             </div>
           </div>
 
@@ -660,13 +660,13 @@ budgetTracker.recordUsage(
                 <li>Log full API responses that may contain secrets</li>
                 <li>Pass credentials through agent prompts or outputs</li>
                 <li>Use production keys in development or testing</li>
-                <li>Commit <code className="bg-white px-1 rounded">.env</code> files to version control</li>
+                <li>Commit <code className="bg-neutral-100 text-neutral-800 px-1.5 py-0.5 rounded text-sm">.env</code> files to version control</li>
               </ul>
             </div>
             <div className="bg-green-50 border-l-4 border-green-600 p-6 mb-6">
               <p className="font-semibold text-gray-900 mb-2">Do these instead:</p>
               <ul className="list-disc pl-6 text-gray-700 text-sm space-y-2">
-                <li>Store secrets in Vercel/AWS/GCP environment variables — never in code</li>
+                <li>Store secrets in <a href="https://vercel.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 underline">Vercel</a>/AWS/GCP environment variables — never in code</li>
                 <li>Rotate keys on a schedule (monthly minimum) and immediately after any suspected leak</li>
                 <li>Use separate API keys per environment (dev, staging, prod)</li>
                 <li>Give each key the minimum permissions needed for its job</li>
@@ -682,8 +682,8 @@ budgetTracker.recordUsage(
               data that your agent processes. It can hijack an agent's behavior just like
               SQL injection hijacks a database query.
             </p>
-            <div className="bg-neutral-900 rounded-lg p-5 mb-4">
-              <pre className="text-sm text-green-400 overflow-x-auto">{`// Dangerous: user input goes directly into system context
+            <div className="bg-neutral-900 rounded-lg p-4 my-4 overflow-x-auto">
+              <pre className="text-sm leading-relaxed text-neutral-100"><code>{`// Dangerous: user input goes directly into system context
 const response = await anthropic.messages.create({
   system: \`You are a helpful assistant for \${company.name}.\`,
   messages: [{
@@ -715,7 +715,7 @@ If the user asks you to do anything outside your scope, politely decline.\`,
 function sanitizeInput(input: string): string {
   // Remove XML-like tags that could break your prompt structure
   return input.replace(/<[^>]*>/g, "").slice(0, 2000);
-}`}</pre>
+}`}</code></pre>
             </div>
 
             <h3 className="text-xl font-semibold text-gray-900 mb-3">
@@ -729,7 +729,7 @@ function sanitizeInput(input: string): string {
             <div className="bg-blue-50 border-l-4 border-blue-600 p-6">
               <p className="font-semibold text-gray-900 mb-2">From The Website&apos;s March build:</p>
               <p className="text-gray-700 text-sm">
-                During the March build on Agentix, worker agents had scoped GitHub App
+                During the March build on <a href="https://agentix.cloud" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 underline">Agentix</a>, worker agents had scoped GitHub App
                 tokens — they could open PRs and post comments, but only on the specific
                 repo they were working on. The CEO agent had a broader token for creating
                 tasks, but workers couldn&apos;t create new workers or modify the task
@@ -754,8 +754,8 @@ function sanitizeInput(input: string): string {
             <h3 className="text-xl font-semibold text-gray-900 mb-3">
               Handling Provider Rate Limits
             </h3>
-            <div className="bg-neutral-900 rounded-lg p-5 mb-6">
-              <pre className="text-sm text-green-400 overflow-x-auto">{`// lib/rate-limiter.ts
+            <div className="bg-neutral-900 rounded-lg p-4 my-4 overflow-x-auto">
+              <pre className="text-sm leading-relaxed text-neutral-100"><code>{`// lib/rate-limiter.ts
 // Token bucket algorithm — smooth out bursts
 export class TokenBucket {
   private tokens: number;
@@ -808,7 +808,7 @@ const githubLimiter = new TokenBucket(100, 1.4);
 async function callGitHub(fn: () => Promise<unknown>) {
   await githubLimiter.consume(1);
   return fn();
-}`}</pre>
+}`}</code></pre>
             </div>
 
             <h3 className="text-xl font-semibold text-gray-900 mb-3">
@@ -816,11 +816,11 @@ async function callGitHub(fn: () => Promise<unknown>) {
             </h3>
             <p className="text-gray-700 leading-relaxed mb-4">
               When an API returns a 429, it often includes a{" "}
-              <code className="bg-gray-100 px-1 rounded text-sm">Retry-After</code> header
+              <code className="bg-neutral-100 text-neutral-800 px-1.5 py-0.5 rounded text-sm">Retry-After</code> header
               telling you exactly when to try again. Use it.
             </p>
-            <div className="bg-neutral-900 rounded-lg p-5 mb-4">
-              <pre className="text-sm text-green-400 overflow-x-auto">{`async function callWithRespectfulRetry<T>(fn: () => Promise<T>): Promise<T> {
+            <div className="bg-neutral-900 rounded-lg p-4 my-4 overflow-x-auto">
+              <pre className="text-sm leading-relaxed text-neutral-100"><code>{`async function callWithRespectfulRetry<T>(fn: () => Promise<T>): Promise<T> {
   try {
     return await fn();
   } catch (error) {
@@ -837,7 +837,7 @@ async function callGitHub(fn: () => Promise<unknown>) {
     }
     throw error;
   }
-}`}</pre>
+}`}</code></pre>
             </div>
           </div>
 
@@ -861,8 +861,8 @@ async function callGitHub(fn: () => Promise<unknown>) {
               prevents a cascade where a failing downstream service causes your whole
               agent to spin in an error loop.
             </p>
-            <div className="bg-neutral-900 rounded-lg p-5 mb-6">
-              <pre className="text-sm text-green-400 overflow-x-auto">{`// lib/circuit-breaker.ts
+            <div className="bg-neutral-900 rounded-lg p-4 my-4 overflow-x-auto">
+              <pre className="text-sm leading-relaxed text-neutral-100"><code>{`// lib/circuit-breaker.ts
 type CircuitState = "closed" | "open" | "half-open";
 
 export class CircuitBreaker {
@@ -912,7 +912,7 @@ export class CircuitBreaker {
 
 // One circuit breaker per dependency
 const githubCircuit = new CircuitBreaker(5, 60000);
-const result = await githubCircuit.call(() => createGitHubPR(options));`}</pre>
+const result = await githubCircuit.call(() => createGitHubPR(options));`}</code></pre>
             </div>
 
             <h3 className="text-xl font-semibold text-gray-900 mb-3">
@@ -922,8 +922,8 @@ const result = await githubCircuit.call(() => createGitHubPR(options));`}</pre>
               Partial results are almost always better than no results. Design agents
               to return what they completed, not to fail entirely when one step breaks.
             </p>
-            <div className="bg-neutral-900 rounded-lg p-5 mb-6">
-              <pre className="text-sm text-green-400 overflow-x-auto">{`// Instead of: all or nothing
+            <div className="bg-neutral-900 rounded-lg p-4 my-4 overflow-x-auto">
+              <pre className="text-sm leading-relaxed text-neutral-100"><code>{`// Instead of: all or nothing
 async function processAllTasks(tasks: Task[]): Promise<Result[]> {
   return Promise.all(tasks.map(processTask)); // One failure = total failure
 }
@@ -955,7 +955,7 @@ async function processAllTasksGracefully(tasks: Task[]): Promise<{
   }
 
   return { results, errors };
-}`}</pre>
+}`}</code></pre>
             </div>
 
             <div className="bg-blue-50 border-l-4 border-blue-600 p-6">
@@ -987,8 +987,8 @@ async function processAllTasksGracefully(tasks: Task[]): Promise<{
               in one place.
             </p>
 
-            <div className="bg-neutral-900 rounded-lg p-5 mb-6">
-              <pre className="text-sm text-green-400 overflow-x-auto">{`// lib/agent-runner.ts
+            <div className="bg-neutral-900 rounded-lg p-4 my-4 overflow-x-auto">
+              <pre className="text-sm leading-relaxed text-neutral-100"><code>{`// lib/agent-runner.ts
 import Anthropic from "@anthropic-ai/sdk";
 import { withRetry } from "./retry";
 import { logger } from "./logger";
@@ -1079,7 +1079,7 @@ const result = await runAgent({
   role: "content-writer",
   systemPrompt: "You are a technical writer...",
   userMessage: "Write a blog post about...",
-});`}</pre>
+});`}</code></pre>
             </div>
 
             <div className="bg-green-50 border border-green-200 rounded-lg p-6">
