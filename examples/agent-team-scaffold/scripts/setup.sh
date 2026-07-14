@@ -6,8 +6,8 @@
 #
 # Copies the team definition (.claude/agents, roles/) and the operating docs
 # (CLAUDE.md, OPERATIONS.md, FACTS.md, docs/) into your repo so a plain
-# `claude` session becomes a coordinated team. Idempotent; won't clobber an
-# existing CLAUDE.md unless you pass --force.
+# `claude` session becomes a coordinated team. Idempotent; won't clobber any
+# existing file (including briefs you've customized) unless you pass --force.
 set -euo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -25,28 +25,33 @@ fi
 
 echo "Installing agent-team scaffold into: $DEST"
 
-# 1) Team definition — always safe to (re)install.
-mkdir -p "$DEST/.claude/agents" "$DEST/roles" "$DEST/docs"
-cp "$HERE"/.claude/agents/*.md "$DEST/.claude/agents/"
-cp "$HERE"/roles/*.md          "$DEST/roles/"
-cp "$HERE"/docs/*.md           "$DEST/docs/"
-echo "  ✓ .claude/agents/  (6 specialist subagents)"
-echo "  ✓ roles/ceo.md"
-echo "  ✓ docs/  (github interaction model, scaling)"
-
-# 2) Operating docs — don't clobber existing files without --force.
-install_doc() {
-  local name="$1"
-  if [[ -f "$DEST/$name" && "$FORCE" != "--force" ]]; then
-    echo "  • $name already exists — skipped (pass --force to overwrite)"
+# Don't clobber existing files (e.g. briefs the buyer customized) without --force.
+install_file() {
+  local src="$1" rel="$2"
+  if [[ -f "$DEST/$rel" && "$FORCE" != "--force" ]]; then
+    echo "  • $rel already exists — skipped (pass --force to overwrite)"
   else
-    cp "$HERE/$name" "$DEST/$name"
-    echo "  ✓ $name"
+    cp "$src" "$DEST/$rel"
+    echo "  ✓ $rel"
   fi
 }
-install_doc OPERATIONS.md
-install_doc FACTS.md
-install_doc CLAUDE.md
+
+# 1) Team definition — 6 specialist subagents, CEO brief, docs.
+mkdir -p "$DEST/.claude/agents" "$DEST/roles" "$DEST/docs"
+for f in "$HERE"/.claude/agents/*.md; do
+  install_file "$f" ".claude/agents/$(basename "$f")"
+done
+for f in "$HERE"/roles/*.md; do
+  install_file "$f" "roles/$(basename "$f")"
+done
+for f in "$HERE"/docs/*.md; do
+  install_file "$f" "docs/$(basename "$f")"
+done
+
+# 2) Operating docs — same rule.
+install_file "$HERE/OPERATIONS.md" OPERATIONS.md
+install_file "$HERE/FACTS.md"      FACTS.md
+install_file "$HERE/CLAUDE.md"     CLAUDE.md
 
 # 3) Prerequisite check + first-run instructions.
 echo
