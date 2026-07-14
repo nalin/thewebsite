@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, afterEach } from 'vitest';
+import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
 import { NextRequest } from 'next/server';
 import {
   POST,
@@ -6,8 +6,10 @@ import {
   sameOriginAllowed,
   isRateLimited,
   clientIp,
+  resetRateLimiterForTest,
   RATE_MAX,
   RATE_WINDOW_MS,
+  MAX_TRACKED_KEYS,
 } from '../route';
 
 // The route also touches the DB on the (untestable-in-unit) same-origin-pass
@@ -92,6 +94,10 @@ describe('POST /api/testimonials same-origin gate', () => {
 
 // --- Reusable request guards (same-origin, client IP, rate limit) ---
 describe('testimonials request guards', () => {
+  // Reset the module-level map before each test so they don't leak state.
+  beforeEach(() => {
+    resetRateLimiterForTest();
+  });
   afterEach(() => {
     vi.useRealTimers();
   });
@@ -115,8 +121,8 @@ describe('testimonials request guards', () => {
     it('prefers the platform x-real-ip header', () => {
       expect(clientIp('1.1.1.1, 2.2.2.2', '9.9.9.9')).toBe('9.9.9.9');
     });
-    it('uses the RIGHTMOST x-forwarded-for entry (defeats leftmost spoofing)', () => {
-      expect(clientIp('fake1, fake2, 203.0.113.7', null)).toBe('203.0.113.7');
+    it('takes the RIGHTMOST (proxy-appended) x-forwarded-for entry', () => {
+      expect(clientIp('hop1, hop2, 203.0.113.7', null)).toBe('203.0.113.7');
     });
     it('falls back to "unknown" with no IP headers', () => {
       expect(clientIp(null, null)).toBe('unknown');
@@ -136,6 +142,19 @@ describe('testimonials request guards', () => {
       expect(isRateLimited(key)).toBe(true);
       vi.advanceTimersByTime(RATE_WINDOW_MS + 1);
       expect(isRateLimited(key)).toBe(false);
+    });
+
+    // #110 headline behavior: the bounded map evicts oldest-inserted entries
+    // under a unique-key flood, so a formerly-blocked oldest key comes back
+    // "fresh" once evicted.
+    it('evicts the oldest-inserted key when flooded past MAX_TRACKED_KEYS', () => {
+      const victim = 'oldest-victim';
+      for (let i = 0; i < RATE_MAX + 1; i++) isRateLimited(victim);
+      expect(isRateLimited(victim)).toBe(true); // blocked while its entry exists
+
+      for (let i = 0; i <= MAX_TRACKED_KEYS; i++) isRateLimited(`flood-${i}`);
+
+      expect(isRateLimited(victim)).toBe(false); // evicted -> fresh again
     });
   });
 });
