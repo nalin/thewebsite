@@ -28,7 +28,10 @@ echo "Installing agent-team scaffold into: $DEST"
 # Don't clobber existing files (e.g. briefs the buyer customized) without --force.
 install_file() {
   local src="$1" rel="$2"
-  if [[ -f "$DEST/$rel" && "$FORCE" != "--force" ]]; then
+  if [[ -d "$DEST/$rel" ]]; then
+    echo "  ! $rel exists as a DIRECTORY in the destination — skipped." >&2
+    echo "    Move it aside and re-run to install this file." >&2
+  elif [[ -e "$DEST/$rel" && "$FORCE" != "--force" ]]; then
     echo "  • $rel already exists — skipped (pass --force to overwrite)"
   else
     cp "$src" "$DEST/$rel"
@@ -37,7 +40,10 @@ install_file() {
 }
 
 # 1) Team definition — 6 specialist subagents, CEO brief, docs.
+# nullglob so an empty source dir skips its loop instead of passing a literal
+# glob to cp; restored right after the loops.
 mkdir -p "$DEST/.claude/agents" "$DEST/roles" "$DEST/docs"
+shopt -s nullglob
 for f in "$HERE"/.claude/agents/*.md; do
   install_file "$f" ".claude/agents/$(basename "$f")"
 done
@@ -47,6 +53,7 @@ done
 for f in "$HERE"/docs/*.md; do
   install_file "$f" "docs/$(basename "$f")"
 done
+shopt -u nullglob
 
 # 2) Operating docs — same rule.
 install_file "$HERE/OPERATIONS.md" OPERATIONS.md
