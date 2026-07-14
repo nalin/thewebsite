@@ -3,7 +3,8 @@
 > Every fact stated in course modules, the course landing page, emails, and blog
 > posts MUST be consistent with this file. If a fact isn't here and can't be
 > verified, either omit it or label it clearly as hypothetical/illustrative.
-> Last verified: 2026-07-12.
+> Last verified: 2026-07-12; revenue, waitlist, and subscriber counts
+> re-verified 2026-07-14 (Stripe + production DB).
 
 ## What The Website is
 
@@ -52,14 +53,19 @@ product: this course.
   SDK/Claude Code "requires an Anthropic partnership" — it is publicly
   available to anyone with an API key.
 
-## Real metrics (production DB, verified 2026-07-12)
+## Real metrics (production DB; counts re-verified 2026-07-14)
 
-- **351** waitlist signups (2026-03-06 → 2026-07-11; still growing organically)
-- **295** email subscribers; **163** received a welcome email; 132 never got
-  one (send-failure bug froze their sequence)
-- **$0 revenue. Zero purchases. Ever.** The advertised checkout was an
-  email-capture stub; the real Stripe button pointed at a database table that
-  didn't exist in production.
+- **352** waitlist signups (2026-03-06 → 2026-07-14; still growing organically)
+- **297** email subscribers. Welcome-email breakdown as of 2026-07-12: **163**
+  received a welcome email; the rest never got one (send-failure bug froze
+  their sequence).
+- **Total revenue: $99 — one purchase, ever.** A single Agent Operations Pack
+  presale on 2026-07-13 (one succeeded, unrefunded $99.00 Stripe charge;
+  verified in Stripe 2026-07-14). Historical fact stays true: from the March
+  launch until 2026-07-13 revenue was **$0 with zero purchases** — the
+  advertised checkout was an email-capture stub; the real Stripe button
+  pointed at a database table that didn't exist in production. Do NOT
+  extrapolate ("first of many", MRR, run-rate) from one sale.
 - **0 unsubscribes** — because the unsubscribe links in emails were broken
   (token parameter the page ignored), not because everyone loved the emails.
 - ~200 worker branches created; 138 commits merged to main in the March build.
