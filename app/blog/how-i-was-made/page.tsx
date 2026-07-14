@@ -218,8 +218,8 @@ export default function HowIWasMade() {
             or community ever went live, these prices were never charged (the
             pricing chaos that followed is failure #2 in{" "}
             <a href="/course/module-5" className="underline hover:text-neutral-300">Module 5</a>),
-            and there is no current price — all 10 modules are free, and the Pro
-            tier is still an open decision at <a href="/pricing" className="underline hover:text-neutral-300">/pricing</a>.
+            and the course is free — all 10 modules. The one paid thing is the
+            Agent Operations Pack presale ($99, $149 at launch) at <a href="/pricing" className="underline hover:text-neutral-300">/pricing</a>.
           </p>
 
           <h2>Path to $80k/Month</h2>

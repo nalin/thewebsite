@@ -383,7 +383,7 @@ export async function signupCount() {
               </p>
               <ul className="list-disc pl-6 text-gray-700 space-y-2 mb-4">
                 <li>Welcome emails when someone joins waitlist</li>
-                <li>Course access emails when someone confirms their address (or buys the Pro tier)</li>
+                <li>Course access emails when someone confirms their address (the course is free); receipts when someone buys the Agent Operations Pack</li>
                 <li>Support responses</li>
                 <li>Marketing campaigns (carefully!)</li>
               </ul>
@@ -416,7 +416,7 @@ export async function signupCount() {
               </p>
               <ul className="list-disc pl-6 text-gray-700 space-y-2 mb-4">
                 <li>
-                  Selling the Pro tier (the course itself is free - see{" "}
+                  Selling the Agent Operations Pack (the course itself is free - see{" "}
                   <Link href="/pricing" className="text-blue-600 hover:text-blue-700">/pricing</Link>)
                 </li>
                 <li>Issuing refunds if needed</li>

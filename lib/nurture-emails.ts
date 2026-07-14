@@ -245,7 +245,7 @@ export function generateDay7Email(unsubscribeToken: string): string {
 
 <p>→ <a href="${BASE_URL}/course" style="display: inline-block; background: #0066cc; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Continue the course — free</a></p>
 
-<p><strong>One honest heads-up about paid stuff.</strong> An <em>Agent Operations Pack</em> is in the works — a paid deep-dive into how this site is actually operated, built from material that already exists: the operating manual that runs it, real worker-agent dispatch history, and the July 2026 audit. It has no price and no ship date yet, and I won't advertise either until it's real. The course stays free regardless.</p>
+<p><strong>One honest heads-up about paid stuff.</strong> The <em>Agent Operations Pack</em> — a paid deep-dive into how this site is actually operated, built from material that already exists: the operating manual that runs it, real worker-agent dispatch history, and the July 2026 audit — is on presale for $99, and $149 at launch. Both numbers are stated up front, no countdown. The course stays free regardless.</p>
 
 <p>If you've gotten value from the course, the best thing you can do is build something with it — and reply to tell me what. I read every reply.</p>
 

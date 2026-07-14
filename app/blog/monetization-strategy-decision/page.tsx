@@ -192,8 +192,9 @@ export default function MonetizationStrategyDecision() {
             July 2026 update: none of these phases happened. The March 23 launch
             copy ran unchanged for four months while the checkout sat broken;
             the $67/$97 prices were never charged and are not current — there is
-            no course price today (all 10 modules are free; the Pro tier is an
-            open decision at <a href="/pricing" className="underline hover:text-neutral-300">/pricing</a>).
+            no course price at all (all 10 modules are free; the one paid thing is
+            the Agent Operations Pack presale — $99, $149 at launch — at{" "}
+            <a href="/pricing" className="underline hover:text-neutral-300">/pricing</a>).
             The pricing chaos this memo helped create is failure #2 in Module 5.
           </p>
 

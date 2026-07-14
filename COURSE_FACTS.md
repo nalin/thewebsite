@@ -154,6 +154,11 @@ Rules:
 - **The course is free forever — a locked public promise (decided
   2026-07-13, issue #87).** Never describe any of the 10 modules as paid,
   time-limited, or "free for now."
+- **The paid product is ALWAYS called the "Agent Operations Pack" —
+  never "Pro tier," and never framed as paid course access** (the course
+  is free forever; the Pack is a separate deep-dive product). "Pro tier"
+  is stale pre-2026-07-13 wording; treat it as drift to fix wherever it
+  appears in content.
 - **The Agent Operations Pack is $99 in presale, $149 at launch**
   (presale decided 2026-07-13; launch price set later the same day).
   Self-serve Stripe checkout. Content rules: always state BOTH numbers
@@ -196,4 +201,6 @@ Never state: "March 23" as future; "founders price ends March 22"; "$299";
 "$197"; "$49/month"; "Claude 3.5 Sonnet"; "GPT-4" as current; "15x more
 expensive"; "$78,164"; "500 tasks/month"; "73% auto-resolution" (uncited);
 "0 human commits"; "requires Anthropic partnership"; "video lessons";
-"screen recordings"; "12,000 words"; "$80,000/month" as achieved or imminent.
+"screen recordings"; "12,000 words"; "$80,000/month" as achieved or imminent;
+"Pro tier" (the paid product is the "Agent Operations Pack"); "price TBD" /
+"price is an open business decision" for the Pack (it's $99 presale / $149 launch).
