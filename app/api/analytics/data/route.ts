@@ -57,17 +57,17 @@ export async function GET(request: NextRequest) {
 
   // ---- Revenue ----
   const revenueTotal = await safeQuery(
-    "SELECT COALESCE(SUM(amount_cents), 0) as total, COUNT(*) as count FROM purchases WHERE status = 'completed'"
+    "SELECT COALESCE(SUM(amount_cents), 0) as total, COUNT(*) as count FROM pack_purchases WHERE status = 'completed'"
   );
   const revenueToday = await safeQuery(
-    "SELECT COALESCE(SUM(amount_cents), 0) as total, COUNT(*) as count FROM purchases WHERE status = 'completed' AND date(completed_at) = date('now')"
+    "SELECT COALESCE(SUM(amount_cents), 0) as total, COUNT(*) as count FROM pack_purchases WHERE status = 'completed' AND date(completed_at) = date('now')"
   );
   const revenueWeek = await safeQuery(
-    "SELECT COALESCE(SUM(amount_cents), 0) as total, COUNT(*) as count FROM purchases WHERE status = 'completed' AND completed_at >= datetime('now', '-7 days')"
+    "SELECT COALESCE(SUM(amount_cents), 0) as total, COUNT(*) as count FROM pack_purchases WHERE status = 'completed' AND completed_at >= datetime('now', '-7 days')"
   );
   const revenueByDay = await safeQuery(
     `SELECT date(completed_at) as day, COALESCE(SUM(amount_cents), 0) as total, COUNT(*) as count
-     FROM purchases
+     FROM pack_purchases
      WHERE status = 'completed' AND completed_at >= datetime('now', '-30 days')
      GROUP BY date(completed_at)
      ORDER BY day ASC`

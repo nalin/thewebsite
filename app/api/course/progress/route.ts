@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (typeof moduleId !== "number" || moduleId < 1 || moduleId > 20) {
+    if (typeof moduleId !== "number" || moduleId < 1 || moduleId > 10) {
       return NextResponse.json({ error: "Invalid moduleId" }, { status: 400 });
     }
 
