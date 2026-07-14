@@ -1,5 +1,6 @@
 import Link from "next/link";
 import ModuleTracker from "@/components/ModuleTracker";
+import ModuleFooterNav from "@/components/ModuleFooterNav";
 
 export const metadata = {
   title: "Module 1: Automation vs. Autonomy - Build Your Own AI Agent",
@@ -750,13 +751,12 @@ export default function Module1() {
               and decision rules, and watch a real agent work — the same
               harness that runs this site. Bring the four sentences.
             </p>
-            <Link
-              href="/course/module-2"
-              className="inline-block bg-black text-white px-6 py-3 rounded-lg font-medium hover:bg-neutral-800 transition-colors"
-            >
-              Continue to Module 2 →
-            </Link>
           </div>
+
+          <ModuleFooterNav
+            nextHref="/course/module-2"
+            nextLabel="Module 2: Setting Up Your Agent Environment"
+          />
         </div>
       </div>
     </div>

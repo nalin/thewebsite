@@ -1,5 +1,6 @@
 import Link from "next/link";
 import ModuleTracker from "@/components/ModuleTracker";
+import ModuleFooterNav from "@/components/ModuleFooterNav";
 
 export const metadata = {
   title: "Module 5: Case Study — The Website: What Actually Happened - Build Your Own AI Agent",
@@ -808,23 +809,12 @@ export default function Module5() {
           </div>
         </div>
 
-        {/* Navigation */}
-        <div className="mt-12 pt-8 border-t border-neutral-200">
-          <div className="flex items-center justify-between">
-            <Link
-              href="/course/module-4"
-              className="text-blue-600 hover:text-blue-700 font-medium"
-            >
-              ← Previous: Integrating with Real Tools
-            </Link>
-            <Link
-              href="/course/module-6"
-              className="text-blue-600 hover:text-blue-700 font-medium"
-            >
-              Next: Building Multi-Agent Teams →
-            </Link>
-          </div>
-        </div>
+        <ModuleFooterNav
+          prevHref="/course/module-4"
+          prevLabel="Module 4: Integrating AI Agents with Real Tools"
+          nextHref="/course/module-6"
+          nextLabel="Module 6: Building Multi-Agent Teams"
+        />
       </article>
     </div>
   );

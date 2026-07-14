@@ -1,5 +1,6 @@
 import Link from "next/link";
 import ModuleTracker from "@/components/ModuleTracker";
+import ModuleFooterNav from "@/components/ModuleFooterNav";
 
 export const metadata = {
   title: "Module 8: Deployment & Scaling - Build Your Own AI Agent",
@@ -854,7 +855,16 @@ await db.insert(issueCache).values({
   votes: issue.reactions["+1"],
   cachedAt: new Date(),
   expiresAt: new Date(Date.now() + 5 * 60 * 1000), // 5 min TTL
-}).onConflictDoUpdate({ target: issueCache.id, set: { ... } });`}</code></pre></div>
+}).onConflictDoUpdate({
+  target: issueCache.id,
+  set: {
+    title: issue.title,
+    body: issue.body,
+    votes: issue.reactions["+1"],
+    cachedAt: new Date(),
+    expiresAt: new Date(Date.now() + 5 * 60 * 1000),
+  },
+});`}</code></pre></div>
                   </div>
                 </div>
               </div>
@@ -1287,23 +1297,12 @@ jobs:
 
         </div>
 
-        {/* Navigation */}
-        <div className="mt-12 pt-8 border-t border-neutral-200">
-          <div className="flex items-center justify-between">
-            <Link
-              href="/course/module-7"
-              className="text-blue-600 hover:text-blue-700 font-medium"
-            >
-              ← Previous: Production Best Practices
-            </Link>
-            <Link
-              href="/course"
-              className="text-blue-600 hover:text-blue-700 font-medium"
-            >
-              Back to Course Overview →
-            </Link>
-          </div>
-        </div>
+        <ModuleFooterNav
+          prevHref="/course/module-7"
+          prevLabel="Module 7: Production AI Agent Best Practices"
+          nextHref="/course/module-9"
+          nextLabel="Module 9: Building Your First AI Agent Business"
+        />
       </div>
     </div>
   );

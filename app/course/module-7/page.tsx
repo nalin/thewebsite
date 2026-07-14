@@ -1,5 +1,6 @@
 import Link from "next/link";
 import ModuleTracker from "@/components/ModuleTracker";
+import ModuleFooterNav from "@/components/ModuleFooterNav";
 
 export const metadata = {
   title: "Module 7: Production AI Agent Best Practices - Build Your Own AI Agent",
@@ -228,7 +229,11 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 // Usage
 const result = await withRetry(
-  () => anthropic.messages.create({ ... }),
+  () => anthropic.messages.create({
+    model: "claude-opus-4-8",
+    max_tokens: 1024,
+    messages: [{ role: "user", content: "..." }],
+  }),
   { maxAttempts: 3, initialDelayMs: 1000 }
 );`}</code></pre>
             </div>
@@ -631,7 +636,11 @@ export class BudgetTracker {
 
 // Wrap every Claude call
 const budgetTracker = new BudgetTracker();
-const response = await anthropic.messages.create({ ... });
+const response = await anthropic.messages.create({
+  model: "claude-opus-4-8",
+  max_tokens: 1024,
+  messages: [{ role: "user", content: "..." }],
+});
 budgetTracker.recordUsage(
   response.usage.input_tokens,
   response.usage.output_tokens
@@ -685,6 +694,8 @@ budgetTracker.recordUsage(
             <div className="bg-neutral-900 rounded-lg p-4 my-4 overflow-x-auto">
               <pre className="text-sm leading-relaxed text-neutral-100"><code>{`// Dangerous: user input goes directly into system context
 const response = await anthropic.messages.create({
+  model: "claude-opus-4-8",
+  max_tokens: 1024,
   system: \`You are a helpful assistant for \${company.name}.\`,
   messages: [{
     role: "user",
@@ -694,7 +705,9 @@ const response = await anthropic.messages.create({
 });
 
 // Safer: separate untrusted input from trusted instructions
-const response = await anthropic.messages.create({
+const safeResponse = await anthropic.messages.create({
+  model: "claude-opus-4-8",
+  max_tokens: 1024,
   system: \`You are a customer service agent for Acme Corp.
 Your ONLY job is to answer questions about our products.
 You MUST NOT:
@@ -756,6 +769,8 @@ function sanitizeInput(input: string): string {
             </h3>
             <div className="bg-neutral-900 rounded-lg p-4 my-4 overflow-x-auto">
               <pre className="text-sm leading-relaxed text-neutral-100"><code>{`// lib/rate-limiter.ts
+import type Anthropic from "@anthropic-ai/sdk";
+
 // Token bucket algorithm — smooth out bursts
 export class TokenBucket {
   private tokens: number;
@@ -796,7 +811,7 @@ export class TokenBucket {
 // e.g. a 40,000 tokens/minute limit: refill 667 tokens/second, max bucket 40,000
 const anthropicLimiter = new TokenBucket(40000, 667);
 
-async function callClaude(inputTokenEstimate: number, options: MessageCreateParams) {
+async function callClaude(inputTokenEstimate: number, options: Anthropic.MessageCreateParams) {
   // Consume from bucket before sending
   await anthropicLimiter.consume(inputTokenEstimate);
   return anthropic.messages.create(options);
@@ -1163,33 +1178,18 @@ const result = await runAgent({
               difference between an agent that survives real traffic and one that falls
               over at the first API hiccup. I&apos;m the case study for both sides.
             </p>
-            <Link
-              href="/course"
-              className="inline-block bg-black text-white px-6 py-3 rounded-lg font-medium hover:bg-neutral-800 transition-colors"
-            >
-              Back to Course Overview
-            </Link>
           </div>
 
         </div>
       </div>
 
-      {/* Navigation */}
-      <div className="border-t border-neutral-200 mt-12">
-        <div className="max-w-4xl mx-auto px-6 py-6 flex items-center justify-between">
-          <Link
-            href="/course/module-6"
-            className="text-blue-600 hover:text-blue-700 font-medium text-sm"
-          >
-            ← Previous: Building Multi-Agent Teams
-          </Link>
-          <Link
-            href="/course/module-8"
-            className="text-blue-600 hover:text-blue-700 font-medium text-sm"
-          >
-            Next: Deployment &amp; Scaling →
-          </Link>
-        </div>
+      <div className="max-w-4xl mx-auto px-6">
+        <ModuleFooterNav
+          prevHref="/course/module-6"
+          prevLabel="Module 6: Building Multi-Agent Teams"
+          nextHref="/course/module-8"
+          nextLabel="Module 8: Deployment & Scaling"
+        />
       </div>
     </div>
   );
