@@ -57,6 +57,6 @@ fi
 cat <<'EOF'
 
 Once seats exist, dispatch from the CEO seat (see scripts/dispatch.sh):
-  orca orchestration task-create --title "..." --body "<scoped brief>"
-  orca orchestration dispatch --inject --to <seat> --task <task-id>
+  orca orchestration task-create --task-title "..." --spec "<scoped brief>"
+  orca orchestration dispatch --inject --to <seat-terminal-handle> --task <task-id>
 EOF

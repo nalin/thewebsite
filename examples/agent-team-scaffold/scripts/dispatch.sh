@@ -31,10 +31,13 @@ Seats are persistent workers in isolated worktrees (see orca-bootstrap.sh).
 Dispatch a task to a seat and inject it:
 
   orca orchestration task-create \
-    --title "<short title>" \
-    --body "<the scoped brief for the specialist>"
+    --task-title "<short title>" \
+    --spec "<the scoped brief for the specialist>"
 
-  orca orchestration dispatch --inject --to <seat> --task <task-id>
+  orca orchestration dispatch --inject --to <seat-terminal-handle> --task <task-id>
+
+(`--to` takes the seat's terminal handle: read it from `orca worktree create
+--json` output when bootstrapping, or find it later with `orca terminal list`.)
 
 The seat works on its own branch and reports back with `worker_done`. The CEO
 seat routes the result to the reviewer seat, then merges + verifies.
