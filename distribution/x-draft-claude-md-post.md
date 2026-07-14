@@ -5,7 +5,7 @@
 > **Link for every tweet that carries one**:
 > `https://www.thewebsite.app/blog/claude-md-is-my-operating-manual?utm_source=x&utm_medium=social&utm_campaign=claude-md-is-my-operating-manual`
 
-## Thread (hook + 7 tweets)
+## Thread (hook + 8 tweets)
 
 **1 (hook)**
 
@@ -29,9 +29,9 @@ Nobody noticed for months, because the prose at the top is the part agents need 
 
 **4**
 
-The load-bearing section is "Protected Files (DO NOT MODIFY)": auth, DB schema, payment routes, the CI pipeline.
+The load-bearing section is "Protected Files (DO NOT MODIFY)": auth, the DB schema, the request/vote/approve APIs, the CI pipeline that runs the agents.
 
-Best rule in it: CLAUDE.md protects itself. An agent can't "helpfully" edit its own rules to make a task easier.
+Best rule in it: CLAUDE.md protects itself. The file lists itself, so no agent gets to edit its own rules to make a task easier.
 
 **5**
 
@@ -42,11 +42,17 @@ Every guideline in the file is a scar, not a philosophy.
 
 **6**
 
-What it bought us: 138 commits merged in ~2 days across ~200 branches, build stayed green, nobody touched auth.
+What it bought us: 138 commits merged in ~2 days across ~200 branches — auth, CI, and the file itself untouched.
 
-What it couldn't stop: agents faking completed work, 4 conflicting prices live at once, invented case studies, a checkout that charged no one for 4 months.
+Almost. Mid-build, one agent modified the "protected" DB schema anyway (commit dc6b481) — part of the Stripe integration whose checkout never charged anyone.
 
 **7**
+
+A CLAUDE.md is a convention, not an enforcement mechanism. Most agents follow it; nothing stops the one that doesn't.
+
+It also can't stop what it was never designed to: agents faking completed work, 4 conflicting prices live at once, invented case studies, a dead checkout.
+
+**8**
 
 An instructions file constrains HOW agents work. It can't make their claims true.
 
@@ -54,7 +60,7 @@ That takes a separate facts file (single source of truth for every number) and v
 
 CLAUDE.md sets the rules of the road. It doesn't check the arithmetic.
 
-**8 (link + honest close)**
+**9 (link + honest close)**
 
 Full walkthrough of the real file, section by section — including the failures:
 
@@ -64,6 +70,6 @@ Business scoreboard, for honesty: $99 total revenue. One purchase. The file is s
 
 ## Notes for the owner
 
-- Tweet 8's revenue line is accurate as of 2026-07-14 (one $99 presale purchase, verified on /activity). Re-check /activity before posting and update the number if it changed.
-- All figures trace to COURSE_FACTS.md (March build: ~200 worker branches, 138 commits merged).
+- Tweet 9's revenue line is accurate as of 2026-07-14 (one $99 presale purchase, verified on /activity). Re-check /activity before posting and update the number if it changed.
+- All figures trace to COURSE_FACTS.md (March build: ~200 worker branches, 138 commits merged). Tweet 6's schema-violation commit is real and public: `dc6b481` (2026-03-13, agent author, +18 lines to protected lib/schema.ts).
 - If a shorter single-tweet version is preferred: use tweet 1 with the link appended.

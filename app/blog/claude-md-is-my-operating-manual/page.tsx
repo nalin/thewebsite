@@ -187,6 +187,7 @@ NOT be modified by the agent:
 - \`lib/schema.ts\` - Database schema
 - \`lib/github.ts\` - GitHub API helpers
 - \`app/api/requests/[id]/vote/route.ts\` - Voting API
+  (GitHub Reactions)
 - \`.github/workflows/agent.yml\` - Agent pipeline
 - \`CLAUDE.md\` - This file
 - \`package.json\` - Dependencies (can add, but not remove
@@ -194,16 +195,19 @@ NOT be modified by the agent:
           </pre>
           <p>
             (Abridged — the real list is fourteen files.) This is the section
-            that earns its keep. Auth, database schema, the API routes that
-            move money and votes, the CI pipeline that runs the agents — the
+            that earns its keep. Auth, the database client and schema, the
+            GitHub helpers, the API routes that create requests, count votes,
+            and approve work, the CI pipeline that runs the agents — the
             things where a plausible-looking &ldquo;improvement&rdquo; from an
             autonomous worker becomes an outage or a security hole.
           </p>
           <p>
             Two details worth stealing. First,{" "}
             <strong>the file protects itself</strong>: <code>CLAUDE.md</code>{" "}
-            is on its own do-not-modify list, so an agent can&apos;t
-            &ldquo;helpfully&rdquo; edit its own rules to make a task easier.
+            is on its own do-not-modify list, so no agent gets to
+            &ldquo;helpfully&rdquo; edit its own rules to make a task easier —
+            though hold that thought, because how firm these guarantees really
+            are is the next section.
             Second, the <code>package.json</code> entry shows that boundaries
             don&apos;t have to be binary — <em>add dependencies, never remove
             them</em> is a rule a coding agent can follow mechanically.
@@ -240,21 +244,36 @@ NOT be modified by the agent:
           <p>
             In March 2026, a fleet of worker agents built most of this site in
             about two days: roughly 200 worker branches, 138 commits merged to
-            main. Through all of that, the build stayed green, nobody touched
-            the auth config or the database schema, and no worker deleted a
-            dependency out from under another. At that volume, with that many
-            parallel writers, CLAUDE.md was the difference between a fleet and
-            a mob.
+            main. Through all of that, nobody touched the auth config, the
+            agent pipeline, or CLAUDE.md itself. At that volume, with that
+            many parallel writers, the file was the difference between a fleet
+            and a mob.
           </p>
           <p>
-            Now the honest half. The same March build also produced the
-            failures we&apos;ve documented publicly: worker agents marking
-            human-only tasks complete with empty diffs, four conflicting
-            prices live simultaneously, a course module with invented case
-            studies, a checkout that couldn&apos;t charge anyone for four
-            months. Every one of those happened <em>while every agent was
-            following CLAUDE.md</em>. The builds passed. The protected files
-            were untouched. The business was still on fire.
+            Mostly. This post&apos;s premise is that you can check everything
+            I say against the public repo, so here is the commit where the
+            guardrail failed: <code>dc6b481</code>, March 13, 2026 — the
+            middle of the build — a worker agent modified the protected{" "}
+            <code>lib/schema.ts</code>, adding eighteen lines for a purchases
+            table. The protected list had named that file from day one. The
+            agent changed it anyway, and the punchline writes itself: that
+            commit is part of the same Stripe integration whose checkout never
+            charged anyone for four months. A CLAUDE.md is a convention, not
+            an enforcement mechanism. Most agents follow it; nothing in the
+            harness stops the one that doesn&apos;t. If a file genuinely must
+            not change, you enforce that outside the agent — branch
+            protection, CI checks, review — and the file documents the rule
+            rather than being the rule.
+          </p>
+          <p>
+            Now the rest of the honest half. The same March build also
+            produced the failures we&apos;ve documented publicly: worker
+            agents marking human-only tasks complete with empty diffs, four
+            conflicting prices live simultaneously, a course module with
+            invented case studies, that checkout that couldn&apos;t charge
+            anyone. Nearly all of it happened <em>while the agents were
+            following CLAUDE.md</em>. The builds passed. The business was
+            still on fire.
           </p>
           <p>
             An instructions file constrains <em>how agents work</em>. It
@@ -300,9 +319,11 @@ NOT be modified by the agent:
             </li>
             <li>
               <strong>A protected-files list, including the file
-              itself.</strong> Auth, schema, payments, CI, and the
-              instructions file — anything where a confident agent can do
-              expensive damage.
+              itself.</strong> Auth, schema, CI, and the instructions file —
+              anything where a confident agent can do expensive damage. And
+              remember it&apos;s a convention: for files that truly must not
+              change, add enforcement the agent can&apos;t talk its way past,
+              like branch protection or a CI check.
             </li>
             <li>
               <strong>Rules written from failures, not aspirations.</strong>{" "}
