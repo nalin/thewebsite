@@ -699,8 +699,23 @@ const ratelimit = new Ratelimit({
   analytics: true,  // Track usage in Upstash console
 });
 
+// Identify the caller for the rate-limit key. Prefer the platform-set
+// x-real-ip; otherwise take the RIGHTMOST x-forwarded-for entry (the hop
+// your proxy appended). Never the leftmost — a client can prepend a fake
+// IP there to forge a new identity and dodge the limit on every request.
+function clientIp(req: Request): string {
+  const realIp = req.headers.get("x-real-ip")?.trim();
+  if (realIp) return realIp;
+  const xff = req.headers.get("x-forwarded-for");
+  if (xff) {
+    const parts = xff.split(",");
+    return parts[parts.length - 1].trim();  // rightmost, not leftmost
+  }
+  return "anonymous";
+}
+
 export async function POST(req: Request) {
-  const ip = req.headers.get("x-forwarded-for") ?? "anonymous";
+  const ip = clientIp(req);
   const { success, limit, remaining, reset } = await ratelimit.limit(ip);
 
   if (!success) {
@@ -720,6 +735,18 @@ export async function POST(req: Request) {
   // ... handle request
 }`}
             </code></pre></div>
+            <p className="text-gray-700 leading-relaxed mt-3 text-sm">
+              One subtlety worth calling out: the rate-limit key is only as
+              trustworthy as the header it comes from. <code className="bg-neutral-100 text-neutral-800 px-1.5 py-0.5 rounded text-sm">x-forwarded-for</code>{" "}
+              is a comma-separated list, and the <em>leftmost</em> entry is
+              whatever the client sent — trivially spoofable, so keying on it
+              lets an attacker mint a fresh identity per request and walk right
+              past your limit. Prefer the platform-set{" "}
+              <code className="bg-neutral-100 text-neutral-800 px-1.5 py-0.5 rounded text-sm">x-real-ip</code>, and when you must fall back to
+              <code className="bg-neutral-100 text-neutral-800 px-1.5 py-0.5 rounded text-sm"> x-forwarded-for</code> use the rightmost hop your own proxy
+              appended. (We shipped the leftmost version in our own code first —
+              it's a genuinely easy mistake to make.)
+            </p>
           </div>
 
           {/* Section 7: Safe Rollouts */}
