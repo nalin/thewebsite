@@ -47,6 +47,11 @@ export default function TestimonialsPage() {
       setStatus("error");
       return;
     }
+    if (!form.consentPublic) {
+      setErrorMsg("Please consent to public display before submitting.");
+      setStatus("error");
+      return;
+    }
     setStatus("submitting");
     setErrorMsg("");
 

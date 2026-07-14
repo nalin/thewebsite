@@ -146,5 +146,57 @@ describe('Waitlist API', () => {
       expect(response.status).toBe(307);
       expect(response.headers.get('location')).toContain('success=joined');
     });
+
+    it('redirects to a same-origin `next` path so the page shows its own success state', async () => {
+      const formData = new FormData();
+      formData.append('email', 'lead@example.com');
+      formData.append('next', '/free-guide');
+
+      const request = new NextRequest('http://localhost:3000/api/waitlist', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const response = await POST(request);
+      const location = response.headers.get('location') ?? '';
+
+      expect(response.status).toBe(307);
+      expect(location).toContain('/free-guide?success=joined');
+    });
+
+    it('blocks open-redirect: a protocol-relative `next` falls back to the homepage', async () => {
+      const formData = new FormData();
+      formData.append('email', 'lead@example.com');
+      formData.append('next', '//evil.com');
+
+      const request = new NextRequest('http://localhost:3000/api/waitlist', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const response = await POST(request);
+      const location = response.headers.get('location') ?? '';
+
+      expect(response.status).toBe(307);
+      expect(location).not.toContain('evil.com');
+      expect(location).toBe('http://localhost:3000/?success=joined');
+    });
+
+    it('carries a same-origin `next` through to the error redirect too', async () => {
+      const formData = new FormData();
+      formData.append('email', 'not-an-email');
+      formData.append('next', '/starter-kit');
+
+      const request = new NextRequest('http://localhost:3000/api/waitlist', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const response = await POST(request);
+      const location = response.headers.get('location') ?? '';
+
+      expect(response.status).toBe(307);
+      expect(location).toContain('/starter-kit?error=invalid_email');
+    });
   });
 });

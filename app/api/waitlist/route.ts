@@ -4,13 +4,25 @@ import { sql } from "drizzle-orm";
 import { addEmailSubscriber, sendWelcomeEmail } from "@/lib/nurture-emails";
 import { trackReferral } from "@/lib/referrals";
 
+// Open-redirect guard: only accept a same-origin, relative path (a single
+// leading "/", no protocol-relative "//", no scheme, no query). Anything else
+// (including "//evil.com") falls back to the homepage. Lead-magnet pages pass
+// their own path here so they can show their own success state.
+function sanitizeReturnPath(value: FormDataEntryValue | null): string | null {
+  if (typeof value !== "string") return null;
+  return /^\/[A-Za-z0-9/_-]*$/.test(value) ? value : null;
+}
+
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
     const email = formData.get("email") as string;
+    const returnPath = sanitizeReturnPath(formData.get("next"));
+    const dest = (status: string) =>
+      `${returnPath ?? "/"}?${status}`;
 
     if (!email || !email.includes("@")) {
-      return NextResponse.redirect(new URL("/?error=invalid_email", request.url));
+      return NextResponse.redirect(new URL(dest("error=invalid_email"), request.url));
     }
 
     // Create waitlist table if it doesn't exist
@@ -61,9 +73,10 @@ export async function POST(request: NextRequest) {
       console.error("Email subscriber error:", err);
     }
 
-    // Redirect to success page; clear ref_code cookie on the way out
+    // Redirect to the success state (the lead-magnet page's own, if it passed a
+    // same-origin `next`; otherwise the homepage). Clear ref_code on the way out.
     const successResponse = NextResponse.redirect(
-      new URL("/?success=joined", request.url)
+      new URL(dest("success=joined"), request.url)
     );
     successResponse.cookies.set("ref_code", "", { maxAge: 0, path: "/" });
     return successResponse;
