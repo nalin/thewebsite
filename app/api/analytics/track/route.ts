@@ -48,18 +48,26 @@ const rateHits = new Map<string, { count: number; resetAt: number }>();
 // Hard ceiling on distinct tracked keys. The expired-sweep alone can't bound a
 // flood of unique keys within one window (none are expired yet), so past this
 // size we also evict the oldest-inserted entries — memory stays bounded.
-const MAX_TRACKED_KEYS = 10_000;
+export const MAX_TRACKED_KEYS = 10_000;
 export function isRateLimited(key: string): boolean {
   const now = Date.now();
   const entry = rateHits.get(key);
   if (!entry || now > entry.resetAt) {
     rateHits.set(key, { count: 1, resetAt: now + RATE_WINDOW_MS });
     if (rateHits.size > MAX_TRACKED_KEYS) {
-      // 1) drop expired entries
-      for (const [k, v] of rateHits) if (now > v.resetAt) rateHits.delete(k);
-      // 2) if still over the ceiling (a live flood of unique keys), evict the
-      //    oldest-inserted entries until back under the cap. Map preserves
-      //    insertion order and deleting during iteration is safe.
+      // Perf: entries share one fixed window, so the oldest-inserted entry is
+      // the earliest to expire. If it's still fresh, no entry is expired —
+      // skip the O(n) expired-sweep and go straight to eviction. This is the
+      // common case under a sustained unique-key flood. (A key refreshed
+      // in-place can sit older-in-order with a later expiry; then we simply
+      // evict it as "oldest", which still bounds memory.)
+      const oldest = rateHits.values().next().value;
+      if (oldest && now > oldest.resetAt) {
+        for (const [k, v] of rateHits) if (now > v.resetAt) rateHits.delete(k);
+      }
+      // If still over the ceiling (a live flood of unique keys), evict the
+      // oldest-inserted entries until back under the cap. Map preserves
+      // insertion order and deleting during iteration is safe.
       if (rateHits.size > MAX_TRACKED_KEYS) {
         let toEvict = rateHits.size - MAX_TRACKED_KEYS;
         for (const k of rateHits.keys()) {
@@ -72,6 +80,12 @@ export function isRateLimited(key: string): boolean {
   }
   entry.count += 1;
   return entry.count > RATE_MAX;
+}
+
+// Test-only: clear the module-level rate-limit map so tests don't leak state
+// into one another.
+export function resetRateLimiterForTest(): void {
+  rateHits.clear();
 }
 
 // Same-origin guard: real page-view beacons carry an Origin (POST) or a
@@ -105,10 +119,17 @@ function isSameOrigin(request: NextRequest): boolean {
   );
 }
 
-// The trustworthy client IP on Vercel is the platform-set x-real-ip, or the
-// RIGHTMOST x-forwarded-for entry (the platform appends the real client IP;
-// leftmost entries are client-controlled and spoofable). Using the rightmost
-// value stops an attacker rotating fake leftmost IPs to evade the cap.
+// Client IP for rate-limit keying. On Vercel, x-real-ip is the platform-set
+// client IP and is the primary, trustworthy source. The x-forwarded-for
+// fallback takes the RIGHTMOST entry — but note WHY: on Vercel, XFF is
+// effectively single-valued (the platform overwrites it and drops any
+// client-supplied value), so leftmost vs rightmost is moot there; there is no
+// "attacker rotating fake leftmost IPs" vector on Vercel. Rightmost is the
+// correct choice only on a stack that APPENDS the real client IP to a
+// client-supplied XFF via a trusted proxy. Do NOT over-trust XFF as
+// unspoofable: without such a proxy it is fully client-controlled, and under a
+// Vercel Enterprise trusted-proxy config XFF can carry multiple hops where the
+// rightmost is your proxy, not the true client — revisit this if that's enabled.
 export function clientIp(
   xForwardedFor: string | null,
   xRealIp: string | null
