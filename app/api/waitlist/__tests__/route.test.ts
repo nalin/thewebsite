@@ -182,6 +182,29 @@ describe('Waitlist API', () => {
       expect(location).toBe('http://localhost:3000/?success=joined');
     });
 
+    it('blocks a dot-less protocol-relative `next` (//evil resolves off-origin)', async () => {
+      // Regression for the PR #109 review: "//evil" contains no dot, so it slips
+      // past a char-class regex but new URL("//evil", origin) -> http://evil/.
+      for (const evil of ['//evil', '///evil', '//evil/path']) {
+        const formData = new FormData();
+        formData.append('email', 'lead@example.com');
+        formData.append('next', evil);
+
+        const request = new NextRequest('http://localhost:3000/api/waitlist', {
+          method: 'POST',
+          body: formData,
+        });
+
+        const response = await POST(request);
+        const location = response.headers.get('location') ?? '';
+
+        expect(response.status).toBe(307);
+        // Must stay on our origin, never resolve to http://evil/...
+        expect(new URL(location).host).toBe('localhost:3000');
+        expect(location).toBe('http://localhost:3000/?success=joined');
+      }
+    });
+
     it('carries a same-origin `next` through to the error redirect too', async () => {
       const formData = new FormData();
       formData.append('email', 'not-an-email');

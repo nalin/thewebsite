@@ -10,7 +10,10 @@ import { trackReferral } from "@/lib/referrals";
 // their own path here so they can show their own success state.
 function sanitizeReturnPath(value: FormDataEntryValue | null): string | null {
   if (typeof value !== "string") return null;
-  return /^\/[A-Za-z0-9/_-]*$/.test(value) ? value : null;
+  // The (?!\/) lookahead rejects ANY protocol-relative value ("//evil",
+  // "///evil", "//evil/path"), which new URL() would resolve to an off-origin
+  // host — not just the dotted "//evil.com" case.
+  return /^\/(?!\/)[A-Za-z0-9/_-]*$/.test(value) ? value : null;
 }
 
 export async function POST(request: NextRequest) {
