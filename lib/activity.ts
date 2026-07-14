@@ -170,7 +170,7 @@ export async function getPublicStats(): Promise<PublicStats> {
       sql`SELECT COUNT(DISTINCT email) as count FROM funnel_events WHERE event = 'confirm'`
     ),
     count(
-      sql`SELECT COALESCE(SUM(amount_cents), 0) as count FROM purchases WHERE status = 'completed'`
+      sql`SELECT COALESCE(SUM(amount_cents), 0) as count FROM pack_purchases WHERE status = 'completed'`
     ),
   ]);
 

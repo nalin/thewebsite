@@ -37,7 +37,12 @@ async function verifySession(
         : session.payment_intent?.id ?? null;
 
     // Belt and braces alongside the webhook; idempotent.
-    await markPurchaseCompleted(session.id, paymentIntentId, email);
+    await markPurchaseCompleted(
+      session.id,
+      paymentIntentId,
+      email,
+      session.amount_total
+    );
 
     return {
       email,
