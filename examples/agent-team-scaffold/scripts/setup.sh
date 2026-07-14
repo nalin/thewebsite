@@ -26,11 +26,13 @@ fi
 echo "Installing agent-team scaffold into: $DEST"
 
 # Don't clobber existing files (e.g. briefs the buyer customized) without --force.
+COLLISIONS=0
 install_file() {
   local src="$1" rel="$2"
   if [[ -d "$DEST/$rel" ]]; then
     echo "  ! $rel exists as a DIRECTORY in the destination — skipped." >&2
     echo "    Move it aside and re-run to install this file." >&2
+    COLLISIONS=$((COLLISIONS + 1))
   elif [[ -e "$DEST/$rel" && "$FORCE" != "--force" ]]; then
     echo "  • $rel already exists — skipped (pass --force to overwrite)"
   else
@@ -39,20 +41,26 @@ install_file() {
   fi
 }
 
+# Install every .md file under one source dir; say so if there are none
+# (nullglob makes an empty dir skip the loop instead of passing a literal
+# glob to cp — restored right after the loops).
+install_dir() {
+  local rel="$1" f found=0
+  for f in "$HERE/$rel"/*.md; do
+    found=1
+    install_file "$f" "$rel/$(basename "$f")"
+  done
+  if [[ "$found" == 0 ]]; then
+    echo "  (source $rel/ contains no .md files — nothing to install from it)"
+  fi
+}
+
 # 1) Team definition — 6 specialist subagents, CEO brief, docs.
-# nullglob so an empty source dir skips its loop instead of passing a literal
-# glob to cp; restored right after the loops.
 mkdir -p "$DEST/.claude/agents" "$DEST/roles" "$DEST/docs"
 shopt -s nullglob
-for f in "$HERE"/.claude/agents/*.md; do
-  install_file "$f" ".claude/agents/$(basename "$f")"
-done
-for f in "$HERE"/roles/*.md; do
-  install_file "$f" "roles/$(basename "$f")"
-done
-for f in "$HERE"/docs/*.md; do
-  install_file "$f" "docs/$(basename "$f")"
-done
+install_dir .claude/agents
+install_dir roles
+install_dir docs
 shopt -u nullglob
 
 # 2) Operating docs — same rule.
@@ -81,3 +89,8 @@ Done. Next:
 To try the full loop with zero setup, run the bundled sample first:
   cd sample-task && cat README.md
 EOF
+
+if [[ "$COLLISIONS" -gt 0 ]]; then
+  echo "WARNING: $COLLISIONS file(s) NOT installed — a directory sits where each should go (see '!' lines above). Move them aside and re-run." >&2
+  exit 1
+fi
