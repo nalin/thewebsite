@@ -1,6 +1,14 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { NextRequest } from 'next/server';
-import { POST, validateTestimonialSubmission } from '../route';
+import {
+  POST,
+  validateTestimonialSubmission,
+  sameOriginAllowed,
+  isRateLimited,
+  clientIp,
+  RATE_MAX,
+  RATE_WINDOW_MS,
+} from '../route';
 
 // The route also touches the DB on the (untestable-in-unit) same-origin-pass
 // path; mock it so importing the module doesn't try to open a connection.
@@ -79,5 +87,55 @@ describe('POST /api/testimonials same-origin gate', () => {
     });
     const res = await POST(req);
     expect(res.status).toBe(403);
+  });
+});
+
+// --- Reusable request guards (same-origin, client IP, rate limit) ---
+describe('testimonials request guards', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  describe('sameOriginAllowed', () => {
+    it('accepts a matching same-origin request', () => {
+      expect(sameOriginAllowed('site.com', 'https://site.com', null)).toBe(true);
+    });
+    it('accepts via Referer when Origin is absent', () => {
+      expect(sameOriginAllowed('site.com', null, 'https://site.com/x')).toBe(true);
+    });
+    it('rejects when neither Origin nor Referer is present', () => {
+      expect(sameOriginAllowed('site.com', null, null)).toBe(false);
+    });
+    it('rejects a cross-origin request', () => {
+      expect(sameOriginAllowed('site.com', 'https://evil.com', null)).toBe(false);
+    });
+  });
+
+  describe('clientIp', () => {
+    it('prefers the platform x-real-ip header', () => {
+      expect(clientIp('1.1.1.1, 2.2.2.2', '9.9.9.9')).toBe('9.9.9.9');
+    });
+    it('uses the RIGHTMOST x-forwarded-for entry (defeats leftmost spoofing)', () => {
+      expect(clientIp('fake1, fake2, 203.0.113.7', null)).toBe('203.0.113.7');
+    });
+    it('falls back to "unknown" with no IP headers', () => {
+      expect(clientIp(null, null)).toBe('unknown');
+    });
+  });
+
+  describe('isRateLimited', () => {
+    it('allows up to RATE_MAX and blocks the (N+1)th within a window', () => {
+      const key = 'testi-under-threshold';
+      for (let i = 0; i < RATE_MAX; i++) expect(isRateLimited(key)).toBe(false);
+      expect(isRateLimited(key)).toBe(true);
+    });
+    it('resets after the window elapses', () => {
+      vi.useFakeTimers();
+      const key = 'testi-reset-window';
+      for (let i = 0; i < RATE_MAX; i++) isRateLimited(key);
+      expect(isRateLimited(key)).toBe(true);
+      vi.advanceTimersByTime(RATE_WINDOW_MS + 1);
+      expect(isRateLimited(key)).toBe(false);
+    });
   });
 });

@@ -13,21 +13,53 @@ import { getSession } from "@/lib/session";
 // matches Host); scripted spam POSTs don't. The limit is per server instance —
 // not a hard cross-instance guarantee, but it blunts submission floods with no
 // dependency.
-const RATE_MAX = 10; // submissions per window per IP
-const RATE_WINDOW_MS = 10 * 60 * 1000; // 10 minutes
+export const RATE_MAX = 10; // submissions per window per IP
+export const RATE_WINDOW_MS = 10 * 60 * 1000; // 10 minutes
 const rateHits = new Map<string, { count: number; resetAt: number }>();
-function isRateLimited(key: string): boolean {
+// Hard ceiling on distinct tracked keys. The expired-sweep alone can't bound a
+// flood of unique keys within one window (none are expired yet), so past this
+// size we also evict the oldest-inserted entries — memory stays bounded.
+const MAX_TRACKED_KEYS = 10_000;
+export function isRateLimited(key: string): boolean {
   const now = Date.now();
   const entry = rateHits.get(key);
   if (!entry || now > entry.resetAt) {
     rateHits.set(key, { count: 1, resetAt: now + RATE_WINDOW_MS });
-    if (rateHits.size > 5000) {
+    if (rateHits.size > MAX_TRACKED_KEYS) {
+      // 1) drop expired entries
       for (const [k, v] of rateHits) if (now > v.resetAt) rateHits.delete(k);
+      // 2) if still over the ceiling (a live flood of unique keys), evict the
+      //    oldest-inserted entries until back under the cap. Map preserves
+      //    insertion order and deleting during iteration is safe.
+      if (rateHits.size > MAX_TRACKED_KEYS) {
+        let toEvict = rateHits.size - MAX_TRACKED_KEYS;
+        for (const k of rateHits.keys()) {
+          rateHits.delete(k);
+          if (--toEvict <= 0) break;
+        }
+      }
     }
     return false;
   }
   entry.count += 1;
   return entry.count > RATE_MAX;
+}
+
+// The trustworthy client IP on Vercel is the platform-set x-real-ip, or the
+// RIGHTMOST x-forwarded-for entry (the platform appends the real client IP;
+// leftmost entries are client-controlled and spoofable). Using the rightmost
+// value stops an attacker rotating fake leftmost IPs to evade the cap.
+export function clientIp(
+  xForwardedFor: string | null,
+  xRealIp: string | null
+): string {
+  if (xRealIp && xRealIp.trim()) return xRealIp.trim();
+  if (xForwardedFor) {
+    const parts = xForwardedFor.split(",");
+    const rightmost = parts[parts.length - 1]?.trim();
+    if (rightmost) return rightmost;
+  }
+  return "unknown";
 }
 
 export interface TestimonialValues {
@@ -100,14 +132,16 @@ export function validateTestimonialSubmission(
   };
 }
 
-function isSameOrigin(request: NextRequest): boolean {
-  // Prefer the Host header (the public host in production); fall back to the
-  // request URL's host (the Host header is a forbidden header the platform
-  // sets, and it's absent on synthetic requests).
-  const host = request.headers.get("host") || request.nextUrl.host;
+// Pure (header values in) so it can be unit-tested — the browser-set
+// Origin/Host headers can't be forged by a script, which is also why they
+// can't be injected into a synthetic test request.
+export function sameOriginAllowed(
+  host: string | null,
+  origin: string | null,
+  referer: string | null
+): boolean {
   if (!host) return false;
-  for (const header of ["origin", "referer"] as const) {
-    const value = request.headers.get(header);
+  for (const value of [origin, referer]) {
     if (!value) continue;
     try {
       if (new URL(value).host === host) return true;
@@ -116,6 +150,17 @@ function isSameOrigin(request: NextRequest): boolean {
     }
   }
   return false;
+}
+
+function isSameOrigin(request: NextRequest): boolean {
+  // Prefer the Host header (the public host in production); fall back to the
+  // request URL's host (the Host header is a forbidden header the platform
+  // sets, and it's absent on synthetic requests).
+  return sameOriginAllowed(
+    request.headers.get("host") || request.nextUrl.host,
+    request.headers.get("origin"),
+    request.headers.get("referer")
+  );
 }
 
 // GET /api/testimonials?featured=true
@@ -156,9 +201,10 @@ export async function POST(request: NextRequest) {
     if (!isSameOrigin(request)) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
-    const ip =
-      request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-      "unknown";
+    const ip = clientIp(
+      request.headers.get("x-forwarded-for"),
+      request.headers.get("x-real-ip")
+    );
     if (isRateLimited(ip)) {
       return NextResponse.json(
         { error: "Too many submissions. Please try again later." },
