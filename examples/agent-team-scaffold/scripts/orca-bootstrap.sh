@@ -2,7 +2,7 @@
 # orca-bootstrap.sh — (Level 3) recreate the 7-seat parallel fleet in Orca.
 #
 # Prerequisites:
-#   - Orca installed (https://www.onorca.dev — free, MIT; desktop app, macOS)
+#   - Orca installed (https://www.onorca.dev — free, MIT; desktop, macOS + Linux)
 #   - Claude Code installed and authenticated
 #   - Run from the root of the repo you want the fleet to work on
 #
