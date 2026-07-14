@@ -1,0 +1,9 @@
+{
+  "name": "agent-team-sample-task",
+  "version": "1.0.0",
+  "private": true,
+  "description": "First-run sample: a failing test for the engineer subagent to fix and the code-reviewer subagent to approve.",
+  "scripts": {
+    "test": "node --test"
+  }
+}
