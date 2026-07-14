@@ -103,6 +103,7 @@ export default async function StarterKitPage({
             </div>
           )}
           <form action="/api/waitlist" method="POST" className="flex gap-2">
+            <input type="hidden" name="next" value="/starter-kit" />
             <input
               type="email"
               name="email"
@@ -214,6 +215,7 @@ export default async function StarterKitPage({
         <p className="text-neutral-400 mb-8">Free. In your inbox immediately.</p>
         <div className="max-w-md mx-auto">
           <form action="/api/waitlist" method="POST" className="flex gap-2">
+            <input type="hidden" name="next" value="/starter-kit" />
             <input
               type="email"
               name="email"

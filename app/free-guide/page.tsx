@@ -161,6 +161,7 @@ export default function FreeGuidePage({
                 </div>
               )}
               <form action="/api/waitlist" method="POST" className="flex gap-2">
+                <input type="hidden" name="next" value="/free-guide" />
                 <input
                   type="email"
                   name="email"
@@ -369,6 +370,7 @@ export default function FreeGuidePage({
 
           <div className="max-w-md mx-auto mb-8">
             <form action="/api/waitlist" method="POST" className="flex gap-2">
+              <input type="hidden" name="next" value="/free-guide" />
               <input
                 type="email"
                 name="email"
