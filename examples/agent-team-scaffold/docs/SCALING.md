@@ -53,6 +53,7 @@ many isolated worktree seats. **What stays the same:** the briefs, the review
 gates, the operating rules, the definition of done. That constancy is the whole
 design: you scale the runtime, not the team.
 
-> Note: Orca is a desktop app (currently macOS). The native path (Levels 0–2) is
+> Note: Orca is a desktop app (macOS + Linux), with free mobile companion apps.
+> The native path (Levels 0–2) is
 > cross-platform and needs only Claude Code + an API key, so nothing blocks you
 > from starting today and graduating to the fleet later.
