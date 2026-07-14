@@ -7,15 +7,16 @@ export const metadata = {
 };
 
 const MODULE_NAMES: Record<number, string> = {
-  1: "AI Agent Architecture",
-  2: "Building Your First Agent",
+  1: "Automation vs. Autonomy",
+  2: "Setting Up Your Agent Environment",
   3: "Autonomous Decision Making",
-  4: "Integrating with Real Tools",
-  5: "Case Study: The Website",
+  4: "Integrating AI Agents with Real Tools",
+  5: "Case Study — The Website: What Actually Happened",
   6: "Building Multi-Agent Teams",
-  7: "Production Best Practices",
+  7: "Production AI Agent Best Practices",
   8: "Deployment & Scaling",
   9: "Building Your First AI Agent Business",
+  10: "Case Studies & Real-World Examples",
 };
 
 function formatSeconds(seconds: number): string {
@@ -104,7 +105,7 @@ export default async function AdminPage() {
             </div>
           ) : (
             <div className="space-y-3">
-              {Array.from({ length: 9 }, (_, i) => i + 1).map((moduleId) => {
+              {Array.from({ length: 10 }, (_, i) => i + 1).map((moduleId) => {
                 const stat = analytics.moduleStats.find((m) => Number(m.module_id) === moduleId);
                 const students = stat ? Number(stat.unique_students) : 0;
                 const avgTime = stat ? Number(stat.avg_time_spent) : 0;
@@ -179,7 +180,7 @@ export default async function AdminPage() {
                 Percentage of students who continue from one module to the next.
               </p>
               <div className="space-y-2">
-                {Array.from({ length: 8 }, (_, i) => {
+                {Array.from({ length: 9 }, (_, i) => {
                   const fromMod = i + 1;
                   const toMod = i + 2;
                   const fromStat = analytics.moduleStats.find(

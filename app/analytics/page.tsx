@@ -73,9 +73,9 @@ async function getAnalyticsData() {
     safeQuery("SELECT COUNT(*) as count FROM email_subscribers WHERE welcome_sent_at IS NOT NULL"),
     safeQuery("SELECT COUNT(*) as count FROM email_subscribers WHERE day3_sent_at IS NOT NULL"),
     safeQuery("SELECT COUNT(*) as count FROM email_subscribers WHERE day7_sent_at IS NOT NULL"),
-    safeQuery("SELECT COALESCE(SUM(amount_cents), 0) as total, COUNT(*) as count FROM purchases WHERE status = 'completed'"),
-    safeQuery("SELECT COALESCE(SUM(amount_cents), 0) as total, COUNT(*) as count FROM purchases WHERE status = 'completed' AND date(completed_at) = date('now')"),
-    safeQuery("SELECT COALESCE(SUM(amount_cents), 0) as total, COUNT(*) as count FROM purchases WHERE status = 'completed' AND completed_at >= datetime('now', '-7 days')"),
+    safeQuery("SELECT COALESCE(SUM(amount_cents), 0) as total, COUNT(*) as count FROM pack_purchases WHERE status = 'completed'"),
+    safeQuery("SELECT COALESCE(SUM(amount_cents), 0) as total, COUNT(*) as count FROM pack_purchases WHERE status = 'completed' AND date(completed_at) = date('now')"),
+    safeQuery("SELECT COALESCE(SUM(amount_cents), 0) as total, COUNT(*) as count FROM pack_purchases WHERE status = 'completed' AND completed_at >= datetime('now', '-7 days')"),
     safeQuery("SELECT COUNT(*) as count FROM page_views"),
     safeQuery("SELECT COUNT(*) as count FROM page_views WHERE date(created_at) = date('now')"),
     safeQuery("SELECT COUNT(*) as count FROM page_views WHERE created_at >= datetime('now', '-7 days')"),
@@ -456,12 +456,14 @@ export default async function AnalyticsPage() {
                   </div>
                 </div>
                 <div>
-                  <div className="text-xs text-neutral-600 mb-1">Goal: $80,000/mo</div>
-                  <div className="w-full bg-neutral-800 rounded-full h-2">
-                    <div
-                      className="bg-green-600 h-2 rounded-full"
-                      style={{ width: `${Math.min(100, (data.revenue.weekCents / 4 / 8000000) * 100)}%` }}
-                    />
+                  <div className="text-xs text-neutral-600 mb-1">
+                    Projected monthly run-rate (last 7 days &times; 4.3)
+                  </div>
+                  <div className="text-lg font-bold text-white">
+                    {fmt$(Math.round((data.revenue.weekCents * 52) / 12))}
+                  </div>
+                  <div className="text-xs text-neutral-600">
+                    Extrapolated from recent revenue — not a target.
                   </div>
                 </div>
               </div>

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 
-const TOTAL_MODULES = 8;
+const TOTAL_MODULES = 10;
 const ALL_MODULE_IDS = Array.from({ length: TOTAL_MODULES }, (_, i) => i + 1);
 
 export async function POST(req: NextRequest) {
