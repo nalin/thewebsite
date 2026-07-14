@@ -40,6 +40,7 @@ function completedSessionEvent() {
         payment_intent: 'pi_test_123',
         customer_email: null,
         customer_details: { email: 'buyer@example.com' },
+        amount_total: 9900,
         payment_status: 'paid',
       },
     },
@@ -64,7 +65,8 @@ describe('Stripe webhook (pack presale)', () => {
     expect(markPurchaseCompleted).toHaveBeenCalledWith(
       'cs_test_abc123',
       'pi_test_123',
-      'buyer@example.com'
+      'buyer@example.com',
+      9900
     );
   });
 

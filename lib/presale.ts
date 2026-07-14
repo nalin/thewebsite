@@ -22,6 +22,7 @@ export interface PackPurchase {
   stripe_payment_intent_id: string | null;
   email: string | null;
   status: PackPurchaseStatus;
+  amount_cents: number | null;
   created_at: string;
   completed_at: string | null;
 }
@@ -40,10 +41,19 @@ async function ensureTable() {
       stripe_payment_intent_id TEXT,
       email TEXT,
       status TEXT NOT NULL DEFAULT 'pending',
+      amount_cents INTEGER,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       completed_at DATETIME
     )
   `);
+  // Existing prod tables predate amount_cents; add it if missing. SQLite
+  // throws if the column already exists — expected on every run after the
+  // first, so swallow it.
+  try {
+    await db.run(sql`ALTER TABLE pack_purchases ADD COLUMN amount_cents INTEGER`);
+  } catch {
+    // Column already present.
+  }
 }
 
 type RawRows = { rows?: Array<Record<string, unknown>> };
@@ -57,6 +67,7 @@ function mapRow(row: Record<string, unknown>): PackPurchase {
       : null,
     email: row.email ? String(row.email) : null,
     status: String(row.status) as PackPurchaseStatus,
+    amount_cents: row.amount_cents != null ? Number(row.amount_cents) : null,
     created_at: String(row.created_at),
     completed_at: row.completed_at ? String(row.completed_at) : null,
   };
@@ -80,7 +91,8 @@ export async function createPendingPurchase(
 export async function markPurchaseCompleted(
   sessionId: string,
   paymentIntentId: string | null,
-  email: string | null
+  email: string | null,
+  amountCents: number | null
 ): Promise<void> {
   await ensureTable();
   const normalizedEmail = email?.toLowerCase().slice(0, 254) ?? null;
@@ -89,6 +101,7 @@ export async function markPurchaseCompleted(
     SET status = 'completed',
         stripe_payment_intent_id = COALESCE(${paymentIntentId}, stripe_payment_intent_id),
         email = COALESCE(${normalizedEmail}, email),
+        amount_cents = COALESCE(${amountCents}, amount_cents),
         completed_at = COALESCE(completed_at, CURRENT_TIMESTAMP)
     WHERE stripe_session_id = ${sessionId} AND status != 'refunded'
   `);
@@ -97,9 +110,9 @@ export async function markPurchaseCompleted(
   if (updated === 0) {
     await db.run(sql`
       INSERT INTO pack_purchases
-        (stripe_session_id, stripe_payment_intent_id, email, status, completed_at)
+        (stripe_session_id, stripe_payment_intent_id, email, status, amount_cents, completed_at)
       VALUES
-        (${sessionId}, ${paymentIntentId}, ${normalizedEmail}, 'completed', CURRENT_TIMESTAMP)
+        (${sessionId}, ${paymentIntentId}, ${normalizedEmail}, 'completed', ${amountCents}, CURRENT_TIMESTAMP)
       ON CONFLICT(stripe_session_id) DO NOTHING
     `);
   }
@@ -125,7 +138,7 @@ export async function getPurchaseBySession(
   await ensureTable();
   const result = await db.run(sql`
     SELECT id, stripe_session_id, stripe_payment_intent_id, email, status,
-           created_at, completed_at
+           amount_cents, created_at, completed_at
     FROM pack_purchases
     WHERE stripe_session_id = ${sessionId}
     LIMIT 1

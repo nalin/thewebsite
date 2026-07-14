@@ -48,7 +48,12 @@ export async function POST(req: Request) {
           ? session.payment_intent
           : session.payment_intent?.id ?? null;
 
-      await markPurchaseCompleted(session.id, paymentIntentId, email);
+      await markPurchaseCompleted(
+        session.id,
+        paymentIntentId,
+        email,
+        session.amount_total
+      );
       console.log(`[WEBHOOK] pack purchase completed: ${session.id}`);
       break;
     }
