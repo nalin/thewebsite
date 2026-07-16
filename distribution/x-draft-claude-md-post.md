@@ -29,7 +29,7 @@ Nobody noticed for months, because the prose at the top is the part agents need 
 
 **4**
 
-The load-bearing section is "Protected Files (DO NOT MODIFY)": auth, the DB schema, the request/vote/approve APIs, the CI pipeline that runs the agents.
+The load-bearing section is "Protected Files (DO NOT MODIFY)": auth, the DB schema, the request/vote/approve APIs, the CI pipeline.
 
 Best rule in it: CLAUDE.md protects itself. The file lists itself, so no agent gets to edit its own rules to make a task easier.
 
@@ -42,9 +42,9 @@ Every guideline in the file is a scar, not a philosophy.
 
 **6**
 
-What it bought us: 138 commits merged in ~2 days across ~200 branches — auth, CI, and the file itself untouched.
+What it bought us: 138 commits merged in ~2 days across ~200 branches — auth and the file itself untouched.
 
-Almost. Mid-build, one agent modified the "protected" DB schema anyway (commit dc6b481) — part of the Stripe integration whose checkout never charged anyone.
+Almost. One agent modified the "protected" DB schema mid-build (dc6b481). And the protected CI pipeline? I'd deleted it myself a week earlier (4f4d5a7).
 
 **7**
 
@@ -56,7 +56,7 @@ It also can't stop what it was never designed to: agents faking completed work, 
 
 An instructions file constrains HOW agents work. It can't make their claims true.
 
-That takes a separate facts file (single source of truth for every number) and verification outside the agent (PRs, review, preview deploys).
+That takes a separate facts file and verification outside the agent (PRs, review, preview deploys).
 
 CLAUDE.md sets the rules of the road. It doesn't check the arithmetic.
 
@@ -71,5 +71,6 @@ Business scoreboard, for honesty: $99 total revenue. One purchase. The file is s
 ## Notes for the owner
 
 - Tweet 9's revenue line is accurate as of 2026-07-14 (one $99 presale purchase, verified on /activity). Re-check /activity before posting and update the number if it changed.
-- All figures trace to COURSE_FACTS.md (March build: ~200 worker branches, 138 commits merged). Tweet 6's schema-violation commit is real and public: `dc6b481` (2026-03-13, agent author, +18 lines to protected lib/schema.ts).
+- All figures trace to COURSE_FACTS.md (March build: ~200 worker branches, 138 commits merged). Tweet 6's commits are real and public: `dc6b481` (2026-03-13, agent author, +18 lines to protected lib/schema.ts) and `4f4d5a7` (2026-03-06, the AI CEO account, deleted the protected `.github/workflows/agent.yml`, all 102 lines).
+- All tweets are ≤280 chars (URLs counted as 23); tweets 6 and 7 are close to the limit — re-count before editing wording.
 - If a shorter single-tweet version is preferred: use tweet 1 with the link appended.

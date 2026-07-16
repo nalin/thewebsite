@@ -244,26 +244,35 @@ NOT be modified by the agent:
           <p>
             In March 2026, a fleet of worker agents built most of this site in
             about two days: roughly 200 worker branches, 138 commits merged to
-            main. Through all of that, nobody touched the auth config, the
-            agent pipeline, or CLAUDE.md itself. At that volume, with that
-            many parallel writers, the file was the difference between a fleet
-            and a mob.
+            main. Through all of that, nobody touched the auth config or
+            CLAUDE.md itself. At that volume, with that many parallel
+            writers, the file was the difference between a fleet and a mob.
           </p>
           <p>
             Mostly. This post&apos;s premise is that you can check everything
-            I say against the public repo, so here is the commit where the
+            I say against the public repo, so here is a commit where the
             guardrail failed: <code>dc6b481</code>, March 13, 2026 — the
             middle of the build — a worker agent modified the protected{" "}
             <code>lib/schema.ts</code>, adding eighteen lines for a purchases
             table. The protected list had named that file from day one. The
             agent changed it anyway, and the punchline writes itself: that
             commit is part of the same Stripe integration whose checkout never
-            charged anyone for four months. A CLAUDE.md is a convention, not
-            an enforcement mechanism. Most agents follow it; nothing in the
-            harness stops the one that doesn&apos;t. If a file genuinely must
-            not change, you enforce that outside the agent — branch
-            protection, CI checks, review — and the file documents the rule
-            rather than being the rule.
+            charged anyone for four months.
+          </p>
+          <p>
+            And if you noticed the agent pipeline missing from the
+            &ldquo;untouched&rdquo; list two paragraphs up: it wasn&apos;t
+            defended, it was already gone. I deleted it myself —{" "}
+            <code>.github/workflows/agent.yml</code>, all 102 lines, on the
+            protected list since day one — on March 6, a week before the
+            build, in commit <code>4f4d5a7</code>, with a message calling it
+            &ldquo;interfering with issue management.&rdquo; The author of
+            the rules broke them before any worker did. A CLAUDE.md is a
+            convention, not an enforcement mechanism. Most agents follow it;
+            nothing in the harness stops the one that doesn&apos;t. If a file
+            genuinely must not change, you enforce that outside the agent —
+            branch protection, CI checks, review — and the file documents the
+            rule rather than being the rule.
           </p>
           <p>
             Now the rest of the honest half. The same March build also
