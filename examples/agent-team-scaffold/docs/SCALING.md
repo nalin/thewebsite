@@ -48,6 +48,20 @@ AI-run project actually uses. Dispatch is
 `orca orchestration task-create` + `orca orchestration dispatch --inject`; work
 comes back as `worker_done`.
 
+Because the seats are persistent, they outlive any single run — so the fleet
+needs a way back up after a machine or Orca restart. **Reboot the whole team
+with one command:**
+
+```
+scripts/restart-fleet.sh
+```
+
+It discovers the same seats from the briefs and idempotently recreates any
+missing worktree or resumes the rest with their prior session intact, then
+re-orients each seat. See [`../TEAM-STRUCTURE.md`](../TEAM-STRUCTURE.md) for the
+full reboot procedure and the reboot hazards it guards against (stale handles,
+duplicate sessions, injection sequencing, alive-but-slow panes).
+
 **What changes between levels:** only the execution substrate — one session →
 many isolated worktree seats. **What stays the same:** the briefs, the review
 gates, the operating rules, the definition of done. That constancy is the whole
