@@ -19,20 +19,33 @@
 #      "landed" only means the text reached the composer; if the worker was
 #      mid-turn it is discarded at end-of-turn and the task never starts (#143).
 #      Evidence of consumption is the task id appearing in the session
-#      transcript. On a consumption timeout it re-injects the SAME task text via
-#      `terminal send` citing the same ids (never task-create again, which would
-#      double-dispatch), bounded to a few attempts,
+#      transcript. On a consumption timeout it re-injects the SAME task via
+#      `terminal send`, carrying the FULL reply path — the coordinator handle
+#      plus worker_done/heartbeat command templates (from --reply-to) — because
+#      that re-injection bypasses the orca-generated dispatch preamble that
+#      normally carries it; a worker re-injected without it would run the task
+#      and then report to nowhere. Same ids are cited (never task-create again,
+#      which would double-dispatch), bounded to a few attempts,
 #   7. prints taskId/dispatchId on success; exits non-zero with a diagnostic
 #      otherwise, so the coordinator never assumes a dispatch that didn't land
 #      or that landed but was never consumed.
 #
 # Usage:
 #   scripts/dispatch-confirm.sh --worktree <selector> --spec <text> \
+#     --reply-to <coordinator-handle> \
 #     [--title <text>] [--timeout <seconds>] [--consume-timeout <seconds>]
 #
 #   --worktree         selector accepted by `orca terminal list --worktree`
 #                      (e.g. name:engineer, branch:eng/foo, path:/abs/path)
 #   --spec             task spec text (becomes the worker's TASK block)
+#   --reply-to         the coordinator's OWN terminal handle (REQUIRED). A
+#                      re-injection (step 6) goes out via `terminal send`, which
+#                      bypasses the orca-generated dispatch preamble — so the
+#                      re-injected worker would otherwise have no handle to
+#                      report to, recreating the orphaned-worker_done failure
+#                      #143 already recovers from by hand. The re-injection
+#                      message embeds a complete worker_done + heartbeat template
+#                      addressed here so the reply path survives the re-inject.
 #   --title            optional concise task title
 #   --timeout          max seconds to wait for the dispatch to land (default 60, min 1)
 #   --consume-timeout  max seconds to wait for the worker to consume each
@@ -52,6 +65,7 @@ WORKTREE=""
 SPEC=""
 TITLE=""
 TIMEOUT=60
+REPLY_TO=""     # coordinator's own handle; the reply path a re-injection carries
 TASK_ID=""
 PROJDIR=""      # role's ~/.claude/projects transcript dir, or "" if unresolved
 INJECT_AT=0     # epoch seconds captured immediately before each (re)injection
@@ -59,7 +73,7 @@ PROBE_STATE=""
 LAST_STATUS=""
 
 usage() {
-  sed -n '2,41p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//' >&2
+  sed -n '2,54p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//' >&2
   exit 2
 }
 
@@ -228,12 +242,13 @@ while [[ $# -gt 0 ]]; do
     --title)           TITLE="${2:?--title needs a value}";              shift 2 ;;
     --timeout)         TIMEOUT="${2:?--timeout needs a value}";          shift 2 ;;
     --consume-timeout) CONSUME_TIMEOUT="${2:?--consume-timeout needs a value}"; shift 2 ;;
+    --reply-to)        REPLY_TO="${2:?--reply-to needs a value}";        shift 2 ;;
     -h|--help)         usage ;;
     *) echo "error: unknown argument '$1'" >&2; usage ;;
   esac
 done
 
-[[ -n "$WORKTREE" && -n "$SPEC" ]] || usage
+[[ -n "$WORKTREE" && -n "$SPEC" && -n "$REPLY_TO" ]] || usage
 if ! [[ "$TIMEOUT" =~ ^[0-9]+$ ]] || (( TIMEOUT < 1 )); then
   echo "error: --timeout must be an integer >= 1 (seconds)" >&2
   exit 2
@@ -420,7 +435,22 @@ while :; do
   echo "warn: not consumed within ${CONSUME_TIMEOUT}s — re-injecting SAME task $TASK_ID via terminal send (attempt $reinject/$REINJECT_MAX)" >&2
   wait_until_idle "$IDLE_BUDGET" || true
   INJECT_AT="$(now_epoch)"
-  REINJECT_MSG="DISPATCH (re-injection of $TASK_ID / dispatch $DISPATCH_ID — a prior injection landed but was not consumed; this is the SAME task, do NOT create a new task or dispatch). TASK: $SPEC"
+  # Reconstruct the reply path the discarded dispatch preamble carried. A
+  # `terminal send` re-injection bypasses orca's preamble generation, so the
+  # re-injected worker would otherwise know WHAT to do but not WHERE to report
+  # — completing into a stale/unknown handle (the orphaned-worker_done failure).
+  # Embed the coordinator handle (--reply-to), the worker's own handle (for
+  # --from), and complete heartbeat + worker_done templates citing the SAME ids.
+  REINJECT_MSG="DISPATCH (re-injection of task $TASK_ID / dispatch $DISPATCH_ID). A prior injection of this task landed but was not consumed — it was discarded from a mid-turn composer, so you never saw the original dispatch preamble. This is the SAME task; do NOT create a new task or dispatch.
+
+You are the worker at terminal $RHANDLE. Report to the coordinator at $REPLY_TO. Send a heartbeat every ~5 min while working, and send EXACTLY ONE worker_done when finished (even on failure, with subject 'Failed: <reason>'):
+
+  heartbeat:   orca orchestration send --to $REPLY_TO --from $RHANDLE --type heartbeat --subject alive --task-id $TASK_ID --dispatch-id $DISPATCH_ID --phase <investigating|implementing|reviewing|waiting>
+
+  worker_done: orca orchestration send --to $REPLY_TO --from $RHANDLE --type worker_done --subject \"<short status>\" --body \"<3-sentence summary>\" --task-id $TASK_ID --dispatch-id $DISPATCH_ID --files-modified \"<comma,separated,paths>\"
+
+TASK:
+$SPEC"
   if ! orca terminal send --terminal "$RHANDLE" --text "$REINJECT_MSG" --enter --json >/dev/null 2>&1; then
     echo "warn: terminal send re-injection returned non-zero (will still re-verify)" >&2
   fi
