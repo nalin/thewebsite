@@ -16,6 +16,14 @@ ROLES=(coordinator course-content seo-growth product-manager engineer code-revie
 CEO_HANDLE="${1:-}"
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 
+# Base ref for freshly created role worktrees. TEAM.md documents them as
+# "based on origin/main", so assert that rather than inheriting Orca's implicit
+# default. Note the default is NOT a stored repo setting: `orca repo show --repo
+# name:thewebsite --json` exposes no base-branch field (verified 2026-07-17);
+# Orca infers it from git's origin/HEAD, which resolves to refs/remotes/origin/main
+# here but is ambient state nothing pins. Passing it makes the claim enforced.
+BASE_BRANCH="${BASE_BRANCH:-origin/main}"
+
 command -v orca >/dev/null || { echo "FATAL: orca CLI not on PATH"; exit 1; }
 command -v node >/dev/null || { echo "FATAL: node not on PATH"; exit 1; }
 
@@ -48,9 +56,17 @@ for role in "${ROLES[@]}"; do
   WT_ID=$(echo "$WT_MAP" | awk -F'\t' -v r="$role" '$1==r{print $2; exit}')
 
   if [ -z "$WT_ID" ]; then
-    echo "[$role] worktree missing — creating fresh agent seeded from team/roles/$role.md"
+    echo "[$role] worktree missing — creating fresh agent seeded from team/roles/$role.md (base: $BASE_BRANCH)"
+    # Fail closed on a base ref that doesn't resolve: creating role worktrees
+    # from the wrong (or a silently-defaulted) base is the failure #134 is about.
+    # Checked lazily so a resume-only restart is never blocked by it.
+    if ! git -C "$REPO_ROOT" rev-parse --verify --quiet "$BASE_BRANCH" >/dev/null; then
+      echo "[$role] ERROR: base ref '$BASE_BRANCH' does not resolve in $REPO_ROOT — run 'git -C $REPO_ROOT fetch origin' and retry."
+      FAILED+=("$role")
+      continue
+    fi
     BRIEF=$(cat "$REPO_ROOT/team/roles/$role.md")
-    HANDLE=$(orca worktree create --repo "path:$REPO_ROOT" --name "$role" --no-parent --agent claude --prompt "$BRIEF" --json | node -e "
+    HANDLE=$(orca worktree create --repo "path:$REPO_ROOT" --name "$role" --no-parent --base-branch "$BASE_BRANCH" --agent claude --prompt "$BRIEF" --json | node -e "
 let d='';process.stdin.on('data',c=>d+=c).on('end',()=>{try{const j=JSON.parse(d);console.log(j.result?.startupTerminal?.handle||'')}catch(e){console.log('')}})")
   else
     echo "[$role] worktree exists — resuming session with claude --continue"
