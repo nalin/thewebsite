@@ -17,16 +17,21 @@ set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 RUN="${1:-}"
 
-# CEO first, then the six specialists (brief file -> seat name).
-declare -a SEATS=(
-  "roles/ceo.md:ceo"
-  ".claude/agents/engineer.md:engineer"
-  ".claude/agents/code-reviewer.md:code-reviewer"
-  ".claude/agents/content-reviewer.md:content-reviewer"
-  ".claude/agents/product-manager.md:product-manager"
-  ".claude/agents/growth.md:growth"
-  ".claude/agents/content-writer.md:content-writer"
-)
+# Discover the roster from the scaffold — the SAME source restart-fleet.sh uses,
+# so create and reboot never drift: drop a brief in .claude/agents/ and BOTH
+# scripts pick it up with no edits (the promise TEAM-STRUCTURE.md makes). CEO
+# brief first, then every specialist brief. Entry format: "<brief-path>:<seat>".
+SEATS=()
+if [ -f "$HERE/roles/ceo.md" ]; then SEATS+=("roles/ceo.md:ceo"); fi
+for f in "$HERE/.claude/agents/"*.md; do
+  [ -e "$f" ] || continue   # literal-glob guard (no nullglob needed on bash 3.2)
+  seat="$(basename "$f" .md)"
+  SEATS+=(".claude/agents/$seat.md:$seat")
+done
+if [ ${#SEATS[@]} -eq 0 ]; then
+  echo "FATAL: no seats discovered under $HERE/roles/ or $HERE/.claude/agents/ — is this the scaffold root?" >&2
+  exit 1
+fi
 
 if ! command -v orca >/dev/null 2>&1; then
   echo "NOTE: 'orca' not found on PATH. Install Orca from https://www.onorca.dev"

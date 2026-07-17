@@ -23,12 +23,12 @@
 #
 #   --repo        repo root that fresh seat worktrees are created from
 #                 (default: the git top-level of the current directory).
-#   --project     substring that identifies THIS fleet's worktrees in
-#                 `orca worktree list`, matched against each worktree's
-#                 projectId and path (default: the basename of --repo). This is
-#                 the guard that stops the script from touching — or worse,
-#                 launching a permission-bypassed claude into — a same-named
-#                 seat that belongs to a different project.
+#   --project     identifies THIS fleet's worktrees in `orca worktree list`,
+#                 matched EXACTLY against a '/'- or ':'-delimited segment of
+#                 each worktree's path and projectId — never a substring, so a
+#                 fleet in `shop` is never confused with one in `shop-api`
+#                 (default: the basename of --repo). The guard that keeps the
+#                 script from launching a bypassed claude into another project.
 #   --ceo-handle  CEO/coordinator terminal handle; when given, each specialist
 #                 is asked to confirm it is back online to that handle.
 #
@@ -105,15 +105,24 @@ try{
   const m=process.argv[1];
   const ws=JSON.parse(d).result?.worktrees;
   if(!Array.isArray(ws)){console.log('PARSE_FAIL');return;}
+  // EXACT segment match, not substring: split path and projectId on '/' and ':'
+  // and require a whole segment to equal m, so 'shop' never matches 'shop-api'.
+  const hit=(s)=>{s=String(s);return s.split('/').indexOf(m)>=0||s.split(':').indexOf(m)>=0;};
   for(const w of ws){
     if(w.isArchived) continue;
     const pid=w.projectId||'', p=w.path||'';
-    if(pid.includes(m)||p.includes(m)) console.log(w.displayName+'\t'+w.id);
+    if(pid===m||hit(pid)||hit(p)) console.log(w.displayName+'\t'+w.id);
   }
 }catch(e){console.log('PARSE_FAIL')}});" "$PROJECT_MATCH")
 if echo "$WT_MAP" | grep -q '^PARSE_FAIL$'; then
   echo "FATAL: could not parse 'orca worktree list' output (error-shaped or non-array). Refusing to create anything — inspect manually with: orca worktree list"
   exit 1
+fi
+# Make an empty match set visible: with exact segment matching a typo'd
+# --project silently matches nothing and would then create ALL seats fresh.
+# Surface it so a mistyped project is caught before N creates run.
+if [ -z "$(printf '%s' "$WT_MAP" | tr -d '[:space:]')" ]; then
+  echo "note: 0 existing seats matched --project '$PROJECT_MATCH' — will create all ${#SEAT_NAMES[@]} seats fresh. (If you expected to resume an existing fleet, check the --project value against 'orca worktree list'.)"
 fi
 
 STARTED=()
@@ -174,9 +183,10 @@ try{
   const m=process.argv[1], name=process.argv[2];
   const ws=JSON.parse(d).result?.worktrees;
   if(!Array.isArray(ws)){console.log('');return;}
+  const hit=(s)=>{s=String(s);return s.split('/').indexOf(m)>=0||s.split(':').indexOf(m)>=0;};
   for(const w of ws){
     const pid=w.projectId||'', p=w.path||'';
-    if(!w.isArchived&&(pid.includes(m)||p.includes(m))&&w.displayName===name){console.log(w.id);break;}
+    if(!w.isArchived&&(pid===m||hit(pid)||hit(p))&&w.displayName===name){console.log(w.id);break;}
   }
 }catch(e){console.log('')}});" "$PROJECT_MATCH" "$seat")
     fi
