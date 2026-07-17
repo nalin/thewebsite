@@ -1,6 +1,10 @@
 # TEAM.md — The Website's AI Agent Team
 
 > Durable definition of the agent team so it can be rebooted at any time.
+> [`OPERATIONS.md`](./OPERATIONS.md) is the **binding operating manual** — how
+> work ships, the review lanes, the merge bar, and the standing rules. This file
+> is its **roster/reboot annex**: who fills the seats and how to bring them back
+> up. Where the two disagree, OPERATIONS.md wins.
 > Role seed briefs live in `team/roles/`. Reboot script: `scripts/restart-team.sh`.
 > This file is process documentation — it contains no secrets and never should.
 
@@ -8,8 +12,10 @@
 
 ```
 Nalin (owner)
-  └── CEO  (interactive Claude Code session in the main checkout)
-        ├── coordinator        — operational loop between human check-ins (invoked per run)
+  └── CEO function — two instantiations, one mandate (OPERATIONS.md §2)
+        │   • interactive CEO terminal    — owner-facing; decisions, escalations
+        │   • scheduled ceo-coordinator   — operational loop; every 2h (13 */2 * * *)
+        │
         ├── course-content     — modules, blog writing, email copy
         ├── seo-growth         — SEO, funnel, list growth, blog strategy, distribution drafts
         ├── product-manager    — roadmap, specs, monetization workstream
@@ -18,7 +24,12 @@ Nalin (owner)
         └── content-reviewer   — reviews content changes against COURSE_FACTS.md
 ```
 
-Each agent is a long-running Claude Code session in its own Orca worktree under
+The coordinator is **not a subordinate role** — it is the CEO function running on
+a schedule. The interactive CEO works in the main checkout (`~/code/thewebsite`);
+scheduled `ceo-coordinator` runs reuse the shared `coordinator` worktree and
+never create their own.
+
+Each other agent is a long-running Claude Code session in its own Orca worktree under
 `~/orca/workspaces/thewebsite/<role>/` (top-level, `--no-parent`, based on origin/main).
 
 ## Operating rules (summary — the full versions live in the role briefs)
@@ -28,16 +39,19 @@ Each agent is a long-running Claude Code session in its own Orca worktree under
   execution-only state.
 - **All changes ship via role branches + PRs.** Workers push their role
   branch; PR is opened before merging; never push main directly.
-- **Merge authority:** coordinator may merge PRs that are review-approved and
-  secret-scan clean (probe the Vercel preview when it matters). Regardless of
-  review status, these wait for the CEO: anything touching money, email
-  sends, credentials, or public claims about the business.
+- **Merge authority:** the CEO function merges — either instantiation, same bar,
+  no exceptions: **review-approved + secret-scan clean + live verification probe**
+  of the deploy. A scheduled `ceo-coordinator` run merges on exactly these terms
+  and no looser ones. Regardless of review status, these wait for **Nalin**:
+  anything touching money, mass email sends, credentials, external community
+  posting, or public claims about the business. Neither instantiation decides
+  them.
 - **Human-only tasks** (accounts, credentials, external community posting,
   mass email approval) are escalated, never marked complete by an agent.
 - **No mass email without Nalin's explicit per-send approval.**
 - **No secrets or subscriber PII in any public surface** (repo, site, emails,
-  PR text, activity feed). The merging seat — CEO or coordinator — secret-scans
-  every diff before merge.
+  PR text, activity feed). The merging seat — interactive CEO or a scheduled
+  `ceo-coordinator` run — secret-scans every diff before merge; a hit blocks it.
 - **Dispatch dedupe:** before dispatching backlog, check
   `orca orchestration task-list` for an existing open task on the same issue.
 - **Verification bar:** `pnpm build` + exercising the changed path; deployed
@@ -69,7 +83,7 @@ Then the CEO: re-arm the two session crons above, check
 each agent's "back online" status message. If an agent stays silent,
 inspect its terminal directly rather than re-dispatching.
 
-Known reboot hazards (learned 2026-07-19):
+Known reboot hazards (learned 2026-07-16):
 - Terminal handles change on restart — never reuse stored handles; re-resolve
   with `orca terminal list`.
 - Do not let two seats relaunch agents concurrently; duplicate
