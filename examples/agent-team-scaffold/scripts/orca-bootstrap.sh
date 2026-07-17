@@ -59,4 +59,8 @@ cat <<'EOF'
 Once seats exist, dispatch from the CEO seat (see scripts/dispatch.sh):
   orca orchestration task-create --task-title "..." --spec "<scoped brief>"
   orca orchestration dispatch --inject --to <seat-terminal-handle> --task <task-id>
+
+To bring the fleet back up after a machine or Orca restart, reboot every seat
+with one command (see TEAM-STRUCTURE.md):
+  scripts/restart-fleet.sh
 EOF
