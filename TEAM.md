@@ -36,7 +36,8 @@ Each agent is a long-running Claude Code session in its own Orca worktree under
   mass email approval) are escalated, never marked complete by an agent.
 - **No mass email without Nalin's explicit per-send approval.**
 - **No secrets or subscriber PII in any public surface** (repo, site, emails,
-  PR text, activity feed). CEO secret-scans every diff before merge.
+  PR text, activity feed). The merging seat — CEO or coordinator — secret-scans
+  every diff before merge.
 - **Dispatch dedupe:** before dispatching backlog, check
   `orca orchestration task-list` for an existing open task on the same issue.
 - **Verification bar:** `pnpm build` + exercising the changed path; deployed
