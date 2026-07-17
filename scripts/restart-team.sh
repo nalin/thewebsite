@@ -1,7 +1,12 @@
 #!/usr/bin/env bash
 # restart-team.sh — reboot The Website's standing agent team after a machine
 # or Orca restart. Idempotent: creates missing worktrees (seeded from
-# team/roles/<role>.md), resumes existing ones with `claude --continue`.
+# team/roles/<role>.md), resumes existing ones with
+# `claude --dangerously-skip-permissions --continue`. The bypass is REQUIRED on
+# every worker launch (resume AND fresh): worker worktrees carry no .claude
+# permission allowlist, so a plain `claude` blocks on an invisible permission
+# prompt at its first novel command and stalls silently mid-turn (#136,
+# root-caused and fixed here per #137).
 #
 # Usage: scripts/restart-team.sh [CEO_TERMINAL_HANDLE]
 #   With a CEO handle, each agent is asked to confirm via an orchestration
@@ -56,7 +61,7 @@ for role in "${ROLES[@]}"; do
   WT_ID=$(echo "$WT_MAP" | awk -F'\t' -v r="$role" '$1==r{print $2; exit}')
 
   if [ -z "$WT_ID" ]; then
-    echo "[$role] worktree missing — creating fresh agent seeded from team/roles/$role.md (base: $BASE_BRANCH)"
+    echo "[$role] worktree missing — creating fresh worktree (base: $BASE_BRANCH), launching claude with permission bypass"
     # Fail closed on a base ref that doesn't resolve: creating role worktrees
     # from the wrong (or a silently-defaulted) base is the failure #134 is about.
     # Checked lazily so a resume-only restart is never blocked by it.
@@ -65,12 +70,29 @@ for role in "${ROLES[@]}"; do
       FAILED+=("$role")
       continue
     fi
-    BRIEF=$(cat "$REPO_ROOT/team/roles/$role.md")
-    HANDLE=$(orca worktree create --repo "path:$REPO_ROOT" --name "$role" --no-parent --base-branch "$BASE_BRANCH" --agent claude --prompt "$BRIEF" --json | node -e "
-let d='';process.stdin.on('data',c=>d+=c).on('end',()=>{try{const j=JSON.parse(d);console.log(j.result?.startupTerminal?.handle||'')}catch(e){console.log('')}})")
+    # #137: the fresh agent must ALSO run with --dangerously-skip-permissions or
+    # it re-arms the silent #136 stall on its first novel command. `orca worktree
+    # create --agent claude` launches claude WITHOUT the bypass and offers no way
+    # to forward the flag, so create the checkout without an agent and start
+    # claude ourselves race-free via `orca terminal create --command` (the same
+    # mechanism the resume path below uses — --command runs on terminal startup,
+    # so there is no shell-not-ready race a `terminal send` would risk). Role
+    # context is seeded by the re-orientation send further down, which directs
+    # the agent to read team/roles/$role.md — the brief the old --prompt injected.
+    CREATE_MSG=$(orca worktree create --repo "path:$REPO_ROOT" --name "$role" --no-parent --base-branch "$BASE_BRANCH" --json | node -e "
+let d='';process.stdin.on('data',c=>d+=c).on('end',()=>{try{const j=JSON.parse(d);console.log(j.ok===false?'FAIL:'+(j.error?.message||'unknown'):'OK')}catch(e){console.log('OK')}})")
+    if [ "${CREATE_MSG#FAIL:}" != "$CREATE_MSG" ]; then
+      echo "[$role] ERROR: worktree create failed — ${CREATE_MSG#FAIL:} (inspect: orca worktree list)"
+      FAILED+=("$role")
+      continue
+    fi
+    # Resolve the just-created worktree by name — unique among active worktrees
+    # because we only reach this branch when no active worktree matched the role.
+    HANDLE=$(orca terminal create --worktree "name:$role" --title "$role-agent" --command "claude --dangerously-skip-permissions" --json | node -e "
+let d='';process.stdin.on('data',c=>d+=c).on('end',()=>{try{const j=JSON.parse(d);console.log(j.result?.terminal?.handle||j.result?.handle||'')}catch(e){console.log('')}})")
   else
-    echo "[$role] worktree exists — resuming session with claude --continue"
-    HANDLE=$(orca terminal create --worktree "id:$WT_ID" --title "$role-agent" --command "claude --continue" --json | node -e "
+    echo "[$role] worktree exists — resuming session with claude --dangerously-skip-permissions --continue"
+    HANDLE=$(orca terminal create --worktree "id:$WT_ID" --title "$role-agent" --command "claude --dangerously-skip-permissions --continue" --json | node -e "
 let d='';process.stdin.on('data',c=>d+=c).on('end',()=>{try{const j=JSON.parse(d);console.log(j.result?.terminal?.handle||j.result?.handle||'')}catch(e){console.log('')}})")
   fi
 
