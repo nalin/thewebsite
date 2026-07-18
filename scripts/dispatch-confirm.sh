@@ -19,13 +19,15 @@
 #      "landed" only means the text reached the composer; if the worker was
 #      mid-turn it is discarded at end-of-turn and the task never starts (#143).
 #      Evidence of consumption is the task id appearing in the session
-#      transcript. On a consumption timeout it re-injects the SAME task via
-#      `terminal send`, carrying the FULL reply path — the coordinator handle
-#      plus worker_done/heartbeat command templates (from --reply-to) — because
-#      that re-injection bypasses the orca-generated dispatch preamble that
-#      normally carries it; a worker re-injected without it would run the task
-#      and then report to nowhere. Same ids are cited (never task-create again,
-#      which would double-dispatch), bounded to a few attempts,
+#      transcript. On a consumption timeout it first NUDGES the pane with a bare
+#      Enter (the landed text may just be sitting unsubmitted in the composer)
+#      and re-checks briefly; only if that surfaces nothing does it re-inject the
+#      SAME task via `terminal send`, carrying the FULL reply path — the
+#      coordinator handle plus worker_done/heartbeat command templates (from
+#      --reply-to) — because that re-injection bypasses the orca-generated
+#      dispatch preamble that normally carries it; a worker re-injected without
+#      it would run the task and then report to nowhere. Same ids are cited
+#      (never task-create again, which would double-dispatch), bounded,
 #   7. prints taskId/dispatchId on success; exits non-zero with a diagnostic
 #      otherwise, so the coordinator never assumes a dispatch that didn't land
 #      or that landed but was never consumed.
@@ -51,14 +53,26 @@
 #   --consume-timeout  max seconds to wait for the worker to consume each
 #                      injection before re-injecting (default 45, min 1)
 #
+#   Env-overridable tunables (all integer-validated, same as the flags):
+#     CONSUME_TIMEOUT (>=1)  REINJECT_MAX (>=0)  IDLE_BUDGET (>=0)
+#     QUIET_S (>=1)          NUDGE_RECHECK_S (>=1)
+#
 # Internal coordinator tooling only — not part of the app build.
-set -euo pipefail
 
-# Tunables (env-overridable for tests / unusual panes).
+# Detect sourcing (unit tests source this file for the helper functions) BEFORE
+# enabling strict mode, so a plain `source` never flips the calling shell's
+# options — it used to leave `set -e` on and kill a test harness at the first
+# rc-1 helper call. Sourced: define the helpers, then return before the
+# imperative flow (guard below). Executed: enable strict mode and run normally.
+(return 0 2>/dev/null) && _SOURCED=1 || _SOURCED=0
+[[ "$_SOURCED" == "1" ]] || set -euo pipefail
+
+# Tunables (env-overridable for tests / unusual panes; integer-validated below).
 CONSUME_TIMEOUT="${CONSUME_TIMEOUT:-45}"  # per-attempt wait for consumption evidence
 REINJECT_MAX="${REINJECT_MAX:-2}"         # re-injections after a landed-but-unconsumed dispatch
 IDLE_BUDGET="${IDLE_BUDGET:-20}"          # max seconds to wait for the pane to go idle before injecting
 QUIET_S="${QUIET_S:-4}"                   # transcript must be quiet this long to count as idle
+NUDGE_RECHECK_S="${NUDGE_RECHECK_S:-6}"   # after a bare-Enter nudge, re-check consumption this long
 
 # --- globals populated by the main flow (declared so helpers are self-evident) ---
 WORKTREE=""
@@ -73,7 +87,7 @@ PROBE_STATE=""
 LAST_STATUS=""
 
 usage() {
-  sed -n '2,54p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//' >&2
+  sed -n '2,60p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//' >&2
   exit 2
 }
 
@@ -171,9 +185,11 @@ wait_until_idle() {
 # file modified at/after the injection. The mtime guard rejects a stale task-id
 # match; requiring the task id (not a bare mtime bump) rejects unrelated worker
 # activity that merely advances the transcript while our text sits discarded in
-# the composer. Returns 0 consumed, 1 not yet, 2 cannot determine (no dir).
+# the composer. Returns 0 consumed, 1 not yet, 2 cannot determine — PROJDIR
+# unset OR the transcript dir vanished mid-run (checked live so the rc-2 /
+# cstate=2 "vanished mid-check" branch is actually reachable, not dead code).
 consumed() {
-  [[ -n "$PROJDIR" ]] || return 2
+  [[ -n "$PROJDIR" && -d "$PROJDIR" ]] || return 2
   local f m
   while IFS= read -r f; do
     m="$(file_mtime "$f")"
@@ -227,11 +243,10 @@ confirm_landed() {
 }
 
 # ---------------------------------------------------------------------------
-# Unit tests source this file to exercise the detection helpers in isolation;
-# everything above is pure function definitions. Stop before the imperative
-# dispatch flow when sourced rather than executed.
+# Unit tests source this file for the detection helpers above (all pure function
+# definitions). Stop before the imperative dispatch flow when sourced. _SOURCED
+# was computed at the top (before strict mode), so this is just the return.
 # ---------------------------------------------------------------------------
-(return 0 2>/dev/null) && _SOURCED=1 || _SOURCED=0
 if [[ "$_SOURCED" == "1" ]]; then return 0; fi
 
 # --- arg parsing --------------------------------------------------------------
@@ -249,14 +264,22 @@ while [[ $# -gt 0 ]]; do
 done
 
 [[ -n "$WORKTREE" && -n "$SPEC" && -n "$REPLY_TO" ]] || usage
-if ! [[ "$TIMEOUT" =~ ^[0-9]+$ ]] || (( TIMEOUT < 1 )); then
-  echo "error: --timeout must be an integer >= 1 (seconds)" >&2
-  exit 2
-fi
-if ! [[ "$CONSUME_TIMEOUT" =~ ^[0-9]+$ ]] || (( CONSUME_TIMEOUT < 1 )); then
-  echo "error: --consume-timeout must be an integer >= 1 (seconds)" >&2
-  exit 2
-fi
+
+# Reject non-integer / out-of-range tunables — CLI flags AND env overrides —
+# with a clear message instead of a cryptic set -e death inside later arithmetic.
+validate_int() {  # <label> <value> <min>
+  if ! [[ "$2" =~ ^[0-9]+$ ]] || (( $2 < $3 )); then
+    echo "error: $1 must be an integer >= $3 (got '$2')" >&2
+    exit 2
+  fi
+}
+validate_int "--timeout"         "$TIMEOUT"         1
+validate_int "--consume-timeout" "$CONSUME_TIMEOUT" 1
+validate_int "REINJECT_MAX"      "$REINJECT_MAX"    0
+validate_int "IDLE_BUDGET"       "$IDLE_BUDGET"     0
+validate_int "QUIET_S"           "$QUIET_S"         1
+validate_int "NUDGE_RECHECK_S"   "$NUDGE_RECHECK_S" 1
+
 command -v orca >/dev/null 2>&1 || { echo "error: 'orca' not found on PATH" >&2; exit 1; }
 command -v jq   >/dev/null 2>&1 || { echo "error: 'jq' is required" >&2; exit 1; }
 
@@ -409,7 +432,7 @@ while :; do
     echo "confirmed: worker consumed dispatch (task id present in transcript)"
     echo "taskId=$TASK_ID"
     echo "dispatchId=$DISPATCH_ID"
-    if (( reinject > 0 )); then echo "note: required $reinject re-injection(s) via terminal send"; fi
+    if (( reinject > 0 )); then echo "note: required $reinject recovery attempt(s) (nudge and/or re-send via terminal send)"; fi
     exit 0
   fi
   if (( cstate == 2 )); then
@@ -432,7 +455,26 @@ while :; do
     echo "error: consumption timed out and no live terminal to re-inject into for '$WORKTREE'." >&2
     exit 1
   fi
-  echo "warn: not consumed within ${CONSUME_TIMEOUT}s — re-injecting SAME task $TASK_ID via terminal send (attempt $reinject/$REINJECT_MAX)" >&2
+  # Nudge-first (#145): the landed text may just be sitting UNSUBMITTED in the
+  # composer (the documented TUI-startup case). A bare Enter submits it cleanly;
+  # re-check for a short window. Only if that surfaces nothing do we re-send the
+  # full task text — which would otherwise concatenate the stale composer text
+  # with a fresh copy into one composite message.
+  echo "warn: not consumed within ${CONSUME_TIMEOUT}s (attempt $reinject/$REINJECT_MAX) — nudging composer with a bare Enter first" >&2
+  orca terminal send --terminal "$RHANDLE" --text "" --enter --json >/dev/null 2>&1 || true
+  nudge_result=none
+  ndeadline=$(( SECONDS + NUDGE_RECHECK_S ))
+  while (( SECONDS < ndeadline )); do
+    if consumed; then nudge_result=consumed; break; else nrc=$?; fi
+    if (( nrc == 2 )); then nudge_result=vanished; break; fi
+    sleep 2
+  done
+  case "$nudge_result" in
+    consumed) echo "note: the bare-Enter nudge submitted the already-landed injection" >&2; continue ;;
+    vanished) continue ;;   # transcript dir vanished; the outer loop's cstate=2 reports it
+  esac
+
+  echo "warn: nudge surfaced no consumption — re-sending the full task $TASK_ID via terminal send" >&2
   wait_until_idle "$IDLE_BUDGET" || true
   INJECT_AT="$(now_epoch)"
   # Reconstruct the reply path the discarded dispatch preamble carried. A
