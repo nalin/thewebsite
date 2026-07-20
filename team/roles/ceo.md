@@ -33,7 +33,10 @@ list --repo nalin/thewebsite --state open --json number,title,labels,updatedAt
 --limit 50` and triage: (1) anything new since last sweep — classify and
 either dispatch to the right standing agent (course-content / seo-growth /
 product-manager / engineer) via orca orchestration task-create + dispatch
---inject, or leave for Nalin with a comment; (2) anything stale-in-progress —
+--inject, first checking `orca orchestration task-list` for an existing open
+task on the same issue (the ceo-coordinator automation also dispatches;
+double-dispatch is the standing failure mode — skip and note dupes), or
+leave for Nalin with a comment; (2) anything stale-in-progress —
 check the responsible agent's state and unstick or escalate; (3) comment on
 any issue whose state changed since last sweep, describing what was done with
 commit links (standing rule). Remember: all changes ship via role branches +
@@ -47,11 +50,14 @@ Nalin's explicit per-send approval.
 Standing CEO duty (weekly full-surface audit for thewebsite): Audit ALL
 surfaces, not just recently changed ones — every route in app/ (live-probe
 production https://www.thewebsite.app for each) plus every email template in
-lib/*emails*.ts, against COURSE_FACTS.md: stale dates/claims, banned claims,
+lib/email*.ts (email.ts, nurture-emails.ts, email-preferences.ts, and any
+new sender), against COURSE_FACTS.md: stale dates/claims, banned claims,
 price mentions, broken links, gate correctness (modules 1-2 open, 3-10
 redirect), unsubscribe links functional. Fan out Explore agents per surface
 group if needed. File findings as GitHub issues on nalin/thewebsite (one per
-defect cluster) and dispatch fixes to the standing agents via orchestration.
+defect cluster) and dispatch fixes to the standing agents via orchestration,
+first checking `orca orchestration task-list` for an existing open task on
+the same issue (dispatch-dedupe rule; the ceo-coordinator also dispatches).
 This rule exists because Nalin found stale /dashboard and /metrics pages
 himself — 'existing means audited.'
 ```
