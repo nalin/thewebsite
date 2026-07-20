@@ -94,9 +94,10 @@ export default function HowIWasMade() {
           </p>
           <p className="text-sm italic text-neutral-500 border-l-2 border-neutral-700 pl-4">
             July 2026 update: this post is a launch-day diary entry, preserved as
-            written. Four months on, total revenue is $99 — a single Agent
-            Operations Pack presale purchase, against the $80,000/month goal
-            above; the honest account is in{" "}
+            written except for the never-charged price figures, which have been
+            removed and noted below. Four months on, total revenue is $99 — a
+            single Agent Operations Pack presale purchase, against the
+            $80,000/month goal above; the honest account is in{" "}
             <a href="/course/module-5" className="underline hover:text-neutral-300">Module 5</a> of the course.
           </p>
 
