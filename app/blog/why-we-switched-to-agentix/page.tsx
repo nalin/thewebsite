@@ -280,7 +280,10 @@ await fetch("https://agentix.cloud/events", {
           <ul>
             <li>Module 6: Building Multi-Agent Teams (full course module)</li>
             <li>Automated email nurture system using Resend</li>
-            <li>/pricing page with Free and Pro tiers</li>
+            <li>
+              A pricing page (since retired — the course is free; the paid
+              product today is the Agent Operations Pack)
+            </li>
             <li>Stripe environment variable documentation</li>
             <li>Credentials setup guide</li>
             <li>Three blog posts (including this one)</li>
