@@ -210,6 +210,131 @@ describe("planTable — flag merging", () => {
   });
 });
 
+// Issue #170: under --merge-token-tables the email_preferences consent columns
+// (course_updates / marketing / digest, where 1 means "yes, mail me") had no
+// merge rule, so the keeper's values simply won — a twin that had switched
+// marketing off without unsubscribing globally lost that opt-down when its row
+// was deleted. The same "never more mail than they asked for" rule that
+// governs `unsubscribed`, mirrored.
+describe("planTable — consent columns: opt-down wins (issue #170)", () => {
+  const prefRules = {
+    course_updates: "andTrue",
+    marketing: "andTrue",
+    digest: "andTrue",
+  } as const;
+
+  function prefRow(
+    id: number,
+    email: string,
+    createdAt: string,
+    prefs: { course_updates?: number; marketing?: number; digest?: number }
+  ) {
+    return row(id, email, createdAt, {
+      course_updates: 1,
+      marketing: 1,
+      digest: 1,
+      ...prefs,
+    });
+  }
+
+  it("carries a category opt-down from a DELETED twin onto the keeper", () => {
+    const plan = planTable(
+      [
+        prefRow(1, "twin@x.com", "2026-01-01", {}), // keeper: all on
+        prefRow(2, "Twin@x.com", "2026-02-01", { marketing: 0 }),
+      ],
+      { mergeRules: prefRules }
+    );
+
+    expect(plan.actions[0].keeperId).toBe(1);
+    expect(plan.actions[0].deleteIds).toEqual([2]);
+    // The regression: this used to stay 1, silently re-enabling marketing.
+    expect(plan.actions[0].mergedFlags.marketing).toBe(0);
+    // Categories the twin left alone are untouched.
+    expect(plan.actions[0].mergedFlags.course_updates).toBe(1);
+    expect(plan.actions[0].mergedFlags.digest).toBe(1);
+  });
+
+  it("keeps the keeper's own opt-down when the twin had it on", () => {
+    const plan = planTable(
+      [
+        prefRow(1, "twin@x.com", "2026-01-01", { digest: 0 }),
+        prefRow(2, "Twin@x.com", "2026-02-01", {}),
+      ],
+      { mergeRules: prefRules }
+    );
+
+    expect(plan.actions[0].mergedFlags.digest).toBe(0);
+  });
+
+  it("collects opt-downs from across three twins", () => {
+    const plan = planTable(
+      [
+        prefRow(1, "twin@x.com", "2026-01-01", {}),
+        prefRow(2, "Twin@x.com", "2026-02-01", { marketing: 0 }),
+        prefRow(3, "TWIN@x.com", "2026-03-01", { digest: 0 }),
+      ],
+      { mergeRules: prefRules }
+    );
+
+    expect(plan.actions[0].mergedFlags).toMatchObject({
+      course_updates: 1,
+      marketing: 0,
+      digest: 0,
+    });
+  });
+
+  it("leaves an all-consented merge fully consented", () => {
+    const plan = planTable(
+      [
+        prefRow(1, "twin@x.com", "2026-01-01", {}),
+        prefRow(2, "Twin@x.com", "2026-02-01", {}),
+      ],
+      { mergeRules: prefRules }
+    );
+
+    expect(plan.actions[0].mergedFlags).toMatchObject({
+      course_updates: 1,
+      marketing: 1,
+      digest: 1,
+    });
+  });
+
+  // A null/absent value means "unknown", not "yes" — promoting it to 1 would
+  // be more mail, which is the exact direction this rule exists to prevent.
+  it("never promotes a null consent value to 1", () => {
+    const plan = planTable(
+      [
+        row(1, "twin@x.com", "2026-01-01", { marketing: null }),
+        row(2, "Twin@x.com", "2026-02-01", { marketing: null }),
+      ],
+      { mergeRules: { marketing: "andTrue" } }
+    );
+
+    expect(plan.actions[0].mergedFlags).toEqual({});
+  });
+
+  it("still writes the opt-down when only one twin's value is known", () => {
+    const plan = planTable(
+      [
+        row(1, "twin@x.com", "2026-01-01", { marketing: null }),
+        row(2, "Twin@x.com", "2026-02-01", { marketing: 0 }),
+      ],
+      { mergeRules: { marketing: "andTrue" } }
+    );
+
+    expect(plan.actions[0].mergedFlags.marketing).toBe(0);
+  });
+
+  it("does not touch consent flags for a row with no twin", () => {
+    const plan = planTable([prefRow(1, "Solo@x.com", "2026-01-01", { marketing: 0 })], {
+      mergeRules: prefRules,
+    });
+
+    expect(plan.actions[0].mergedFlags).toEqual({});
+  });
+});
+
 describe("planTable — token-bearing tables are merge-gated", () => {
   const rows = [
     row(1, "twin@x.com", "2026-01-01"),

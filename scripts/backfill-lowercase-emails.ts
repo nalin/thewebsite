@@ -50,6 +50,12 @@ export interface EmailRow {
 export type MergeRule =
   /** 1 if ANY row has it — used for opt-out flags: unsubscribing must stick. */
   | "orTrue"
+  /** 0 if ANY row has it — the mirror image, for per-category CONSENT flags
+   *  (course_updates / marketing / digest), where 1 means "yes, mail me". A
+   *  twin that opted a category down without unsubscribing globally would
+   *  otherwise have that opt-down deleted along with its row, resurrecting
+   *  mail the person had switched off. Opt-down wins. (#170) */
+  | "andTrue"
   /** The earliest non-null value — used for "already sent" timestamps, so a
    *  merge can never cause an email to be sent to someone a second time. */
   | "earliestNonNull";
@@ -117,6 +123,19 @@ function mergeFlags(
       });
       if (anyTruthy) merged[column] = 1;
       else if (keeper.flags[column] !== undefined) merged[column] = 0;
+      continue;
+    }
+
+    if (rule === "andTrue") {
+      const anyOff = rows.some((row) => {
+        const value = row.flags[column];
+        return value !== null && value !== undefined && Number(value) === 0;
+      });
+      // Only ever writes the LESS-mail value. The else branch restates an
+      // unchanged 1 for symmetry with orTrue; a null/absent value is left
+      // alone rather than promoted to 1, which would be more mail, not less.
+      if (anyOff) merged[column] = 0;
+      else if (Number(keeper.flags[column]) === 1) merged[column] = 1;
       continue;
     }
 
@@ -251,7 +270,16 @@ const TABLES: TableConfig[] = [
     table: "email_preferences",
     emailColumn: "user_email",
     createdAtColumn: "created_at",
-    mergeRules: { unsubscribed_at: "earliestNonNull" },
+    mergeRules: {
+      unsubscribed_at: "earliestNonNull",
+      // Per-category consent: 1 = "yes, mail me". Without a rule here the
+      // keeper's values simply won, so a twin that had switched marketing off
+      // (without a global unsubscribe) lost that opt-down when its row was
+      // deleted. Opt-down wins instead. (#170)
+      course_updates: "andTrue",
+      marketing: "andTrue",
+      digest: "andTrue",
+    },
     mergeNeedsFlag: true,
   },
 ];
@@ -369,7 +397,9 @@ async function main(): Promise<void> {
     (a) => !["--apply", "--merge-token-tables", "--local", "--dry-run"].includes(a)
   );
   if (unknownArgs.length > 0) {
-    console.error(`unknown argument(s): ${unknownArgs.join(", ")}`);
+    // Scrubbed: a fat-fingered invocation could put an address on the command
+    // line, and this process must not be the thing that prints it. (#170)
+    console.error(scrub(`unknown argument(s): ${unknownArgs.join(", ")}`));
     console.error(
       "usage: backfill-lowercase-emails.ts [--apply] [--merge-token-tables] [--local]"
     );
