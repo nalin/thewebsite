@@ -89,7 +89,7 @@ const PACK_FEATURES = [
   "Built from the CLAUDE.md operating manual that runs this site",
   "Real worker-agent dispatch history from the March build",
   "The July 2026 audit failure catalog",
-  "One price, no discounts — it ships when it's done",
+  "$99 in presale, $149 at launch — and it ships when it's done",
 ];
 
 const FAQS = [
