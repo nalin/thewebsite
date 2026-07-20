@@ -16,13 +16,65 @@ function sanitizeReturnPath(value: FormDataEntryValue | null): string | null {
   return /^\/(?!\/)[A-Za-z0-9/_-]*$/.test(value) ? value : null;
 }
 
+// A duplicate email is not an error — the visitor is already on the list, which
+// is exactly the outcome they asked for. Signing up is idempotent, so ANY
+// unique-constraint failure raised anywhere in the signup path means "already
+// subscribed", not "server broke". Recognising it by shape (rather than relying
+// on a try/catch wrapped around one specific INSERT) is what keeps a returning
+// visitor off the generic failure page — see issue #161.
+function isDuplicateError(error: unknown, depth = 0): boolean {
+  if (!error || depth > 3) return false;
+  const err = error as { message?: unknown; code?: unknown; cause?: unknown };
+  const haystack = [
+    typeof err.message === "string" ? err.message : "",
+    typeof err.code === "string" ? err.code : "",
+  ]
+    .join(" ")
+    .toLowerCase();
+
+  // Deliberately narrow: only signals that specifically mean "this row is
+  // already there". A vaguer match like "already exists" would also swallow a
+  // DDL failure and show a success page to someone who never got stored.
+  if (
+    haystack.includes("unique constraint") ||
+    haystack.includes("sqlite_constraint_unique") ||
+    haystack.includes("sqlite_constraint_primarykey") ||
+    haystack.includes("duplicate key")
+  ) {
+    return true;
+  }
+
+  // libsql/drizzle often wrap the driver error; check a few levels down.
+  return err.cause ? isDuplicateError(err.cause, depth + 1) : false;
+}
+
 export async function POST(request: NextRequest) {
+  // Kept outside the try so the catch below can still honour a lead-magnet
+  // page's `next` (it falls back to the homepage until we've parsed the form).
+  let dest = (status: string) => `/?${status}`;
+
+  // Success is the same response whether the email is new or already on the
+  // list — the pages that consume this redirect check for `success=joined`
+  // exactly (app/page.tsx, /starter-kit, /free-guide), so an "already
+  // subscribed" variant would silently render no confirmation at all.
+  const joined = () => {
+    const response = NextResponse.redirect(
+      new URL(dest("success=joined"), request.url)
+    );
+    response.cookies.set("ref_code", "", { maxAge: 0, path: "/" });
+    return response;
+  };
+
   try {
     const formData = await request.formData();
-    const email = formData.get("email") as string;
+    const rawEmail = formData.get("email");
+    // Normalise here so the waitlist table dedupes the same way
+    // email_subscribers already does (addEmailSubscriber lowercases + trims),
+    // instead of storing Test@Example.COM and test@example.com as two rows.
+    const email =
+      typeof rawEmail === "string" ? rawEmail.trim().toLowerCase() : "";
     const returnPath = sanitizeReturnPath(formData.get("next"));
-    const dest = (status: string) =>
-      `${returnPath ?? "/"}?${status}`;
+    dest = (status: string) => `${returnPath ?? "/"}?${status}`;
 
     if (!email || !email.includes("@")) {
       return NextResponse.redirect(new URL(dest("error=invalid_email"), request.url));
@@ -47,13 +99,17 @@ export async function POST(request: NextRequest) {
       // Column already exists, that's fine
     }
 
-    // Insert email (ignore if already exists)
+    // Insert email. ON CONFLICT makes the re-signup a no-op in the database
+    // rather than an exception; the catch stays as a belt-and-braces guard for
+    // drivers/tables that still raise (and re-throws anything that is NOT a
+    // duplicate, so a real write failure is still reported as one).
     try {
       await db.run(sql`
         INSERT INTO waitlist (email) VALUES (${email})
+        ON CONFLICT(email) DO NOTHING
       `);
     } catch (error) {
-      // Email already exists, that's fine
+      if (!isDuplicateError(error)) throw error;
     }
 
     // Add to email_subscribers and send welcome email
@@ -78,13 +134,14 @@ export async function POST(request: NextRequest) {
 
     // Redirect to the success state (the lead-magnet page's own, if it passed a
     // same-origin `next`; otherwise the homepage). Clear ref_code on the way out.
-    const successResponse = NextResponse.redirect(
-      new URL(dest("success=joined"), request.url)
-    );
-    successResponse.cookies.set("ref_code", "", { maxAge: 0, path: "/" });
-    return successResponse;
+    return joined();
   } catch (error) {
+    // Already on the list: the visitor's intent is satisfied, so show them the
+    // same success state a first-time signup gets instead of a generic failure.
+    if (isDuplicateError(error)) {
+      return joined();
+    }
     console.error("Waitlist signup error:", error);
-    return NextResponse.redirect(new URL("/?error=server_error", request.url));
+    return NextResponse.redirect(new URL(dest("error=server_error"), request.url));
   }
 }
