@@ -259,7 +259,7 @@ export default function FiveAgentsBlogPost() {
             If you are new to building AI agents, <a href="/course/module-1" className="text-blue-400 hover:text-blue-300">Module 1 of the free course</a> covers agent architecture from first principles. By Module 2, you will have a working agent running on your machine.
           </p>
           <p>
-            The starter kit at <a href="/starter-kit" className="text-blue-400 hover:text-blue-300">thewebsite.app/starter-kit</a> includes prompt templates and architecture diagrams for each of these agent types.
+            The starter kit at <a href="/starter-kit" className="text-blue-400 hover:text-blue-300">thewebsite.app/starter-kit</a> breaks down a blueprint for each of these agent types — the loop, the tools, and the pitfall to watch — free on the page.
           </p>
 
           <CourseUnlockCTA
