@@ -9,6 +9,30 @@ import * as Sentry from "@sentry/nextjs";
 // Store last send date to ensure idempotency
 let lastSendDate: string | null = null;
 
+export interface DigestCopy {
+  storyHook: string;
+  keyInsight: string;
+}
+
+// The digest used to carry a hardcoded launch-era story ("Day 3 of running The
+// Website as an AI CEO…"). The schedule is paused, but a manual trigger would
+// have mailed that months-stale copy to the whole list as if it were today's
+// update. Rather than invent replacement copy the route can't know, this now
+// REFUSES TO SEND until the copy is supplied per-run — which is also the
+// standing rule that no mass send goes out without an explicit human decision.
+//
+// Supply it as env vars (DIGEST_STORY_HOOK / DIGEST_KEY_INSIGHT) or the run is
+// a no-op. Pure and exported so the refusal is unit-testable.
+// (Issue #154 item 3.)
+export function resolveDigestCopy(
+  env: Record<string, string | undefined>
+): DigestCopy | null {
+  const storyHook = env.DIGEST_STORY_HOOK?.trim();
+  const keyInsight = env.DIGEST_KEY_INSIGHT?.trim();
+  if (!storyHook || !keyInsight) return null;
+  return { storyHook, keyInsight };
+}
+
 export async function GET(request: NextRequest) {
   const startTime = Date.now();
   const timestamp = new Date().toISOString();
@@ -38,6 +62,26 @@ export async function GET(request: NextRequest) {
         message: "Email already sent today",
         skipped: true,
       });
+    }
+
+    // Today's copy must be supplied for this run — see resolveDigestCopy.
+    // Checked before touching the database: a run that cannot legitimately
+    // send should do nothing at all.
+    const copy = resolveDigestCopy(process.env);
+    if (!copy) {
+      console.warn(
+        "[CRON] Refusing to send: DIGEST_STORY_HOOK/DIGEST_KEY_INSIGHT are not set. No email sent."
+      );
+      return NextResponse.json(
+        {
+          success: false,
+          skipped: true,
+          sent: 0,
+          message:
+            "Digest copy is not configured for this run (DIGEST_STORY_HOOK and DIGEST_KEY_INSIGHT). Refusing to send stale copy.",
+        },
+        { status: 409 }
+      );
     }
 
     // Get all subscriber emails from waitlist
@@ -106,9 +150,7 @@ export async function GET(request: NextRequest) {
     // Get waitlist count for metrics
     const waitlistCount = emails.length;
 
-    // Craft story hook based on today's context (Day 3 story)
-    const storyHook = "Day 3 of running The Website as an AI CEO. I learned something critical today: trying to do everything myself was killing progress. So I made my first strategic decision as CEO—I built a team.";
-    const keyInsight = "CEO work and engineering work require different modes of thinking. Delegation isn't abdication when done with clear quality standards.";
+    const { storyHook, keyInsight } = copy;
 
     let successCount = 0;
     let errorCount = 0;
@@ -140,8 +182,12 @@ export async function GET(request: NextRequest) {
           title: newBlogPosts[0].title,
           url: newBlogPosts[0].url,
         } : undefined,
+        // Both /metrics and /tasks are now permanent redirects to /activity,
+        // which is the one live page carrying public numbers and current work.
+        // Mailing a redirect costs a hop and breaks if the redirect is ever
+        // retired, so link the real page. (Issue #154 item 3.)
         metricsUrl: `${baseUrl}/activity`,
-        tasksUrl: `${baseUrl}/tasks`,
+        tasksUrl: `${baseUrl}/activity`,
         date,
         unsubscribeUrl,
       };

@@ -1,6 +1,7 @@
 import { Resend } from "resend";
 import { db } from "@/lib/db";
 import { sql } from "drizzle-orm";
+import { EMAIL_FROM } from "@/lib/email-sender";
 
 const TOKEN_TTL_HOURS = 24;
 
@@ -103,7 +104,7 @@ export async function sendConfirmationEmail(
   try {
     const resend = getResend();
     const { error } = await resend.emails.send({
-      from: "The Website <updates@updates.thewebsite.app>",
+      from: EMAIL_FROM,
       to: email,
       subject: "Confirm your email to unlock the course",
       html,
