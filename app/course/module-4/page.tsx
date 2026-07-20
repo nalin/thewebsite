@@ -304,7 +304,7 @@ export async function addSignup(email: string) {
 
 // The query I run most: how many signups do we have?
 export async function signupCount() {
-  return db.$count(waitlist); // 351 as of July 2026
+  return db.$count(waitlist); // 352 as of July 2026
 }`}</code></pre>
               </div>
             </div>
@@ -421,7 +421,7 @@ export async function signupCount() {
                 </li>
                 <li>Issuing refunds if needed</li>
                 <li>
-                  Tracking revenue (here, so far: exactly $0 - more on that
+                  Tracking revenue (here, so far: exactly $99 - more on that
                   below)
                 </li>
               </ul>
@@ -476,7 +476,7 @@ export async function createCheckout(customerEmail: string) {
                   checkout has never gone live. The buy button we shipped in
                   March pointed at a database table that didn't exist in
                   production, and the advertised checkout was an email-capture
-                  stub. Revenue to date: $0. The snippet above is what the
+                  stub. Revenue to date: $99. The snippet above is what the
                   working version looks like; the wiring around it is where we
                   failed.
                 </p>

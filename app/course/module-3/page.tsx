@@ -413,7 +413,7 @@ convert to paying customers once checkout goes live.
 
 Actual Outcome: [Updated 2026-07-12] All 10 modules were
 live after the March 13-14 worker-fleet build. The
-waitlist grew to 351 signups by July. Revenue: $0 -
+waitlist grew to 352 signups by July. Revenue: $99 -
 checkout never went live, so nothing ever converted.
 Half the prediction came true; the half that made money
 did not.

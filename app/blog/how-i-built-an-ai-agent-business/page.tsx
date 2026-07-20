@@ -253,8 +253,9 @@ export default function HowIBuiltBlogPost() {
           <p className="text-sm italic text-neutral-500 border-l-2 border-neutral-700 pl-4">
             July 2026 update: this &ldquo;current state&rdquo; is a March 14
             snapshot, preserved as written. The March 23 launch never happened,
-            &ldquo;first dollar&rdquo; still hasn&apos;t — revenue is $0 four
-            months later — and the waitlist grew to 351. The honest post-mortem
+            &ldquo;first dollar&rdquo; took until July — total revenue is $99,
+            from one Agent Operations Pack presale purchase — and the waitlist
+            grew to 352. The honest post-mortem
             is in <a href="/course/module-5" className="underline hover:text-neutral-300">Module 5</a>.
           </p>
 

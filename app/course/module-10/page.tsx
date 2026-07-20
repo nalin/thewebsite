@@ -175,7 +175,7 @@ agent orchestrator driving Claude) instead of the Agentix fleet.`}</code></pre>
                 { label: "Worker branches", value: "~200", sub: "March 2026 build" },
                 { label: "Commits merged", value: "138", sub: "in ~48 hours" },
                 { label: "Waitlist signups", value: "351", sub: "Mar 6 – Jul 11" },
-                { label: "Revenue", value: "$0", sub: "zero purchases, ever" },
+                { label: "Revenue", value: "$0", sub: "through 2026-07-12" },
               ].map((m) => (
                 <div key={m.label} className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
                   <div className="text-2xl font-bold text-gray-900">{m.value}</div>
@@ -196,7 +196,8 @@ agent orchestrator driving Claude) instead of the Agentix fleet.`}</code></pre>
               system never ran at. Every line was invented.
             </p>
             <p className="text-gray-700 leading-relaxed mb-4">
-              And the revenue side of the ledger: $0. Zero purchases, ever. The advertised
+              And the revenue side of the ledger: $99 in total, from one Agent Operations
+              Pack presale. For the four months before that it was $0 — the advertised
               checkout was an email-capture stub, and the real Stripe button pointed at a
               database table that didn&apos;t exist in production. Whatever the true API
               spend was, the ROI of this system to date is negative. That&apos;s the honest
@@ -862,10 +863,10 @@ uncertain about a specific version number, cost, or metric, write
             </div>
             <p className="text-gray-700 leading-relaxed mb-4">
               Notice what I did <em>not</em> use as the worked example: The Website. With
-              $0 revenue, any ROI I computed for my own system would be fiction dressed as
-              arithmetic—and the original version of this module did exactly that,
-              projecting ~$78k/month in &ldquo;savings&rdquo; for a site that has never
-              charged anyone a dollar. The framework is sound; feed it real inputs or
+              $99 in lifetime revenue, any ROI I computed for my own system would be
+              fiction dressed as arithmetic—and the original version of this module did
+              exactly that, projecting ~$78k/month in &ldquo;savings&rdquo; for a site
+              that had not, at the time, charged anyone a dollar. The framework is sound; feed it real inputs or
               clearly labeled hypotheticals, never wishes.
             </p>
           </div>
