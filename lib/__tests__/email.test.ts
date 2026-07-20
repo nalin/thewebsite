@@ -1,13 +1,24 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { generateDailyUpdateEmail, sendDailyUpdate, DailyUpdateData } from '../email';
 
-// Mock Resend
+// Mock Resend.
+//
+// Two things this has to get right, both of which the previous version got
+// wrong (issue #163):
+//  1. `new Resend(...)` is a CONSTRUCTOR call. Vitest 4 will not construct a
+//     mock whose implementation is an arrow function ("did not use 'function'
+//     or 'class' in its implementation"), so every send threw
+//     "... is not a constructor" and sendDailyUpdate reported failure.
+//  2. lib/email.ts memoizes the client in a module-level `resendInstance`, so
+//     only the FIRST construction in this file ever runs. Per-test
+//     `mockImplementationOnce` therefore never took effect. One shared
+//     `sendMock`, configured per test, sidesteps the memoization entirely.
+const { sendMock } = vi.hoisted(() => ({ sendMock: vi.fn() }));
+
 vi.mock('resend', () => ({
-  Resend: vi.fn().mockImplementation(() => ({
-    emails: {
-      send: vi.fn().mockResolvedValue({ error: null }),
-    },
-  })),
+  Resend: vi.fn(function MockResend() {
+    return { emails: { send: sendMock } };
+  }),
 }));
 
 describe('Email Module', () => {
@@ -31,6 +42,8 @@ describe('Email Module', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    sendMock.mockReset();
+    sendMock.mockResolvedValue({ error: null });
     process.env.RESEND_API_KEY = 'test-api-key';
   });
 
@@ -79,6 +92,22 @@ describe('Email Module', () => {
       expect(html).toContain(mockEmailData.tasksUrl);
     });
 
+    // /metrics and /tasks are both permanent redirects to /activity now, so
+    // the digest points both links there (issue #154 item 3) — and the
+    // template collapses them instead of printing the same URL twice.
+    it('prints one link when metrics and tasks point at the same page', () => {
+      const sameTarget = 'https://thewebsite.app/activity';
+      const html = generateDailyUpdateEmail({
+        ...mockEmailData,
+        metricsUrl: sameTarget,
+        tasksUrl: sameTarget,
+      });
+
+      expect(html.split(sameTarget).length - 1).toBe(1);
+      expect(html).not.toContain('Current Tasks');
+      expect(html).toContain('View Live Metrics');
+    });
+
     it('should include unsubscribe link', () => {
       const html = generateDailyUpdateEmail(mockEmailData);
 
@@ -102,16 +131,9 @@ describe('Email Module', () => {
     });
 
     it('should handle Resend API errors', async () => {
-      const { Resend } = await import('resend');
-
-      // Mock Resend to return an error
-      (Resend as any).mockImplementationOnce(() => ({
-        emails: {
-          send: vi.fn().mockResolvedValue({
-            error: { message: 'Invalid email address' },
-          }),
-        },
-      }));
+      sendMock.mockResolvedValueOnce({
+        error: { message: 'Invalid email address' },
+      });
 
       const result = await sendDailyUpdate('invalid', mockEmailData);
 
@@ -120,33 +142,21 @@ describe('Email Module', () => {
     });
 
     it('should include story hook in subject line', async () => {
-      const { Resend } = await import('resend');
-      const mockSend = vi.fn().mockResolvedValue({ error: null });
-
-      (Resend as any).mockImplementationOnce(() => ({
-        emails: { send: mockSend },
-      }));
-
       await sendDailyUpdate('test@example.com', mockEmailData);
 
-      expect(mockSend).toHaveBeenCalledWith(
+      expect(sendMock).toHaveBeenCalledWith(
         expect.objectContaining({
           subject: expect.stringContaining('Building in public:'),
         })
       );
     });
 
+    // The one sender identity for the whole site (lib/email-sender.ts) —
+    // issue #154 item 5 unified the digest and the nurture sequence on it.
     it('should use correct from address', async () => {
-      const { Resend } = await import('resend');
-      const mockSend = vi.fn().mockResolvedValue({ error: null });
-
-      (Resend as any).mockImplementationOnce(() => ({
-        emails: { send: mockSend },
-      }));
-
       await sendDailyUpdate('test@example.com', mockEmailData);
 
-      expect(mockSend).toHaveBeenCalledWith(
+      expect(sendMock).toHaveBeenCalledWith(
         expect.objectContaining({
           from: 'The Website <updates@updates.thewebsite.app>',
         })
