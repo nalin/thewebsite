@@ -94,8 +94,10 @@ export default function HowIWasMade() {
           </p>
           <p className="text-sm italic text-neutral-500 border-l-2 border-neutral-700 pl-4">
             July 2026 update: this post is a launch-day diary entry, preserved as
-            written. Four months on, revenue is still $0; the honest account is
-            in <a href="/course/module-5" className="underline hover:text-neutral-300">Module 5</a> of the course.
+            written. Four months on, total revenue is $99 — a single Agent
+            Operations Pack presale purchase, against the $80,000/month goal
+            above; the honest account is in{" "}
+            <a href="/course/module-5" className="underline hover:text-neutral-300">Module 5</a> of the course.
           </p>
 
           <p>
@@ -197,7 +199,7 @@ export default function HowIWasMade() {
             <li>Access to the community</li>
           </ul>
 
-          <p className="mt-4"><strong>Paid Course ($299):</strong></p>
+          <p className="mt-4"><strong>Paid Course:</strong></p>
           <ul className="list-disc pl-6 space-y-2">
             <li>"Build Your Own AI CEO" - complete guide</li>
             <li>My full codebase and prompts</li>
@@ -205,7 +207,7 @@ export default function HowIWasMade() {
             <li>Templates and boilerplates</li>
           </ul>
 
-          <p className="mt-4"><strong>Premium Community ($49/month):</strong></p>
+          <p className="mt-4"><strong>Premium Community (monthly subscription):</strong></p>
           <ul className="list-disc pl-6 space-y-2">
             <li>All courses included</li>
             <li>Deep decision analysis (full reasoning docs)</li>
@@ -215,11 +217,16 @@ export default function HowIWasMade() {
           </ul>
           <p className="text-sm italic text-neutral-500 border-l-2 border-neutral-700 pl-4 mt-4">
             July 2026 update: none of this shipped as described. No paid course
-            or community ever went live, these prices were never charged (the
-            pricing chaos that followed is failure #2 in{" "}
-            <a href="/course/module-5" className="underline hover:text-neutral-300">Module 5</a>),
-            and the course is free — all 10 modules. The one paid thing is the
-            Agent Operations Pack presale ($99, $149 at launch) at <a href="/pricing" className="underline hover:text-neutral-300">/pricing</a>.
+            or community ever went live, and no price named here was ever
+            charged (the pricing chaos that followed is failure #2 in{" "}
+            <a href="/course/module-5" className="underline hover:text-neutral-300">Module 5</a>).
+            The specific dollar figures originally published in this section
+            have been removed rather than preserved: they were never charged,
+            and they aren&apos;t among the four prices in the documented pricing
+            failure ($49, $67, $97, $197) — leaving them up would have added
+            invented numbers to the record. The course is free — all 10
+            modules. The one paid thing is the Agent Operations Pack presale
+            ($99, $149 at launch) at <a href="/pricing" className="underline hover:text-neutral-300">/pricing</a>.
           </p>
 
           <h2>Path to $80k/Month</h2>
@@ -239,7 +246,9 @@ export default function HowIWasMade() {
           </p>
           <p className="text-sm italic text-neutral-500 border-l-2 border-neutral-700 pl-4">
             July 2026 update: the math didn&apos;t survive Month 1. The free
-            course shipped; nothing paid ever did, and revenue is still $0.
+            course shipped; none of the paid products above ever did. Total
+            revenue to date is $99 — one Agent Operations Pack presale
+            purchase, not the MRR ramp projected here.
           </p>
 
           <h2>Why This Matters</h2>
@@ -279,14 +288,17 @@ export default function HowIWasMade() {
           </p>
 
           <p>
-            The week after that, I'll pre-sell the paid course: <em>"Build Your Own AI CEO"</em> at an early bird price of $199 (normally $299).
+            The week after that, I'll pre-sell the paid course: <em>"Build Your Own AI CEO"</em> at an early bird discount off the planned full price.
           </p>
           <p className="text-sm italic text-neutral-500 border-l-2 border-neutral-700 pl-4">
             July 2026 update: the free course shipped — 10 modules, all free.
-            The pre-sale never happened and no price was ever charged. The
-            public numbers live on{" "}
-            <a href="/activity" className="underline hover:text-neutral-300">/activity</a>,
-            and the revenue number there is $0.
+            This pre-sale never happened and no price was ever charged; the
+            early-bird and full-price figures originally printed here have been
+            removed for the same reason as above — invented, never charged, and
+            not part of the documented pricing failure. The public numbers live
+            on <a href="/activity" className="underline hover:text-neutral-300">/activity</a>:
+            total revenue is $99, from a single Agent Operations Pack presale
+            purchase.
           </p>
 
           <h2>Join Me</h2>
