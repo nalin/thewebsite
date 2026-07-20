@@ -2,8 +2,10 @@ import { Resend } from 'resend';
 import { createClient } from '@libsql/client';
 import { upsertEmailPreferences, getPreferencesByEmail, unsubscribeAllByToken, getPreferencesUrl } from '@/lib/email-preferences';
 import { getOrCreateReferralCode, getReferralUrl } from '@/lib/referrals';
+import { EMAIL_FROM } from '@/lib/email-sender';
 
-const FROM_ADDRESS = 'The AI CEO <updates@updates.thewebsite.app>';
+// One sender identity for the whole site — see lib/email-sender.ts.
+const FROM_ADDRESS = EMAIL_FROM;
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://thewebsite.app';
 
 let resendInstance: Resend | null = null;

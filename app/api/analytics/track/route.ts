@@ -39,76 +39,26 @@ function ensurePageViewsTable(
   return pageViewsReady;
 }
 
-// Light in-memory rate limit (per server instance). Not a hard cross-instance
-// guarantee, but combined with the same-origin check it blunts metric-poisoning
-// floods without adding a dependency. Real users fire ~1 event per page view.
+// Same-origin + rate-limit guards live in lib/request-guards.ts (shared with
+// /api/testimonials and /api/course/progress). Re-exported from here so this
+// route's existing tests and call sites keep their import path.
+export { sameOriginAllowed, clientIp } from "@/lib/request-guards";
+import { sameOriginAllowed, clientIp, createRateLimiter } from "@/lib/request-guards";
+
 export const RATE_MAX = 60; // events per window per IP
 export const RATE_WINDOW_MS = 10_000;
-const rateHits = new Map<string, { count: number; resetAt: number }>();
-// Hard ceiling on distinct tracked keys. The expired-sweep alone can't bound a
-// flood of unique keys within one window (none are expired yet), so past this
-// size we also evict the oldest-inserted entries — memory stays bounded.
 export const MAX_TRACKED_KEYS = 10_000;
+const limiter = createRateLimiter({
+  max: RATE_MAX,
+  windowMs: RATE_WINDOW_MS,
+  maxTrackedKeys: MAX_TRACKED_KEYS,
+});
 export function isRateLimited(key: string): boolean {
-  const now = Date.now();
-  const entry = rateHits.get(key);
-  if (!entry || now > entry.resetAt) {
-    rateHits.set(key, { count: 1, resetAt: now + RATE_WINDOW_MS });
-    if (rateHits.size > MAX_TRACKED_KEYS) {
-      // Perf: entries share one fixed window, so the oldest-inserted entry is
-      // the earliest to expire. If it's still fresh, no entry is expired —
-      // skip the O(n) expired-sweep and go straight to eviction. This is the
-      // common case under a sustained unique-key flood. (A key refreshed
-      // in-place can sit older-in-order with a later expiry; then we simply
-      // evict it as "oldest", which still bounds memory.)
-      const oldest = rateHits.values().next().value;
-      if (oldest && now > oldest.resetAt) {
-        for (const [k, v] of rateHits) if (now > v.resetAt) rateHits.delete(k);
-      }
-      // If still over the ceiling (a live flood of unique keys), evict the
-      // oldest-inserted entries until back under the cap. Map preserves
-      // insertion order and deleting during iteration is safe.
-      if (rateHits.size > MAX_TRACKED_KEYS) {
-        let toEvict = rateHits.size - MAX_TRACKED_KEYS;
-        for (const k of rateHits.keys()) {
-          rateHits.delete(k);
-          if (--toEvict <= 0) break;
-        }
-      }
-    }
-    return false;
-  }
-  entry.count += 1;
-  return entry.count > RATE_MAX;
+  return limiter.isRateLimited(key);
 }
-
-// Test-only: clear the module-level rate-limit map so tests don't leak state
-// into one another.
+// Test-only: clear the module-level counters so tests don't leak state.
 export function resetRateLimiterForTest(): void {
-  rateHits.clear();
-}
-
-// Same-origin guard: real page-view beacons carry an Origin (POST) or a
-// Referer whose host matches ours. Direct scripted POSTs (curl/bots aiming to
-// poison metrics) carry neither, so they're rejected. Pure (header values in)
-// so it can be unit-tested — the browser-set Origin/Host headers can't be
-// forged by a script, which is also why they can't be injected into a
-// synthetic test request, so the wrapper is not directly testable.
-export function sameOriginAllowed(
-  host: string | null,
-  origin: string | null,
-  referer: string | null
-): boolean {
-  if (!host) return false;
-  for (const value of [origin, referer]) {
-    if (!value) continue;
-    try {
-      if (new URL(value).host === host) return true;
-    } catch {
-      // malformed header — ignore and try the next
-    }
-  }
-  return false;
+  limiter.reset();
 }
 
 function isSameOrigin(request: NextRequest): boolean {
@@ -117,30 +67,6 @@ function isSameOrigin(request: NextRequest): boolean {
     request.headers.get("origin"),
     request.headers.get("referer")
   );
-}
-
-// Client IP for rate-limit keying. On Vercel, x-real-ip is the platform-set
-// client IP and is the primary, trustworthy source. The x-forwarded-for
-// fallback takes the RIGHTMOST entry — but note WHY: on Vercel, XFF is
-// effectively single-valued (the platform overwrites it and drops any
-// client-supplied value), so leftmost vs rightmost is moot there; there is no
-// "attacker rotating fake leftmost IPs" vector on Vercel. Rightmost is the
-// correct choice only on a stack that APPENDS the real client IP to a
-// client-supplied XFF via a trusted proxy. Do NOT over-trust XFF as
-// unspoofable: without such a proxy it is fully client-controlled, and under a
-// Vercel Enterprise trusted-proxy config XFF can carry multiple hops where the
-// rightmost is your proxy, not the true client — revisit this if that's enabled.
-export function clientIp(
-  xForwardedFor: string | null,
-  xRealIp: string | null
-): string {
-  if (xRealIp && xRealIp.trim()) return xRealIp.trim();
-  if (xForwardedFor) {
-    const parts = xForwardedFor.split(",");
-    const rightmost = parts[parts.length - 1]?.trim();
-    if (rightmost) return rightmost;
-  }
-  return "unknown";
 }
 
 export async function POST(request: NextRequest) {

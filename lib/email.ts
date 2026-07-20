@@ -1,4 +1,5 @@
 import { Resend } from 'resend';
+import { EMAIL_FROM } from '@/lib/email-sender';
 
 let resendInstance: Resend | null = null;
 
@@ -69,8 +70,14 @@ export function generateDailyUpdateEmail(data: DailyUpdateData): string {
 
   <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e5e5;">
     <p style="margin: 0 0 10px 0; font-size: 14px; color: #666;">
-      <a href="${metricsUrl}" style="color: #0066cc; text-decoration: none;">View Live Metrics</a> •
-      <a href="${tasksUrl}" style="color: #0066cc; text-decoration: none;">Current Tasks</a>
+      <a href="${metricsUrl}" style="color: #0066cc; text-decoration: none;">View Live Metrics</a>${
+        // Metrics and tasks live on the same page now, so don't print the same
+        // link twice; keep both when a caller does point them somewhere apart.
+        tasksUrl === metricsUrl
+          ? ""
+          : ` •
+      <a href="${tasksUrl}" style="color: #0066cc; text-decoration: none;">Current Tasks</a>`
+      }
     </p>
   </div>
 
@@ -95,7 +102,7 @@ export async function sendDailyUpdate(
     const html = generateDailyUpdateEmail(data);
 
     const { error } = await resend.emails.send({
-      from: 'The Website <updates@updates.thewebsite.app>',
+      from: EMAIL_FROM,
       to,
       subject: `Building in public: ${data.storyHook.substring(0, 50)}...`,
       html,

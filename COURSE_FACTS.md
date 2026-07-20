@@ -3,8 +3,8 @@
 > Every fact stated in course modules, the course landing page, emails, and blog
 > posts MUST be consistent with this file. If a fact isn't here and can't be
 > verified, either omit it or label it clearly as hypothetical/illustrative.
-> Last verified: 2026-07-12; revenue, waitlist, and subscriber counts
-> re-verified 2026-07-14 (Stripe + production DB).
+> Last verified: 2026-07-20 (revenue per decision #126; waitlist and subscriber
+> counts prod-verified 2026-07-16).
 
 ## What The Website is
 
@@ -53,19 +53,25 @@ product: this course.
   SDK/Claude Code "requires an Anthropic partnership" — it is publicly
   available to anyone with an API key.
 
-## Real metrics (production DB; counts re-verified 2026-07-14)
+## Real metrics (production DB; counts verified 2026-07-16, revenue via Stripe)
 
-- **352** waitlist signups (2026-03-06 → 2026-07-14; still growing organically)
+- **352** waitlist signups (2026-03-06 → 2026-07-16; still growing organically)
 - **297** email subscribers. Welcome-email breakdown as of 2026-07-12: **163**
   received a welcome email; the rest never got one (send-failure bug froze
   their sequence).
-- **Total revenue: $99 — one purchase, ever.** A single Agent Operations Pack
-  presale on 2026-07-13 (one succeeded, unrefunded $99.00 Stripe charge;
-  verified in Stripe 2026-07-14). Historical fact stays true: from the March
-  launch until 2026-07-13 revenue was **$0 with zero purchases** — the
-  advertised checkout was an email-capture stub; the real Stripe button
-  pointed at a database table that didn't exist in production. Do NOT
-  extrapolate ("first of many", MRR, run-rate) from one sale.
+- **Total revenue: $99 — one completed purchase.** A single Agent Operations
+  Pack presale charge: succeeded, unrefunded, $99.00, verified in Stripe. It is
+  the owner's own end-to-end test of the live checkout, and per the closed
+  decision in issue #126 (Nalin, 2026-07-15 — "it's revenue even if my own")
+  it is **stated as-is in public copy; no provenance disclaimer is required**.
+  For internal accuracy: no external customer has purchased yet, and before the
+  real checkout went live on 2026-07-13 there were no purchases at all — the
+  advertised checkout was an email-capture stub and the real Stripe button
+  pointed at a database table that didn't exist in production. Do NOT write
+  "$0 revenue, zero purchases, ever" — that phrasing is stale and contradicts
+  the $99, which is what caused compliant content to be flagged as fabricated
+  (issue #153). Do NOT extrapolate from one sale ("first of many", MRR,
+  run-rate).
 - **0 unsubscribes** — because the unsubscribe links in emails were broken
   (token parameter the page ignored), not because everyone loved the emails.
 - ~200 worker branches created; 138 commits merged to main in the March build.
@@ -105,8 +111,15 @@ product: this course.
    (commit 23c60b6, PR #92), alongside gating other open admin/write routes.
 10. Six invented testimonials attributed to real companies (Stripe,
     Scale AI, Linear, MIT CSAIL) were seeded and shown on the homepage and
-    /launch. Removed 2026-07-12 (commit 6cf59d7); the testimonials table
-    stays for future real, consented submissions.
+    /launch. Display and seeding removed 2026-07-12 (commit 6cf59d7); the
+    testimonials table stays for future real, consented submissions.
+    **That fix was incomplete.** The six fabricated rows (ids 7–12, all
+    `consent=0`, all `featured=1`, also naming YC W25) were still in the
+    production table and still served publicly by `GET /api/testimonials`
+    to any caller — found by the 2026-07-20 weekly full-surface audit, then
+    backed up and deleted from prod the same day (issue #149; verified live:
+    the endpoint now returns `[]`). Lesson: "removed from the UI" is not
+    "deleted from the database" — verify the data layer, not just the render.
 
 ## Tech stack (true)
 

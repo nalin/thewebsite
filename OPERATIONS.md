@@ -40,9 +40,26 @@ Four principles, in priority order:
 The CEO seat is the only one the human touches — **Nalin interacts with the
 CEO, and the CEO coordinates everyone else.**
 
+**The CEO is a function, not a single session.** It runs as two instantiations
+with one mandate:
+
+- **Interactive CEO terminal** — owner-facing. Where Nalin checks in, where
+  decisions get made, and where human-only items are escalated.
+- **Scheduled `ceo-coordinator` runs** — the operational loop between check-ins.
+  An Orca automation (`13 */2 * * *`, host-local — every two hours) starts a
+  CEO-persona session in the shared `coordinator` worktree; it merges, unblocks
+  stuck dispatches, dispatches ready backlog, and closes issues, then idles
+  until the next run.
+
+Both instantiations hold the **same merge bar** (§4) and the **same reserved
+escalations**: money, mass email sends, credentials, external community
+posting, and public claims about the business. Neither instantiation decides
+those — both surface them to Nalin. Whichever one is merging is "the CEO" for
+the purposes of this manual.
+
 | Role | Owns |
 |---|---|
-| **CEO** | Coordinates and scopes work, dispatches tasks, reviews and merges PRs, runs the live verification probe, escalates human-only items to Nalin. The single point of contact for the owner. |
+| **CEO** | Coordinates and scopes work, dispatches tasks, reviews and merges PRs, runs the live verification probe, escalates human-only items to Nalin. The single point of contact for the owner. Runs both as an interactive terminal and as scheduled `ceo-coordinator` sessions (above). |
 | **course-content** | The 10 course modules, the 7 blog posts, and email copy. |
 | **seo-growth** | SEO, funnel and list health, distribution/launch drafts, blog strategy. Drafts outreach; never auto-posts to communities. |
 | **product-manager** | Roadmap, pricing and monetization strategy, product specs. Produces recommendations and specs; never ships a price or payment flow without Nalin's go. |
@@ -53,6 +70,12 @@ CEO, and the CEO coordinates everyone else.**
 Each non-CEO role is a persistent Orca agent in its own git worktree. Reviewers
 are separate seats precisely so no one reviews their own work.
 
+The live roster, the per-role seed briefs (`team/roles/`), and the procedure for
+rebooting the fleet live in [`TEAM.md`](./TEAM.md) — the roster/reboot annex to
+this manual. This doc is binding and defines *how work ships*; TEAM.md records
+*who currently fills the seats* and how to bring them back up. Where the two
+disagree, this doc wins.
+
 ---
 
 ## 3. How work flows
@@ -62,13 +85,18 @@ any non-trivial change:
 
 1. **Idea or bug → GitHub issue.** The issue is the durable backlog entry and
    the place the outcome is recorded.
-2. **CEO scopes it and dispatches an Orca task** to the owning agent.
+2. **CEO scopes it and dispatches an Orca task** to the owning agent. Check
+   `orca orchestration task-list` for an open task on the same issue first —
+   both the triage cron and the scheduled coordinator runs dispatch, so
+   **double-dispatch is the standing failure mode.** Skip and note duplicates.
 3. **Agent works on its own branch** (off its role branch), committing as it goes.
 4. **Agent pushes and opens/receives a PR**, reporting the branch name and head
    commit back to the CEO.
 5. **Review gate** (see §4) — the right reviewer approves or requests changes.
-6. **CEO merges** after approval *and* a live verification probe of the preview
-   or production deploy.
+6. **CEO merges** after approval, a **secret-scan of the diff** (§6), *and* a
+   live verification probe of the preview or production deploy. The merging
+   seat is whichever CEO instantiation is running (§2); the bar is identical
+   either way.
 7. **CEO comments the outcome on the issue** with commit/PR links and closes it.
 
 By policy, **every** change lands via a branch and a PR the CEO merges — no
@@ -96,6 +124,12 @@ become follow-up GitHub issues rather than holding the PR. Reviewers never
 review their own work. Regardless of lane, the **CEO always does the final
 merge and the live probe** — the review gate never replaces verification.
 
+The merge bar is the same for both CEO instantiations (§2): **review-approved,
+secret-scan clean, and live-probe verified.** A scheduled `ceo-coordinator` run
+merges on exactly these terms and no looser ones; if a PR touches money, mass
+email, credentials, external posting, or public business claims, it waits for
+Nalin regardless of how green the reviews are.
+
 ---
 
 ## 5. Definition of done
@@ -119,8 +153,10 @@ that reports one of them complete is wrong by definition.
 - **No secrets or PII, ever, in anything public.** The repo is public. Secrets
   live only in environment variables / Vercel env / gitignored `.env.local`.
   Subscriber email addresses never appear in content, public logs, activity
-  events, or reports. The CEO secret-scans every PR; a hit blocks the merge.
-  Need a credential for a task? Escalate — never paste one anywhere.
+  events, or reports. **The merging seat secret-scans every diff before merge**
+  — interactive CEO or scheduled `ceo-coordinator` run, no difference — and a
+  hit blocks the merge. Need a credential for a task? Escalate — never paste
+  one anywhere.
 - **No mass email without Nalin's explicit per-send approval.** The nurture
   cron stays **off** until he approves it; each send is its own approval.
 - **No fabricated facts, metrics, URLs, or testimonials.** Every public claim

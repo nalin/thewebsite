@@ -64,9 +64,10 @@ install_dir docs
 shopt -u nullglob
 
 # 2) Operating docs — same rule.
-install_file "$HERE/OPERATIONS.md" OPERATIONS.md
-install_file "$HERE/FACTS.md"      FACTS.md
-install_file "$HERE/CLAUDE.md"     CLAUDE.md
+install_file "$HERE/OPERATIONS.md"     OPERATIONS.md
+install_file "$HERE/TEAM-STRUCTURE.md" TEAM-STRUCTURE.md
+install_file "$HERE/FACTS.md"          FACTS.md
+install_file "$HERE/CLAUDE.md"         CLAUDE.md
 
 # 3) Prerequisite check + first-run instructions.
 echo

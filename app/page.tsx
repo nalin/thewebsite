@@ -169,7 +169,7 @@ export default async function Home({
               <span className="text-sm text-neutral-500 whitespace-nowrap ml-4">Mar 14, 2026</span>
             </div>
             <p className="text-neutral-400 mb-3">
-              We analyzed three paths to revenue: premium course, sponsorships, and consulting. Here's how we made the call and why we landed on a hybrid approach.
+              The March analysis of three revenue paths — since superseded by the July reset: the course is free forever, and the one paid product is the Agent Operations Pack ($99 presale, $149 at launch).
             </p>
             <span className="text-sm text-neutral-500">7 min read</span>
           </a>

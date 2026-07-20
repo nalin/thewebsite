@@ -50,12 +50,14 @@ Then edit `CLAUDE.md`'s PROJECT section and fill in `FACTS.md` for your repo.
 | `roles/ceo.md` | the CEO/coordinator brief (root session natively; a seat in Orca) |
 | `CLAUDE.md` | project-instructions template + the operating model |
 | `OPERATIONS.md` | the operating manual (principles, team, work flow, review lanes, done) |
+| `TEAM-STRUCTURE.md` | roster/reboot annex: org chart + one-command fleet reboot + reboot hazards |
 | `FACTS.md` | single-source-of-truth template |
 | `docs/GITHUB_INTERACTION_MODEL.md` | issue → scope → dispatch → PR → review → merge → verify → close |
 | `docs/SCALING.md` | Level 0→3 progressive adoption |
 | `scripts/setup.sh` | install the scaffold into your repo |
 | `scripts/dispatch.sh` | the native + Orca dispatch patterns, documented |
 | `scripts/orca-bootstrap.sh` | recreate the 7-seat parallel fleet in Orca |
+| `scripts/restart-fleet.sh` | reboot the whole Orca fleet after a restart, in one command |
 | `sample-task/` | runnable first task: engineer fixes a failing test, reviewer approves |
 
 ## The discipline you're adopting

@@ -5,7 +5,7 @@ import ModuleFooterNav from "@/components/ModuleFooterNav";
 export const metadata = {
   title: "Module 5: Case Study — The Website: What Actually Happened - Build Your Own AI Agent",
   description:
-    "The true four-month story of an AI-run business: a 48-hour agent-fleet build, real production metrics ($0 revenue included), and a full autopsy of every failure the autonomous system produced.",
+    "The true four-month story of an AI-run business: a 48-hour agent-fleet build, real production metrics (the $0-for-four-months revenue included), and a full autopsy of every failure the autonomous system produced.",
   alternates: {
     canonical: "https://www.thewebsite.app/course/module-5",
   },
@@ -196,12 +196,12 @@ export default function Module5() {
                   <tr className="bg-neutral-50">
                     <td className="border border-neutral-300 px-4 py-3 text-gray-700">Revenue</td>
                     <td className="border border-neutral-300 px-4 py-3 font-mono text-gray-900">$0</td>
-                    <td className="border border-neutral-300 px-4 py-3 text-gray-600">Ever</td>
+                    <td className="border border-neutral-300 px-4 py-3 text-gray-600">Through 2026-07-12. The first purchase — a single $99 Agent Operations Pack presale — landed 2026-07-13, after this snapshot.</td>
                   </tr>
                   <tr>
                     <td className="border border-neutral-300 px-4 py-3 text-gray-700">Purchases</td>
                     <td className="border border-neutral-300 px-4 py-3 font-mono text-gray-900">0</td>
-                    <td className="border border-neutral-300 px-4 py-3 text-gray-600">The checkout never actually worked (see failure #4)</td>
+                    <td className="border border-neutral-300 px-4 py-3 text-gray-600">Through 2026-07-12 the checkout never actually worked (see failure #4)</td>
                   </tr>
                   <tr className="bg-neutral-50">
                     <td className="border border-neutral-300 px-4 py-3 text-gray-700">Unsubscribes</td>
@@ -388,7 +388,8 @@ export default function Module5() {
                   <span className="font-semibold">What happened:</span> The original
                   Module 10 shipped "case studies" with invented customer metrics
                   and an ROI calculation projecting roughly $78k/month in savings —
-                  published by a business with $0 in lifetime revenue. None of it
+                  published by a business that had, at the time, $0 in lifetime
+                  revenue. None of it
                   was labeled hypothetical. It read as fact.
                 </p>
                 <p className="text-gray-700 text-sm mb-3">
@@ -424,10 +425,11 @@ export default function Module5() {
                   <span className="font-semibold">What happened:</span> The advertised
                   checkout was an email-capture stub. The real Stripe button, when
                   it was finally wired up, pointed at a database table that didn't
-                  exist in production. Result: zero purchases, ever — not because
-                  nobody clicked, but because clicking could not possibly have
-                  worked. The Stripe code still exists in the repo today; it has
-                  never been live.
+                  exist in production. Result: zero purchases for the whole four
+                  months — not because nobody clicked, but because clicking could
+                  not possibly have worked. That March code never went live; a
+                  separate, working presale checkout shipped 2026-07-13 and has
+                  taken exactly one purchase since.
                 </p>
                 <p className="text-gray-700 text-sm mb-3">
                   <span className="font-semibold">Why an autonomous system produced it:</span>{" "}

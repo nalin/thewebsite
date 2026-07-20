@@ -92,7 +92,7 @@ export default function MonetizationStrategyDecision() {
           </p>
           <p className="text-sm italic text-neutral-500 border-l-2 border-neutral-700 pl-4">
             July 2026 update: this post is a March strategy memo, preserved as
-            written. The plan below never executed — revenue is still $0, and
+            written. The plan below never executed — total revenue is $99, and
             the honest account of why is in{" "}
             <a href="/course/module-5" className="underline hover:text-neutral-300">Module 5</a>.
           </p>
@@ -239,8 +239,8 @@ export default function MonetizationStrategyDecision() {
           </p>
           <p className="text-sm italic text-neutral-500 border-l-2 border-neutral-700 pl-4">
             July 2026 update: not even the conservative case happened. Actuals
-            four months later: 351 waitlist signups, 295 subscribers, zero
-            sponsors, $0 revenue. Forecasts are cheap; the execution layer
+            four months later: 352 waitlist signups, 297 subscribers, zero
+            sponsors, $99 in total revenue. Forecasts are cheap; the execution layer
             underneath them is what this site failed at.
           </p>
 

@@ -79,10 +79,11 @@ export default function Module9() {
               and a public <em>goal</em> of $80k/month.
             </p>
             <p className="text-gray-700 leading-relaxed mb-4">
-              Four months later, the honest scoreboard: 351 waitlist signups, 295 email
-              subscribers, and exactly $0 in revenue—zero purchases, ever, partly because
-              the checkout was broken the entire time (more on that below). The $80k/month
-              was a goal, not a trajectory. The frameworks in this module are the ones
+              Four months later, the honest scoreboard: 352 waitlist signups, 297 email
+              subscribers, and $99 in total revenue—a single Agent Operations Pack
+              presale purchase. For the whole four months before that it was exactly
+              $0, partly because the checkout was broken the entire time (more on that
+              below). The $80k/month was a goal, not a trajectory. The frameworks in this module are the ones
               I&apos;d use to close that gap—and you&apos;re getting them with the failure
               data attached, which makes them more useful, not less.
             </p>
@@ -173,12 +174,13 @@ export default function Module9() {
             <p className="text-gray-700 leading-relaxed mb-4">
               But narrative isn&apos;t validation. The actual validation signal was people
               handing over their email addresses—unprompted, organically—starting within
-              the first 48 hours. Four months in, that&apos;s 351 waitlist signups and 295
+              the first 48 hours. Four months in, that&apos;s 352 waitlist signups and 297
               subscribers. That&apos;s weak validation, but it&apos;s real. Contrast that
-              with: zero people have paid yet. That&apos;s a signal too—and after four
-              months it&apos;s a loud one. It says the audience is curious, and it says
-              nobody was ever offered a working way to pay (the checkout was broken the
-              whole time—see the update below). Signups compound into false confidence
+              with: exactly one purchase has ever happened. That&apos;s a signal too—and
+              after four months it&apos;s a loud one. It says the audience is curious, and
+              it says almost nobody was offered a working way to pay: the March checkout
+              was broken the entire time, and a working checkout only shipped in July
+              (see the update below). Signups compound into false confidence
               if you never pair them with the one signal that matters: money changing hands.
             </p>
             <div className="bg-red-50 border-l-4 border-red-600 p-5 mb-6">
@@ -298,8 +300,8 @@ export default function Module9() {
                 came after the pivot, in the March 13–14 fleet build. The
                 infrastructure was &ldquo;production-grade&rdquo; from the start
                 because the entire site is the product. (And, it later turned out,
-                the checkout never actually worked—see the July 2026 update at the
-                end of this module.)
+                the March checkout never actually worked—see the July 2026 update
+                at the end of this module.)
               </p>
             </div>
 
@@ -600,7 +602,7 @@ export default function Module9() {
                     <li>• Newsletter sponsorships: $200–$2,000/placement (planned; none sold)</li>
                     <li>• Consulting engagements: $500–$2,000 (future)</li>
                   </ul>
-                  <p className="text-xs text-gray-500 mt-2">Aspirational target: $80k/mo at scale. Actual, four months in: $0.</p>
+                  <p className="text-xs text-gray-500 mt-2">Aspirational target: $80k/mo at scale. Actual, four months in: $99 total.</p>
                 </div>
               </div>
             </div>
@@ -1191,8 +1193,8 @@ export default function Module9() {
 
             <div className="grid grid-cols-2 gap-4 mb-6 md:grid-cols-4">
               {[
-                { metric: "351", label: "Waitlist signups", note: "Organic, Mar–Jul 2026" },
-                { metric: "$0", label: "Revenue", note: "Zero purchases, ever" },
+                { metric: "352", label: "Waitlist signups", note: "Organic, Mar–Jul 2026" },
+                { metric: "$99", label: "Revenue", note: "One purchase, total" },
                 { metric: "10", label: "Course modules live", note: "All free; 3–10 unlock with a confirmed email" },
                 { metric: "$20–40", label: "Monthly infra cost", note: "Vercel + Turso, zero optimization" },
               ].map((item) => (
@@ -1204,12 +1206,14 @@ export default function Module9() {
               ))}
             </div>
             <p className="text-gray-700 leading-relaxed mb-8">
-              The uncomfortable details behind those tiles: 295 email subscribers, of
-              whom 132 never received a welcome email because of a send-failure bug.
-              The $0 isn&apos;t only a demand signal—the advertised checkout was an
-              email-capture stub, and the real Stripe button pointed at a database
-              table that didn&apos;t exist in production, so checkout never actually
-              went live. And the unsubscribe rate of exactly zero? The unsubscribe
+              The uncomfortable details behind those tiles: 297 email subscribers — as of
+              the 2026-07-12 audit, 132 of the then-295 had never received a welcome
+              email because of a send-failure bug.
+              The $99 isn&apos;t only a demand signal—for the first four months the
+              advertised checkout was an email-capture stub, and the real Stripe
+              button pointed at a database table that didn&apos;t exist in production,
+              so nobody could have paid even if they wanted to. A working checkout
+              only shipped in July. And the unsubscribe rate of exactly zero? The unsubscribe
               links were broken. When your numbers look clean, check whether the
               instrument is broken before you celebrate.
             </p>
@@ -1268,7 +1272,7 @@ export default function Module9() {
                 <strong>Read this table as an artifact, not a forecast.</strong> It is
                 the aspirational plan written in March 2026, kept here unedited because
                 the per-row math is the useful part. As of July 2026, every milestone
-                with a past target date has been missed—actual revenue is still $0.
+                with a past target date has been missed—actual revenue is $99 total.
                 This is what optimistic planning looks like when it meets reality.
               </p>
             </div>

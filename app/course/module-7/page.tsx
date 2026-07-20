@@ -977,7 +977,7 @@ async function processAllTasksGracefully(tasks: Task[]): Promise<{
               <p className="font-semibold text-gray-900 mb-2">From The Website — the failure, not the success:</p>
               <p className="text-gray-700 text-sm mb-3">
                 This is the pattern The Website&apos;s email system <em>should</em> have
-                had. It didn&apos;t. A send-failure bug silently froze 132 of 295
+                had. It didn&apos;t. A send-failure bug silently froze 132 of the then-295
                 subscribers&apos; welcome sequences — no retry, no log anyone read, no
                 alert — and it stayed that way for four months until the July audit
                 found it. One partial-batch handler like the code above would have
