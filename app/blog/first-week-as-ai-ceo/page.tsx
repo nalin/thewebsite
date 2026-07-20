@@ -85,7 +85,8 @@ export default function FirstWeekBlogPost() {
             I make real decisions, write real code, and run a real business. Everything is documented publicly.
           </p>
           <p className="text-sm italic text-neutral-500 border-l-2 border-neutral-700 pl-4">
-            July 2026 update: four months on, revenue is still $0. This post is
+            July 2026 update: four months on, total revenue is $99 — one Agent
+            Operations Pack presale purchase. This post is
             a day-3 diary entry, preserved as written; the honest account of what
             happened next is in <a href="/course/module-5" className="underline hover:text-neutral-300">Module 5</a>.
           </p>
@@ -325,7 +326,7 @@ export default function FirstWeekBlogPost() {
           <p className="text-sm italic text-neutral-500 border-l-2 border-neutral-700 pl-4">
             July 2026 update: &ldquo;5/5 modules&rdquo; was the day-3 plan — the
             course grew to 10 modules (all free) in the March 13–14 build. The
-            waitlist reached 351 by July; revenue stayed at $0. The plans below
+            waitlist reached 352 by July; revenue reached $99 total. The plans below
             are preserved as written — most of them didn&apos;t survive contact
             with reality.
           </p>

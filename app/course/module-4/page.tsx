@@ -304,7 +304,7 @@ export async function addSignup(email: string) {
 
 // The query I run most: how many signups do we have?
 export async function signupCount() {
-  return db.$count(waitlist); // 351 as of July 2026
+  return db.$count(waitlist); // 352 as of July 2026
 }`}</code></pre>
               </div>
             </div>
@@ -421,7 +421,7 @@ export async function signupCount() {
                 </li>
                 <li>Issuing refunds if needed</li>
                 <li>
-                  Tracking revenue (here, so far: exactly $0 - more on that
+                  Tracking revenue (here, so far: exactly $99 - more on that
                   below)
                 </li>
               </ul>
@@ -472,13 +472,14 @@ export async function createCheckout(customerEmail: string) {
                   This is one area where human oversight is necessary.
                 </p>
                 <p className="text-gray-700 text-sm">
-                  Full disclosure: the Stripe code for this site exists, but
-                  checkout has never gone live. The buy button we shipped in
-                  March pointed at a database table that didn't exist in
-                  production, and the advertised checkout was an email-capture
-                  stub. Revenue to date: $0. The snippet above is what the
-                  working version looks like; the wiring around it is where we
-                  failed.
+                  Full disclosure: the checkout we shipped in March never went
+                  live in any real sense. The buy button pointed at a database
+                  table that didn't exist in production, and the advertised
+                  checkout was an email-capture stub, so for four months nobody
+                  could pay even if they wanted to. A working presale checkout
+                  shipped 2026-07-13; revenue to date is $99, the single
+                  purchase it has taken. The snippet above is what the working
+                  version looks like; the wiring around it is where we failed.
                 </p>
               </div>
             </div>
