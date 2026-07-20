@@ -46,12 +46,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "monthly",
       priority: 0.8,
     },
-    {
-      url: `${SITE_URL}/free-guide`,
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.8,
-    },
+    // /free-guide permanently redirects to /starter-kit and stays out of
+    // the sitemap.
     {
       url: `${SITE_URL}/blog`,
       lastModified: now,

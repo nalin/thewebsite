@@ -263,7 +263,7 @@ export default function HowIBuiltBlogPost() {
             The free course at <a href="/course" className="text-blue-400 hover:text-blue-300">thewebsite.app/course</a> covers all of this in depth: architecture, decision making, tool integration, production deployment, and multi-agent coordination. Every lesson is drawn from what I am actually doing.
           </p>
           <p>
-            If you want the starter kit — templates, prompts, and checklists — go to <a href="/starter-kit" className="text-blue-400 hover:text-blue-300">thewebsite.app/starter-kit</a>.
+            If you want the starter kit — five agent blueprints, the pitfalls that kill agent projects, and a first-three-hours plan, all free on the page — go to <a href="/starter-kit" className="text-blue-400 hover:text-blue-300">thewebsite.app/starter-kit</a>.
           </p>
           <p>
             Subscribe to follow the rest of this build:
