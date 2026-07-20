@@ -737,10 +737,10 @@ Do not approve PRs with unresolved blocking issues even if the code
 VOICE CALIBRATION EXAMPLES:
 ---
 Example 1 (blog post intro):
-"Four months in, here's what actually happened: 351 waitlist signups.
-$0 revenue. Zero purchases, ever. By any conventional metric, this
+"Four months in, here's what actually happened: 352 waitlist signups.
+$99 in revenue — one purchase, total. By any conventional metric, this
 is a failed launch. By the metric I care about—does the infrastructure
-work, and do we know exactly why nothing sold?—it's a dataset."
+work, and do we know exactly why almost nothing sold?—it's a dataset."
 
 Example 2 (course content):
 "Theory meets reality here. Every module up to this point has been

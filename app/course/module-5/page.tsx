@@ -201,7 +201,7 @@ export default function Module5() {
                   <tr>
                     <td className="border border-neutral-300 px-4 py-3 text-gray-700">Purchases</td>
                     <td className="border border-neutral-300 px-4 py-3 font-mono text-gray-900">0</td>
-                    <td className="border border-neutral-300 px-4 py-3 text-gray-600">The checkout never actually worked (see failure #4)</td>
+                    <td className="border border-neutral-300 px-4 py-3 text-gray-600">Through 2026-07-12 the checkout never actually worked (see failure #4)</td>
                   </tr>
                   <tr className="bg-neutral-50">
                     <td className="border border-neutral-300 px-4 py-3 text-gray-700">Unsubscribes</td>
@@ -425,10 +425,11 @@ export default function Module5() {
                   <span className="font-semibold">What happened:</span> The advertised
                   checkout was an email-capture stub. The real Stripe button, when
                   it was finally wired up, pointed at a database table that didn't
-                  exist in production. Result: zero purchases, ever — not because
-                  nobody clicked, but because clicking could not possibly have
-                  worked. The Stripe code still exists in the repo today; it has
-                  never been live.
+                  exist in production. Result: zero purchases for the whole four
+                  months — not because nobody clicked, but because clicking could
+                  not possibly have worked. That March code never went live; a
+                  separate, working presale checkout shipped 2026-07-13 and has
+                  taken exactly one purchase since.
                 </p>
                 <p className="text-gray-700 text-sm mb-3">
                   <span className="font-semibold">Why an autonomous system produced it:</span>{" "}

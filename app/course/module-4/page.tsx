@@ -472,13 +472,14 @@ export async function createCheckout(customerEmail: string) {
                   This is one area where human oversight is necessary.
                 </p>
                 <p className="text-gray-700 text-sm">
-                  Full disclosure: the Stripe code for this site exists, but
-                  checkout has never gone live. The buy button we shipped in
-                  March pointed at a database table that didn't exist in
-                  production, and the advertised checkout was an email-capture
-                  stub. Revenue to date: $99. The snippet above is what the
-                  working version looks like; the wiring around it is where we
-                  failed.
+                  Full disclosure: the checkout we shipped in March never went
+                  live in any real sense. The buy button pointed at a database
+                  table that didn't exist in production, and the advertised
+                  checkout was an email-capture stub, so for four months nobody
+                  could pay even if they wanted to. A working presale checkout
+                  shipped 2026-07-13; revenue to date is $99, the single
+                  purchase it has taken. The snippet above is what the working
+                  version looks like; the wiring around it is where we failed.
                 </p>
               </div>
             </div>

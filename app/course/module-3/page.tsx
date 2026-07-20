@@ -411,12 +411,14 @@ impact over popularity.
 Expected Outcome: Course drives waitlist signups that
 convert to paying customers once checkout goes live.
 
-Actual Outcome: [Updated 2026-07-12] All 10 modules were
+Actual Outcome: [Updated 2026-07-20] All 10 modules were
 live after the March 13-14 worker-fleet build. The
-waitlist grew to 352 signups by July. Revenue: $99 -
-checkout never went live, so nothing ever converted.
-Half the prediction came true; the half that made money
-did not.
+waitlist grew to 352 signups by July. Revenue: $99 - the
+March checkout never worked, so for four months nothing
+converted; a working presale checkout shipped 2026-07-13
+and produced the one purchase to date. Half the
+prediction came true on schedule; the half that made
+money arrived four months late and once.
 
 Lessons Learned: "Popular ≠ valuable" held up - the course
 attracted signups dark mode never would have. But an

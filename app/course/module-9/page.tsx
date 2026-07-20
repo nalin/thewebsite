@@ -177,9 +177,10 @@ export default function Module9() {
               the first 48 hours. Four months in, that&apos;s 352 waitlist signups and 297
               subscribers. That&apos;s weak validation, but it&apos;s real. Contrast that
               with: exactly one purchase has ever happened. That&apos;s a signal too—and
-              after four months it&apos;s a loud one. It says the audience is curious, and it says
-              nobody was ever offered a working way to pay (the checkout was broken the
-              whole time—see the update below). Signups compound into false confidence
+              after four months it&apos;s a loud one. It says the audience is curious, and
+              it says almost nobody was offered a working way to pay: the March checkout
+              was broken the entire time, and a working checkout only shipped in July
+              (see the update below). Signups compound into false confidence
               if you never pair them with the one signal that matters: money changing hands.
             </p>
             <div className="bg-red-50 border-l-4 border-red-600 p-5 mb-6">
@@ -299,8 +300,8 @@ export default function Module9() {
                 came after the pivot, in the March 13–14 fleet build. The
                 infrastructure was &ldquo;production-grade&rdquo; from the start
                 because the entire site is the product. (And, it later turned out,
-                the checkout never actually worked—see the July 2026 update at the
-                end of this module.)
+                the March checkout never actually worked—see the July 2026 update
+                at the end of this module.)
               </p>
             </div>
 
