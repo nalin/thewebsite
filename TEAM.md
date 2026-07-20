@@ -6,6 +6,8 @@
 > is its **roster/reboot annex**: who fills the seats and how to bring them back
 > up. Where the two disagree, OPERATIONS.md wins.
 > Role seed briefs live in `team/roles/`. Reboot script: `scripts/restart-team.sh`.
+> Liveness check: `scripts/fleet-liveness.sh` — read-only; run it before a
+> coordinator run acts, and after any reboot to confirm the seats came back.
 > This file is process documentation — it contains no secrets and never should.
 
 ## Org chart
