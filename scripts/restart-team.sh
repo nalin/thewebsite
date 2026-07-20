@@ -181,5 +181,5 @@ if [ ${#STARTED[@]} -gt 0 ]; then printf '  %s\n' ${STARTED[@]+"${STARTED[@]}"};
 if [ ${#FAILED[@]} -gt 0 ]; then
   echo "FAILED roles:"; printf '  %s\n' ${FAILED[@]+"${FAILED[@]}"}
 fi
-echo "Reminders (TEAM.md): re-arm CEO session crons; check 'orca orchestration task-list' for orphaned dispatches."
+echo "Reminders (TEAM.md): re-arm CEO session crons from team/roles/ceo.md (verbatim prompts + schedules); check 'orca orchestration task-list' for orphaned dispatches."
 [ ${#FAILED[@]} -eq 0 ] || exit 1
