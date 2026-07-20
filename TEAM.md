@@ -59,11 +59,15 @@ Each other agent is a long-running Claude Code session in its own Orca worktree 
 
 ## CEO session duties (cannot be scripted — re-arm on every new CEO session)
 
-1. Twice-daily GitHub issue triage cron (e.g. `23 9,17 * * *`).
+The CEO loop is part of the team config: the canonical schedules, the
+VERBATIM standing-cron prompts, and the CEO seat's reboot checklist live in
+[`team/roles/ceo.md`](./team/roles/ceo.md). Summary:
+
+1. Twice-daily GitHub issue triage cron (`23 9,17 * * *`).
 2. Weekly full-surface audit cron (every route + email template vs
-   COURSE_FACTS.md, live-probed; e.g. Mondays `41 8 * * 1`).
+   COURSE_FACTS.md, live-probed; Mondays `41 8 * * 1`).
    These are Claude-session crons; they die with the session and auto-expire
-   in 7 days.
+   in 7 days — re-arm from `team/roles/ceo.md`, never from memory.
 
 ## Reboot procedure (after machine restart / Orca restart)
 
