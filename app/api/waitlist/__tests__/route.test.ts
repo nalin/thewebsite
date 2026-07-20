@@ -10,6 +10,35 @@ vi.mock('@/lib/db', () => ({
   },
 }));
 
+// Keep the mailing-list side effects out of the unit tests — they hit the
+// libsql client and Resend otherwise.
+vi.mock('@/lib/nurture-emails', () => ({
+  addEmailSubscriber: vi.fn(async () => ({ token: 'tok', alreadyExists: false })),
+  sendWelcomeEmail: vi.fn(async () => undefined),
+}));
+vi.mock('@/lib/referrals', () => ({
+  trackReferral: vi.fn(async () => undefined),
+}));
+
+// The interpolated values live in the drizzle `sql` template's queryChunks;
+// stringifying is enough to assert what the route sent for a given statement.
+async function statementFor(fragment: string): Promise<string> {
+  const { db } = await import('@/lib/db');
+  const call = (db.run as any).mock.calls.find((c: any[]) =>
+    JSON.stringify(c[0]?.queryChunks ?? c[0]).includes(fragment)
+  );
+  return call ? JSON.stringify(call[0]?.queryChunks ?? call[0]) : '';
+}
+
+function signup(fields: Record<string, string>): NextRequest {
+  const formData = new FormData();
+  for (const [k, v] of Object.entries(fields)) formData.append(k, v);
+  return new NextRequest('http://localhost:3000/api/waitlist', {
+    method: 'POST',
+    body: formData,
+  });
+}
+
 describe('Waitlist API', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -220,6 +249,110 @@ describe('Waitlist API', () => {
 
       expect(response.status).toBe(307);
       expect(location).toContain('/starter-kit?error=invalid_email');
+    });
+  });
+
+  // Regression for issue #161: a returning visitor re-entering their email got
+  // `error=server_error`, because a unique-constraint failure was only tolerated
+  // at the one call site wrapped in a try/catch. Signing up twice is idempotent,
+  // so a duplicate must land on the same success state as a first-time signup —
+  // from ANY point in the signup path.
+  describe('duplicate signup is graceful (issue #161)', () => {
+    const dupe = () => new Error('SQLITE_CONSTRAINT: UNIQUE constraint failed: waitlist.email');
+
+    it('succeeds when the duplicate surfaces from the waitlist INSERT itself', async () => {
+      const { db } = await import('@/lib/db');
+      // CREATE TABLE and ALTER succeed; the third statement is the INSERT.
+      (db.run as any)
+        .mockResolvedValueOnce(undefined)
+        .mockResolvedValueOnce(undefined)
+        .mockRejectedValueOnce(dupe());
+
+      const response = await POST(signup({ email: 'existing@example.com' }));
+
+      expect(response.status).toBe(307);
+      expect(response.headers.get('location')).toContain('success=joined');
+    });
+
+    it('succeeds when the duplicate surfaces from any earlier statement', async () => {
+      const { db } = await import('@/lib/db');
+      (db.run as any).mockRejectedValueOnce(dupe());
+
+      const response = await POST(signup({ email: 'existing@example.com' }));
+
+      expect(response.status).toBe(307);
+      expect(response.headers.get('location')).toContain('success=joined');
+    });
+
+    it('recognises a libsql-style error object (code, no message match)', async () => {
+      const { db } = await import('@/lib/db');
+      const err: any = new Error('SQLite error');
+      err.code = 'SQLITE_CONSTRAINT_UNIQUE';
+      (db.run as any).mockRejectedValueOnce(err);
+
+      const response = await POST(signup({ email: 'existing@example.com' }));
+
+      expect(response.headers.get('location')).toContain('success=joined');
+    });
+
+    it('recognises a duplicate wrapped in a driver error `cause`', async () => {
+      const { db } = await import('@/lib/db');
+      const err: any = new Error('query failed');
+      err.cause = dupe();
+      (db.run as any).mockRejectedValueOnce(err);
+
+      const response = await POST(signup({ email: 'existing@example.com' }));
+
+      expect(response.headers.get('location')).toContain('success=joined');
+    });
+
+    it('returns a duplicate to the lead-magnet page that sent it', async () => {
+      const { db } = await import('@/lib/db');
+      (db.run as any).mockRejectedValueOnce(dupe());
+
+      const response = await POST(
+        signup({ email: 'existing@example.com', next: '/starter-kit' })
+      );
+
+      expect(response.headers.get('location')).toContain('/starter-kit?success=joined');
+    });
+
+    it('clears the ref_code cookie on a duplicate, same as a first-time signup', async () => {
+      const { db } = await import('@/lib/db');
+      (db.run as any).mockRejectedValueOnce(dupe());
+
+      const response = await POST(signup({ email: 'existing@example.com' }));
+
+      expect(response.headers.get('set-cookie')).toContain('ref_code=');
+      expect(response.headers.get('set-cookie')).toContain('Max-Age=0');
+    });
+
+    it('still reports a genuine write failure as server_error', async () => {
+      const { db } = await import('@/lib/db');
+      (db.run as any).mockRejectedValueOnce(new Error('Database connection failed'));
+
+      const response = await POST(signup({ email: 'test@example.com', next: '/starter-kit' }));
+
+      expect(response.status).toBe(307);
+      // ...and carries the caller's page through, like the other error states.
+      expect(response.headers.get('location')).toContain('/starter-kit?error=server_error');
+    });
+
+    it('lets the database dedupe: INSERT is ON CONFLICT DO NOTHING', async () => {
+      await POST(signup({ email: 'test@example.com' }));
+
+      expect(await statementFor('INSERT INTO waitlist')).toContain(
+        'ON CONFLICT(email) DO NOTHING'
+      );
+    });
+
+    it('normalizes the email so case/whitespace variants are the same subscriber', async () => {
+      const { addEmailSubscriber } = await import('@/lib/nurture-emails');
+
+      await POST(signup({ email: '  Test@Example.COM  ' }));
+
+      expect(await statementFor('INSERT INTO waitlist')).toContain('test@example.com');
+      expect(addEmailSubscriber).toHaveBeenCalledWith('test@example.com');
     });
   });
 });
