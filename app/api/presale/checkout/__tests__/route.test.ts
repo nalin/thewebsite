@@ -1,3 +1,11 @@
+/**
+ * This is an API route test with no DOM. Run it on Node so `Request` is the
+ * same undici implementation Vercel runs — happy-dom's `Request.formData()`
+ * rejects for a urlencoded body, which silently defeated the prefill
+ * assertion below (the route swallows that failure by design). See #177.
+ *
+ * @vitest-environment node
+ */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { POST } from '../route';
 
