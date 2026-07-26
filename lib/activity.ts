@@ -35,6 +35,16 @@ export interface ActivityEvent {
   detail: string | null;
   commit_sha: string | null;
   created_at: string;
+  // When the blocker itself began, for decision_pending rows. Distinct from
+  // created_at, which is only when the CEO got around to logging it — a
+  // blocker is routinely discovered days after it starts. Null when unknown,
+  // in which case callers fall back to created_at.
+  blocker_started_at: string | null;
+}
+
+// The blocker's true start, falling back to the log time when unrecorded.
+export function blockerOpenSince(event: ActivityEvent): string {
+  return event.blocker_started_at ?? event.created_at;
 }
 
 async function ensureTable() {
@@ -46,9 +56,20 @@ async function ensureTable() {
       title TEXT NOT NULL,
       detail TEXT,
       commit_sha TEXT,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      blocker_started_at DATETIME
     )
   `);
+  // Tables created before blocker_started_at existed need the column added.
+  // SQLite has no ADD COLUMN IF NOT EXISTS; a duplicate-column error here is
+  // the expected steady state, so it is swallowed rather than logged.
+  try {
+    await db.run(
+      sql`ALTER TABLE activity_events ADD COLUMN blocker_started_at DATETIME`
+    );
+  } catch {
+    // column already present
+  }
 }
 
 type RawRows = { rows?: Array<Record<string, unknown>> };
@@ -62,6 +83,9 @@ function mapRow(row: Record<string, unknown>): ActivityEvent {
     detail: row.detail ? String(row.detail) : null,
     commit_sha: row.commit_sha ? String(row.commit_sha) : null,
     created_at: String(row.created_at),
+    blocker_started_at: row.blocker_started_at
+      ? String(row.blocker_started_at)
+      : null,
   };
 }
 
@@ -71,7 +95,7 @@ export async function getRecentActivity(limit = 50): Promise<ActivityEvent[]> {
   try {
     await ensureTable();
     const result = await db.run(sql`
-      SELECT id, kind, role, title, detail, commit_sha, created_at
+      SELECT id, kind, role, title, detail, commit_sha, created_at, blocker_started_at
       FROM activity_events
       ORDER BY id DESC
       LIMIT ${limit}
@@ -92,7 +116,7 @@ export async function getLatestByRole(): Promise<
   try {
     await ensureTable();
     const result = await db.run(sql`
-      SELECT id, kind, role, title, detail, commit_sha, created_at
+      SELECT id, kind, role, title, detail, commit_sha, created_at, blocker_started_at
       FROM activity_events
       WHERE id IN (SELECT MAX(id) FROM activity_events GROUP BY role)
     `);
@@ -112,7 +136,7 @@ export async function getPendingDecisions(): Promise<ActivityEvent[]> {
   try {
     await ensureTable();
     const result = await db.run(sql`
-      SELECT id, kind, role, title, detail, commit_sha, created_at
+      SELECT id, kind, role, title, detail, commit_sha, created_at, blocker_started_at
       FROM activity_events p
       WHERE kind = 'decision_pending'
         AND NOT EXISTS (
