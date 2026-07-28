@@ -29,7 +29,9 @@ type Seed = {
   role: string;
   title: string;
   created_at: string;
-  blocker_started_at?: string | null;
+  // number allows seeding a degenerate INTEGER 0 (issue #187): the DATETIME
+  // column has NUMERIC affinity, so a stray 0 or '0' write lands as INTEGER 0.
+  blocker_started_at?: string | number | null;
 };
 
 async function seed(rows: Seed[]) {
@@ -239,5 +241,42 @@ describe("getPendingDecisions — empty-string blocker_started_at falls back lik
     const emptyRow = pending[1];
     expect(emptyRow.id).toBe(41);
     expect(blockerOpenSince(emptyRow)).toBe("2026-07-27 09:00:00");
+  });
+});
+
+describe("getPendingDecisions — any degenerate blocker_started_at falls back like the TS helper (issue #187)", () => {
+  it("sorts NULL, '', 0, and '0' blockers by created_at, none floating to the top, matching blockerOpenSince", async () => {
+    // The whole degenerate family in one panel. blocker_started_at is DATETIME
+    // (NUMERIC affinity), so 0 and '0' both land as INTEGER 0; datetime(0) is
+    // Julian day zero (-4713-11-24), which under ASC longest-waiting-first would
+    // pin the row to the TOP — while mapRow's guard renders the recent created_at.
+    // A single plausible-timestamp predicate (GLOB in SQL, regex in mapRow) must
+    // reject all of them, so each sorts on its created_at, agreeing with the
+    // rendered "open since". id 50 is the only genuine blocker and must lead.
+    await seed([
+      { id: 50, kind: "decision_pending", role: "ceo", title: "genuinely old", created_at: "2026-07-28 09:00:00", blocker_started_at: "2026-07-10 09:00:00" },
+      { id: 51, kind: "decision_pending", role: "ceo", title: "null blocker", created_at: "2026-07-25 09:00:00", blocker_started_at: null },
+      { id: 52, kind: "decision_pending", role: "ceo", title: "empty blocker", created_at: "2026-07-26 09:00:00", blocker_started_at: "" },
+      { id: 53, kind: "decision_pending", role: "ceo", title: "numeric zero blocker", created_at: "2026-07-27 09:00:00", blocker_started_at: 0 },
+      { id: 54, kind: "decision_pending", role: "ceo", title: "string zero blocker", created_at: "2026-07-24 09:00:00", blocker_started_at: "0" },
+    ]);
+
+    const pending = await getPendingDecisions();
+
+    // Only id 50 sorts on a real blocker (07-10); every degenerate row sorts on
+    // its own created_at. Order by "open since" ASC: 50, 54, 51, 52, 53. The
+    // numeric-0 row (53) lands LAST, not pinned to the top — the #187 bug.
+    expect(pending.map((e) => e.id)).toEqual([50, 54, 51, 52, 53]);
+
+    // Sort and render agree: every degenerate row renders (and sorted on) its
+    // created_at; the genuine row renders its blocker_started_at.
+    const openSince = pending.map((e) => blockerOpenSince(e));
+    expect(openSince).toEqual([...openSince].sort());
+    const byId = Object.fromEntries(pending.map((e) => [e.id, e]));
+    expect(blockerOpenSince(byId[50])).toBe("2026-07-10 09:00:00");
+    expect(blockerOpenSince(byId[54])).toBe("2026-07-24 09:00:00");
+    expect(blockerOpenSince(byId[51])).toBe("2026-07-25 09:00:00");
+    expect(blockerOpenSince(byId[52])).toBe("2026-07-26 09:00:00");
+    expect(blockerOpenSince(byId[53])).toBe("2026-07-27 09:00:00");
   });
 });
