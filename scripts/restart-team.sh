@@ -142,7 +142,10 @@ for role in "${ROLES[@]}"; do
   # guessed from a naming convention: probing the wrong path would report a
   # live seat as MISSING and relaunch on top of it, which is the failure this
   # check exists to prevent. No path in the listing means no probe, so the seat
-  # is treated as unhealthy and handled below.
+  # is treated as unhealthy and handled below. Clear the verdict first: the
+  # SEAT_* globals persist across loop iterations, so an unprobed seat would
+  # otherwise be reported with the PREVIOUS seat's status.
+  SEAT_STATUS=""
   if [ -n "$WT_PATH" ]; then
     seat_probe_classify "$WT_PATH"
     if [ "$SEAT_STATUS" = "OK" ]; then
