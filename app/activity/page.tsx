@@ -4,6 +4,7 @@ import {
   getLatestByRole,
   getPendingDecisions,
   getPublicStats,
+  blockerOpenSince,
   ACTIVITY_ROLES,
   type ActivityEvent,
   type ActivityKind,
@@ -216,7 +217,7 @@ export default async function ActivityPage() {
                 <div>
                   <p className="text-neutral-200">{event.title}</p>
                   <p className="text-xs text-neutral-600 mt-1">
-                    open since {formatRelativeTime(event.created_at)}
+                    open since {formatRelativeTime(blockerOpenSince(event))}
                   </p>
                 </div>
               </div>
