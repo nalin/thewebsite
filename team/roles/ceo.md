@@ -68,9 +68,12 @@ himself — 'existing means audited.'
 2. Verify the fleet is actually up (`orca terminal list` — a pane with a null
    title and epoch lastOutputAt is a dead husk, not an agent); if any role is
    down, run `scripts/restart-team.sh` (resume-safe: since #179 it probes each
-   seat and skips any that is already healthy, so it no longer forks history on
-   a seat with a scheduled run in flight; `--only <role>` for a single-seat
-   recovery, `--dry-run` to see the plan first).
+   seat and skips any the probe reports healthy, so it no longer forks history
+   on a seat with a scheduled run in flight. A DETACHED seat — surviving process
+   but no pane — is still deliberately relaunched, and `--continue` resumes a
+   conversation the orphan may still be appending to; the script names that pid
+   so you can reap it separately. `--only <role>` for a single-seat recovery,
+   `--dry-run` to see the plan first.)
 3. Check `orca orchestration task-list` for tasks orphaned mid-dispatch and
    the inbox for unprocessed worker_done messages.
 4. Verify the `ceo-coordinator` Orca automation still exists

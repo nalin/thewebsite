@@ -70,6 +70,10 @@ done
 # --only filters the roster; an unknown role is a typo, and silently restarting
 # nothing (or everything) is the wrong answer to a typo during an outage.
 if [ -n "$ONLY" ]; then
+  if [ -z "$(echo "$ONLY" | tr ',' ' ' | tr -d '[:space:]')" ]; then
+    echo "error: --only role list is empty — known roles: ${ROLES[*]}" >&2
+    exit 2
+  fi
   # shellcheck disable=SC2206  # deliberate word-splitting on the requested list
   REQUESTED=($(echo "$ONLY" | tr ',' ' '))
   SELECTED=()
@@ -82,6 +86,16 @@ if [ -n "$ONLY" ]; then
       echo "error: unknown role '$want' — known roles: ${ROLES[*]}" >&2
       exit 2
     fi
+    # A repeat is the same class of typo as an unknown role, but worse: the pid
+    # map is snapshotted once, so the second pass still reads a down seat as
+    # down and launches it again — two live sessions on one seat, the exact
+    # hazard this script exists to prevent.
+    for already in ${SELECTED[@]+"${SELECTED[@]}"}; do
+      if [ "$already" = "$found" ]; then
+        echo "error: role '$found' repeated in --only — restarting one seat twice would leave two live sessions on it" >&2
+        exit 2
+      fi
+    done
     SELECTED+=("$found")
   done
   ROLES=(${SELECTED[@]+"${SELECTED[@]}"})
