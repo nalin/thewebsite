@@ -215,3 +215,29 @@ describe('created_at/blocker format normalized on read (issue #183, item 1)', ()
     expect(pending.map((e) => e.id)).toEqual([30, 31]);
   });
 });
+
+describe("getPendingDecisions — empty-string blocker_started_at falls back like the TS helper (issue #185)", () => {
+  it("sorts an empty-string blocker by created_at, not to the top, matching blockerOpenSince", async () => {
+    // SQL COALESCE only replaces NULL, so '' would survive; datetime('') is
+    // NULL and floats to the TOP of the ASC (longest-waiting-first) panel —
+    // while mapRow's falsy check turns '' into null so the row RENDERS its
+    // recent created_at. NULLIF(blocker_started_at, '') mirrors the TS
+    // semantics so sort position and rendered date agree.
+    await seed([
+      { id: 40, kind: "decision_pending", role: "ceo", title: "genuinely old", created_at: "2026-07-28 09:00:00", blocker_started_at: "2026-07-14 09:00:00" },
+      { id: 41, kind: "decision_pending", role: "ceo", title: "empty blocker", created_at: "2026-07-27 09:00:00", blocker_started_at: "" },
+    ]);
+
+    const pending = await getPendingDecisions();
+
+    // The '' row must sort by its created_at (07-27), landing BELOW the real
+    // 07-14 blocker — not pinned to the top as apparently-longest-waiting.
+    expect(pending.map((e) => e.id)).toEqual([40, 41]);
+
+    // Sort position and rendered "open since" agree: the '' row renders its
+    // created_at, the same value it sorted on.
+    const emptyRow = pending[1];
+    expect(emptyRow.id).toBe(41);
+    expect(blockerOpenSince(emptyRow)).toBe("2026-07-27 09:00:00");
+  });
+});

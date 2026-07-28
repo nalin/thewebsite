@@ -159,10 +159,13 @@ export async function getPendingDecisions(): Promise<ActivityEvent[]> {
     //
     // The trailing ORDER BY, by contrast, is a DISPLAY ordering — "what has the
     // owner been sitting on longest" — so it sorts by the exact value each row
-    // renders as "open since": COALESCE(blocker_started_at, created_at), matching
-    // blockerOpenSince() including its fallback. Oldest-blocker-first (ASC) puts
-    // the longest-waiting item on top (issue #183, item 2). datetime() normalizes
-    // the key against ISO-vs-space format drift, same as the other readers.
+    // renders as "open since": COALESCE(NULLIF(blocker_started_at, ''), created_at),
+    // matching blockerOpenSince() including its fallback. NULLIF mirrors mapRow's
+    // falsy check so an empty-string blocker_started_at falls back to created_at
+    // here too, instead of datetime('') → NULL floating a recent row to the top
+    // (issue #185). Oldest-blocker-first (ASC) puts the longest-waiting item on
+    // top (issue #183, item 2). datetime() normalizes the key against ISO-vs-space
+    // format drift, same as the other readers.
     const result = await db.run(sql`
       SELECT id, kind, role, title, detail, commit_sha, created_at, blocker_started_at
       FROM activity_events p
@@ -173,7 +176,7 @@ export async function getPendingDecisions(): Promise<ActivityEvent[]> {
             AND d.title = p.title
             AND d.id > p.id
         )
-      ORDER BY datetime(COALESCE(blocker_started_at, created_at)) ASC, id ASC
+      ORDER BY datetime(COALESCE(NULLIF(blocker_started_at, ''), created_at)) ASC, id ASC
     `);
     return ((result as unknown as RawRows).rows ?? []).map(mapRow);
   } catch (error) {
