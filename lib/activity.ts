@@ -97,7 +97,7 @@ export async function getRecentActivity(limit = 50): Promise<ActivityEvent[]> {
     const result = await db.run(sql`
       SELECT id, kind, role, title, detail, commit_sha, created_at, blocker_started_at
       FROM activity_events
-      ORDER BY created_at DESC, id DESC
+      ORDER BY datetime(created_at) DESC, id DESC
       LIMIT ${limit}
     `);
     return ((result as unknown as RawRows).rows ?? []).map(mapRow);
@@ -120,12 +120,15 @@ export async function getLatestByRole(): Promise<
     // surface a backdated event as a seat's current state (issue #181). The
     // window function partitions the table once and ranks within each role —
     // exactly one row per role, no correlated per-role rescan.
+    // datetime() normalizes the sort key so an ISO 'YYYY-MM-DDTHH:MM:SSZ' string
+    // from an ad-hoc CEO write can't out-sort a same-day space-format row on
+    // the 'T' > ' ' quirk (issue #183, item 1).
     const result = await db.run(sql`
       SELECT id, kind, role, title, detail, commit_sha, created_at, blocker_started_at
       FROM (
         SELECT id, kind, role, title, detail, commit_sha, created_at, blocker_started_at,
           ROW_NUMBER() OVER (
-            PARTITION BY role ORDER BY created_at DESC, id DESC
+            PARTITION BY role ORDER BY datetime(created_at) DESC, id DESC
           ) AS rn
         FROM activity_events
       )
@@ -152,8 +155,14 @@ export async function getPendingDecisions(): Promise<ActivityEvent[]> {
     // and never backdated, so it faithfully records the sequence in which the CEO
     // logged the raise and the resolution; created_at is exactly the field a
     // backfill shifts, so keying supersession off it would introduce the very
-    // hazard this issue fixes elsewhere. The trailing ORDER BY id DESC is left
-    // untouched for the same reason — see the PR body for the full argument.
+    // hazard #181 fixes elsewhere. Leave it alone.
+    //
+    // The trailing ORDER BY, by contrast, is a DISPLAY ordering — "what has the
+    // owner been sitting on longest" — so it sorts by the exact value each row
+    // renders as "open since": COALESCE(blocker_started_at, created_at), matching
+    // blockerOpenSince() including its fallback. Oldest-blocker-first (ASC) puts
+    // the longest-waiting item on top (issue #183, item 2). datetime() normalizes
+    // the key against ISO-vs-space format drift, same as the other readers.
     const result = await db.run(sql`
       SELECT id, kind, role, title, detail, commit_sha, created_at, blocker_started_at
       FROM activity_events p
@@ -164,7 +173,7 @@ export async function getPendingDecisions(): Promise<ActivityEvent[]> {
             AND d.title = p.title
             AND d.id > p.id
         )
-      ORDER BY id DESC
+      ORDER BY datetime(COALESCE(blocker_started_at, created_at)) ASC, id ASC
     `);
     return ((result as unknown as RawRows).rows ?? []).map(mapRow);
   } catch (error) {
