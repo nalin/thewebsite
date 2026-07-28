@@ -47,6 +47,30 @@ export function blockerOpenSince(event: ActivityEvent): string {
   return event.blocker_started_at ?? event.created_at;
 }
 
+// A blocker_started_at value is only usable if it actually looks like a
+// timestamp ('YYYY-MM-DD...'). Anything else is treated as unrecorded and the
+// caller falls back to created_at. This single predicate replaces a per-value
+// NULLIF stack: earlier fixes special-cased NULL and then '' (#185) one at a
+// time, but the DATETIME column has NUMERIC affinity, so an ad-hoc write of 0
+// or '0' lands as INTEGER 0 — which datetime() reads as Julian day zero
+// (-4713-11-24), floating the row to the top of the longest-waiting-first
+// panel (#187). Rejecting anything that is not a plausible timestamp closes
+// that whole family at once, so the read path stops needing a new guard per
+// degenerate value.
+//
+// mapRow (JS, below) and the getPendingDecisions sort key (SQL) MUST apply the
+// SAME predicate: the SQL mirror is the GLOB pattern
+// '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]*', which matches this regex. The
+// invariant is that the value a row SORTS on equals the value it RENDERS as
+// "open since"; if you change one side, change the other in the same commit.
+const PLAUSIBLE_TIMESTAMP = /^\d{4}-\d{2}-\d{2}/;
+
+function plausibleTimestamp(value: unknown): string | null {
+  return typeof value === "string" && PLAUSIBLE_TIMESTAMP.test(value)
+    ? value
+    : null;
+}
+
 async function ensureTable() {
   await db.run(sql`
     CREATE TABLE IF NOT EXISTS activity_events (
@@ -83,9 +107,7 @@ function mapRow(row: Record<string, unknown>): ActivityEvent {
     detail: row.detail ? String(row.detail) : null,
     commit_sha: row.commit_sha ? String(row.commit_sha) : null,
     created_at: String(row.created_at),
-    blocker_started_at: row.blocker_started_at
-      ? String(row.blocker_started_at)
-      : null,
+    blocker_started_at: plausibleTimestamp(row.blocker_started_at),
   };
 }
 
@@ -159,13 +181,17 @@ export async function getPendingDecisions(): Promise<ActivityEvent[]> {
     //
     // The trailing ORDER BY, by contrast, is a DISPLAY ordering — "what has the
     // owner been sitting on longest" — so it sorts by the exact value each row
-    // renders as "open since": COALESCE(NULLIF(blocker_started_at, ''), created_at),
-    // matching blockerOpenSince() including its fallback. NULLIF mirrors mapRow's
-    // falsy check so an empty-string blocker_started_at falls back to created_at
-    // here too, instead of datetime('') → NULL floating a recent row to the top
-    // (issue #185). Oldest-blocker-first (ASC) puts the longest-waiting item on
-    // top (issue #183, item 2). datetime() normalizes the key against ISO-vs-space
-    // format drift, same as the other readers.
+    // renders as "open since": blocker_started_at when it is a real timestamp,
+    // else created_at, matching blockerOpenSince() and mapRow(). The GLOB guard
+    // is the SQL mirror of plausibleTimestamp() above: it keeps blocker_started_at
+    // only when it looks like 'YYYY-MM-DD...', otherwise falls back to created_at.
+    // That rejects the whole degenerate family in one predicate — NULL, '', and a
+    // numeric 0/'0' (the DATETIME column's NUMERIC affinity stores those as
+    // INTEGER 0, and datetime(0) is Julian day zero, which would otherwise pin the
+    // row to the top) — instead of a NULLIF per falsy value (issues #185, #187).
+    // Oldest-blocker-first (ASC) puts the longest-waiting item on top (#183, item
+    // 2). datetime() normalizes the key against ISO-vs-space format drift (#183,
+    // item 1), same as the other readers.
     const result = await db.run(sql`
       SELECT id, kind, role, title, detail, commit_sha, created_at, blocker_started_at
       FROM activity_events p
@@ -176,7 +202,13 @@ export async function getPendingDecisions(): Promise<ActivityEvent[]> {
             AND d.title = p.title
             AND d.id > p.id
         )
-      ORDER BY datetime(COALESCE(NULLIF(blocker_started_at, ''), created_at)) ASC, id ASC
+      ORDER BY datetime(
+        COALESCE(
+          CASE WHEN blocker_started_at GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]*'
+               THEN blocker_started_at END,
+          created_at
+        )
+      ) ASC, id ASC
     `);
     return ((result as unknown as RawRows).rows ?? []).map(mapRow);
   } catch (error) {
