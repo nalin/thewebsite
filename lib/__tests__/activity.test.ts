@@ -17,15 +17,19 @@ import {
   getRecentActivity,
   getLatestByRole,
   getPendingDecisions,
+  blockerOpenSince,
 } from '../activity';
 
 // created_at is stored as 'YYYY-MM-DD HH:MM:SS' text, so lexical order == chrono.
+// blocker_started_at is the true "open since" for decision_pending rows and is
+// null when unrecorded (callers fall back to created_at).
 type Seed = {
   id: number;
   kind: string;
   role: string;
   title: string;
   created_at: string;
+  blocker_started_at?: string | null;
 };
 
 async function seed(rows: Seed[]) {
@@ -38,13 +42,14 @@ async function seed(rows: Seed[]) {
       title TEXT NOT NULL,
       detail TEXT,
       commit_sha TEXT,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      blocker_started_at DATETIME
     )
   `);
   for (const r of rows) {
     await rawClient.execute({
-      sql: 'INSERT INTO activity_events (id, kind, role, title, created_at) VALUES (?,?,?,?,?)',
-      args: [r.id, r.kind, r.role, r.title, r.created_at],
+      sql: 'INSERT INTO activity_events (id, kind, role, title, created_at, blocker_started_at) VALUES (?,?,?,?,?,?)',
+      args: [r.id, r.kind, r.role, r.title, r.created_at, r.blocker_started_at ?? null],
     });
   }
 }
@@ -152,5 +157,61 @@ describe('getPendingDecisions — supersession stays keyed on id (issue #181, it
     const pending = await getPendingDecisions();
 
     expect(pending.map((e) => e.title)).toContain('pricing tier');
+  });
+});
+
+describe('getPendingDecisions — panel sorts longest-waiting first (issue #183, item 2)', () => {
+  it('orders open blockers by "open since" ascending, keyed on blockerOpenSince', async () => {
+    // All decision_pending, all still open (no matching decision_made). The
+    // panel renders "open since" via blockerOpenSince = blocker_started_at ??
+    // created_at, so the sort must key on that same value — including the
+    // fallback when blocker_started_at is null (id 12).
+    await seed([
+      { id: 10, kind: 'decision_pending', role: 'ceo', title: 'A', created_at: '2026-07-28 09:00:00', blocker_started_at: '2026-07-20 09:00:00' },
+      { id: 11, kind: 'decision_pending', role: 'ceo', title: 'B', created_at: '2026-07-28 09:00:00', blocker_started_at: '2026-07-14 09:00:00' },
+      { id: 12, kind: 'decision_pending', role: 'ceo', title: 'C', created_at: '2026-07-26 09:00:00', blocker_started_at: null },
+      { id: 13, kind: 'decision_pending', role: 'ceo', title: 'D', created_at: '2026-07-28 09:00:00', blocker_started_at: '2026-07-16 09:00:00' },
+    ]);
+
+    const pending = await getPendingDecisions();
+
+    // Longest-waiting first: 07-14 (11), 07-16 (13), 07-20 (10), then the
+    // null-blocker row falling back to its created_at 07-26 (12).
+    expect(pending.map((e) => e.id)).toEqual([11, 13, 10, 12]);
+
+    // The rendered "open since" values must be non-decreasing top-to-bottom —
+    // i.e. sort and display agree, including the null fallback.
+    const openSince = pending.map((e) => blockerOpenSince(e));
+    expect(openSince).toEqual([...openSince].sort());
+    expect(blockerOpenSince(pending[3])).toBe('2026-07-26 09:00:00');
+  });
+});
+
+describe('created_at/blocker format normalized on read (issue #183, item 1)', () => {
+  it('getRecentActivity: an ISO row does not out-sort a later same-day space-format row', async () => {
+    // 'T' (0x54) > ' ' (0x20), so raw string DESC would float the 11:00 ISO row
+    // above the 12:00 space row. datetime() normalizes both, so time wins.
+    await seed([
+      { id: 20, kind: 'note', role: 'engineer', title: 'iso', created_at: '2026-07-28T11:00:00Z' },
+      { id: 21, kind: 'note', role: 'engineer', title: 'space', created_at: '2026-07-28 12:00:00' },
+    ]);
+
+    const feed = await getRecentActivity();
+
+    expect(feed.map((e) => e.id)).toEqual([21, 20]);
+  });
+
+  it('getPendingDecisions: an earlier ISO blocker sorts ahead of a later space-format one', async () => {
+    // Longest-waiting first: the 07:00 ISO blocker has waited longer than the
+    // 08:00 space blocker, but raw ASC would put the space row first ('space' <
+    // 'T'). datetime() puts the genuinely-older ISO blocker on top.
+    await seed([
+      { id: 30, kind: 'decision_pending', role: 'ceo', title: 'iso-early', created_at: '2026-07-28 12:00:00', blocker_started_at: '2026-07-28T07:00:00Z' },
+      { id: 31, kind: 'decision_pending', role: 'ceo', title: 'space-late', created_at: '2026-07-28 12:00:00', blocker_started_at: '2026-07-28 08:00:00' },
+    ]);
+
+    const pending = await getPendingDecisions();
+
+    expect(pending.map((e) => e.id)).toEqual([30, 31]);
   });
 });
