@@ -8,7 +8,26 @@
 # prompt at its first novel command and stalls silently mid-turn (#136,
 # root-caused and fixed here per #137).
 #
-# Usage: scripts/restart-team.sh [CEO_TERMINAL_HANDLE]
+# HEALTHY SEATS ARE SKIPPED (#179). Before touching a seat, this script runs
+# the same read-only probe fleet-liveness.sh uses (lib/seat-probe.sh) and
+# leaves any seat that already has BOTH a live agent pane and a live `claude`
+# process alone. That matters most for `coordinator`: it is normally the one
+# seat that IS alive when a restart is needed, because a scheduled coordinator
+# run is what discovers the outage — so restarting it unconditionally spawned a
+# second session on a live seat, and both answered dispatches. Skip-if-healthy
+# is a backstop against that, not permission to automate recovery: an automated
+# run must still never call this script.
+#
+# Usage: scripts/restart-team.sh [--only ROLE[,ROLE...]] [--force] [--dry-run]
+#                                [CEO_TERMINAL_HANDLE]
+#   --only     restart only these roles (comma- or space-separated). A
+#              single-seat recovery is the common case — during the #174 outage
+#              the whole unblock was `--only code-reviewer`.
+#   --force    restart seats even when the probe reports them healthy. This
+#              re-arms the duplicate-session hazard; only use it when you have
+#              confirmed the "healthy" seat is a husk the probe misread.
+#   --dry-run  print the plan (per-seat verdict and the action that would be
+#              taken) and exit without creating, launching or sending anything.
 #   With a CEO handle, each agent is asked to confirm via an orchestration
 #   status message to that handle. Without one, agents are just re-oriented.
 #
@@ -18,8 +37,69 @@
 set -uo pipefail
 
 ROLES=(coordinator course-content seo-growth product-manager engineer code-reviewer content-reviewer)
-CEO_HANDLE="${1:-}"
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+
+# Shared per-seat probe — one definition of "healthy", so recovery and the
+# read-only preflight cannot drift. Sourcing it is inert.
+# shellcheck source=scripts/lib/seat-probe.sh
+. "$REPO_ROOT/scripts/lib/seat-probe.sh"
+
+CEO_HANDLE=""
+ONLY=""
+FORCE=0
+DRY_RUN=0
+
+usage() {
+  sed -n '2,36p' "$0" | sed 's/^# \{0,1\}//' >&2
+  exit 2
+}
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --only) ONLY="${2:-}"; [ -n "$ONLY" ] || { echo "error: --only needs a role list" >&2; exit 2; }; shift 2 ;;
+    --force) FORCE=1; shift ;;
+    --dry-run) DRY_RUN=1; shift ;;
+    --help|-h) usage ;;
+    -*) echo "unknown argument: $1" >&2; usage ;;
+    *)
+      [ -z "$CEO_HANDLE" ] || { echo "error: unexpected extra argument: $1" >&2; usage; }
+      CEO_HANDLE="$1"; shift ;;
+  esac
+done
+
+# --only filters the roster; an unknown role is a typo, and silently restarting
+# nothing (or everything) is the wrong answer to a typo during an outage.
+if [ -n "$ONLY" ]; then
+  if [ -z "$(echo "$ONLY" | tr ',' ' ' | tr -d '[:space:]')" ]; then
+    echo "error: --only role list is empty — known roles: ${ROLES[*]}" >&2
+    exit 2
+  fi
+  # shellcheck disable=SC2206  # deliberate word-splitting on the requested list
+  REQUESTED=($(echo "$ONLY" | tr ',' ' '))
+  SELECTED=()
+  for want in ${REQUESTED[@]+"${REQUESTED[@]}"}; do
+    found=""
+    for role in "${ROLES[@]}"; do
+      [ "$role" = "$want" ] && found="$role" && break
+    done
+    if [ -z "$found" ]; then
+      echo "error: unknown role '$want' — known roles: ${ROLES[*]}" >&2
+      exit 2
+    fi
+    # A repeat is the same class of typo as an unknown role, but worse: the pid
+    # map is snapshotted once, so the second pass still reads a down seat as
+    # down and launches it again — two live sessions on one seat, the exact
+    # hazard this script exists to prevent.
+    for already in ${SELECTED[@]+"${SELECTED[@]}"}; do
+      if [ "$already" = "$found" ]; then
+        echo "error: role '$found' repeated in --only — restarting one seat twice would leave two live sessions on it" >&2
+        exit 2
+      fi
+    done
+    SELECTED+=("$found")
+  done
+  ROLES=(${SELECTED[@]+"${SELECTED[@]}"})
+fi
 
 # Base ref for freshly created role worktrees. TEAM.md documents them as
 # "based on origin/main", so assert that rather than inheriting Orca's implicit
@@ -31,6 +111,12 @@ BASE_BRANCH="${BASE_BRANCH:-origin/main}"
 
 command -v orca >/dev/null || { echo "FATAL: orca CLI not on PATH"; exit 1; }
 command -v node >/dev/null || { echo "FATAL: node not on PATH"; exit 1; }
+# jq/lsof/ps back the seat probe. Missing them is fatal rather than
+# skip-the-check: a restart that cannot tell a live seat from a dead one is the
+# duplicate-session hazard with the safety removed.
+for dep in jq lsof ps; do
+  command -v "$dep" >/dev/null || { echo "FATAL: $dep not on PATH (required by the seat probe)"; exit 1; }
+done
 
 STATE=$(orca status --json 2>/dev/null | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>{try{console.log(JSON.parse(d).result.runtime.state)}catch(e){console.log('down')}})")
 [ "$STATE" = "ready" ] || { echo "FATAL: Orca runtime not ready (state: $STATE). Start the Orca app first."; exit 1; }
@@ -46,7 +132,7 @@ try{
   if(!Array.isArray(ws)||ws.length===0){console.log('PARSE_FAIL');return;}
   for(const w of ws){
     if(!w.isArchived&&(w.projectId||'').includes('thewebsite'))
-      console.log(w.displayName+'\t'+w.id);
+      console.log(w.displayName+'\t'+w.id+'\t'+(w.path||''));
   }
 }catch(e){console.log('PARSE_FAIL')}});")
 if [ -z "$WT_MAP" ] || echo "$WT_MAP" | grep -q '^PARSE_FAIL$'; then
@@ -56,9 +142,51 @@ fi
 
 STARTED=()
 FAILED=()
+SKIPPED=()
+
+# Build the pid->cwd map once, before the loop, so every seat is judged against
+# the same snapshot.
+seat_probe_scan_processes
 
 for role in "${ROLES[@]}"; do
   WT_ID=$(echo "$WT_MAP" | awk -F'\t' -v r="$role" '$1==r{print $2; exit}')
+  WT_PATH=$(echo "$WT_MAP" | awk -F'\t' -v r="$role" '$1==r{print $3; exit}')
+
+  # Skip-if-healthy (#179). The path comes from the worktree listing, never
+  # guessed from a naming convention: probing the wrong path would report a
+  # live seat as MISSING and relaunch on top of it, which is the failure this
+  # check exists to prevent. No path in the listing means no probe, so the seat
+  # is treated as unhealthy and handled below. Clear the verdict first: the
+  # SEAT_* globals persist across loop iterations, so an unprobed seat would
+  # otherwise be reported with the PREVIOUS seat's status.
+  SEAT_STATUS=""
+  if [ -n "$WT_PATH" ]; then
+    seat_probe_classify "$WT_PATH"
+    if [ "$SEAT_STATUS" = "OK" ]; then
+      if [ "$FORCE" = "1" ]; then
+        echo "[$role] already up (claude pid(s) $SEAT_PIDS, pane $SEAT_HANDLE) — restarting anyway (--force)"
+      else
+        echo "[$role] already up (claude pid(s) $SEAT_PIDS, pane $SEAT_HANDLE) — skipping"
+        SKIPPED+=("$role")
+        continue
+      fi
+    elif [ "$SEAT_STATUS" = "DETACHED" ]; then
+      # The process survived, its terminal did not. Relaunching gives the seat a
+      # reachable pane; the orphaned pid stays running and is a separate,
+      # deliberate reaping decision (#155) — not something a restart should do
+      # silently.
+      echo "[$role] detached (claude pid(s) $SEAT_PIDS alive, no pane) — relaunching; old pid(s) left for manual reaping"
+    fi
+  fi
+
+  if [ "$DRY_RUN" = "1" ]; then
+    if [ -z "$WT_ID" ]; then
+      echo "[$role] DRY RUN — would create a fresh worktree (base: $BASE_BRANCH) and launch claude"
+    else
+      echo "[$role] DRY RUN — would resume ${SEAT_STATUS:-UNPROBED} seat with claude --continue"
+    fi
+    continue
+  fi
 
   if [ -z "$WT_ID" ]; then
     echo "[$role] worktree missing — creating fresh worktree (base: $BASE_BRANCH), launching claude with permission bypass"
@@ -176,8 +304,15 @@ if [ ${#STARTED[@]} -gt 0 ]; then
 fi
 
 echo
-echo "Done. ${#STARTED[@]}/${#ROLES[@]} agents restarted."
+if [ "$DRY_RUN" = "1" ]; then
+  echo "DRY RUN — nothing was created, launched or sent. ${#ROLES[@]} role(s) considered, ${#SKIPPED[@]} already healthy."
+  exit 0
+fi
+echo "Done. ${#STARTED[@]}/${#ROLES[@]} agents restarted, ${#SKIPPED[@]} already up (skipped)."
 if [ ${#STARTED[@]} -gt 0 ]; then printf '  %s\n' ${STARTED[@]+"${STARTED[@]}"}; fi
+if [ ${#SKIPPED[@]} -gt 0 ]; then
+  echo "Skipped (already healthy):"; printf '  %s\n' ${SKIPPED[@]+"${SKIPPED[@]}"}
+fi
 if [ ${#FAILED[@]} -gt 0 ]; then
   echo "FAILED roles:"; printf '  %s\n' ${FAILED[@]+"${FAILED[@]}"}
 fi

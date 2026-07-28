@@ -76,13 +76,23 @@ VERBATIM standing-cron prompts, and the CEO seat's reboot checklist live in
 Run `scripts/restart-team.sh [CEO_TERMINAL_HANDLE]` from the main checkout.
 For each role it will:
 
-1. Create the worktree if missing (seeding the agent with `team/roles/<role>.md`).
-2. Otherwise start a fresh terminal running `claude --continue`, which
+1. Probe the seat first and **skip it if it is already healthy** — a live agent
+   pane *and* a live `claude` process (#179). This is what keeps a restart from
+   landing a second session on the `coordinator` seat, which is normally the
+   one seat that *is* alive during an outage because a scheduled coordinator
+   run is what found it. Use `--force` to override, `--dry-run` to see the plan
+   without touching anything.
+2. Create the worktree if missing (seeding the agent with `team/roles/<role>.md`).
+3. Otherwise start a fresh terminal running `claude --continue`, which
    resumes the role's previous session with full context.
-3. Wait for the TUI, send a re-orientation message (handles changed; any
+4. Wait for the TUI, send a re-orientation message (handles changed; any
    pre-reboot dispatch preamble is stale — no `worker_done` for old task
    IDs), then nudge with an empty Enter (text sent during TUI startup can
    sit unsubmitted in the input box).
+
+When only one seat is down, restart only that seat:
+`scripts/restart-team.sh --only code-reviewer`. The other seats are idle
+capacity; leaving them alone is one less chance to fork a session.
 
 Then the CEO: re-arm the two session crons above, check
 `orca orchestration task-list` for tasks orphaned mid-dispatch, and collect

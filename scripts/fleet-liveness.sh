@@ -69,6 +69,11 @@ QUIET=0
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
+# The per-seat probe is shared with restart-team.sh (#179) so recovery and
+# reporting cannot drift on what "healthy" means. Sourcing it is inert.
+# shellcheck source=scripts/lib/seat-probe.sh
+. "$REPO_ROOT/scripts/lib/seat-probe.sh"
+
 usage() {
   sed -n '2,61p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//' >&2
   exit 2
@@ -195,37 +200,10 @@ fi
 #
 # Built once: pid -> cwd for every live `claude` process. Independent of the
 # Orca runtime — that separation is the whole point, since a runtime restart
-# leaves these processes running while their terminals detach.
-#
-# Enumerated with `ps -A`, NOT `pgrep`. Verified 2026-07-20: pgrep (both -x and
-# -f) does not report the `claude` process that is an ancestor of the calling
-# shell, while `ps -A` lists it — so a seat running this check on itself was
-# reported as NO-AGENT. A false "your live seat is down" is the most damaging
-# output this script can produce: it invites a restart of a healthy fleet,
-# which is the duplicate-session hazard. Match on the basename of comm, since
-# ps reports some processes with a full path.
-PROC_PIDS=()
-PROC_CWDS=()
-for pid in $(ps -Ao pid=,comm= 2>/dev/null | awk '{n=split($2,p,"/"); if (p[n]=="claude") print $1}'); do
-  cwd="$(lsof -a -d cwd -p "$pid" -Fn 2>/dev/null | sed -n 's/^n//p' | head -1)"
-  [ -n "$cwd" ] || continue
-  PROC_PIDS+=("$pid")
-  PROC_CWDS+=("$cwd")
-done
-
-# Echo the pids whose cwd is exactly <path> (parallel arrays: bash 3.2 has no
-# associative arrays and macOS ships 3.2).
-pids_for_path() {
-  local target="$1" i out=""
-  i=0
-  while [ "$i" -lt "${#PROC_PIDS[@]}" ]; do
-    if [ "${PROC_CWDS[$i]}" = "$target" ]; then
-      out="$out ${PROC_PIDS[$i]}"
-    fi
-    i=$(( i + 1 ))
-  done
-  echo "${out# }"
-}
+# leaves these processes running while their terminals detach. The probe itself
+# lives in lib/seat-probe.sh so restart-team.sh applies the SAME definition of
+# a healthy seat before it relaunches anything (#179).
+seat_probe_scan_processes
 
 # --- 3. role seats ----------------------------------------------------------
 #
@@ -236,10 +214,9 @@ pids_for_path() {
 #             lastOutputAt, which is exactly how the 07-20 outage looked.
 #   process — a live `claude` whose cwd is that role's worktree.
 #
-# Worktrees are addressed by PATH, never by `name:`. Orca resolves display
-# names globally, with no repo scoping (see the comment in restart-team.sh), so
-# a same-named worktree in another project would otherwise report this fleet as
-# healthy when it is not.
+# Both signals, and the OK/DETACHED/NO-AGENT/DOWN classification below, come
+# from seat_probe_classify (lib/seat-probe.sh). This script owns the wording;
+# the probe owns the verdict.
 ROLE_FAIL=0
 
 for role in "${ROLE_LIST[@]}"; do
@@ -250,64 +227,44 @@ for role in "${ROLE_LIST[@]}"; do
     continue
   fi
 
-  if [ ! -d "$wtpath" ]; then
+  seat_probe_classify "$wtpath"
+
+  if [ "$SEAT_STATUS" = "MISSING" ]; then
     line "$role" "MISSING" "no worktree at $wtpath — never created, or removed"
     PROBLEMS+=("$role: worktree missing at $wtpath")
     ROLE_FAIL=1
     continue
   fi
 
-  terms="$(orca terminal list --worktree "path:$wtpath" --json 2>/dev/null || true)"
-
-  # A live agent pane, and the husks left behind by a detach.
-  handle="$(jq -r --arg p "$wtpath" '
-    [ .result.terminals[]?
-      | select(.worktreePath == $p and .connected and .writable
-               and .title != null and .title != "" and .lastOutputAt != null and .lastOutputAt > 0) ]
-    | sort_by(.lastOutputAt) | reverse | (first // {}) | .handle // empty' <<<"$terms" 2>/dev/null || true)"
-  last_output="$(jq -r --arg p "$wtpath" '
-    [ .result.terminals[]?
-      | select(.worktreePath == $p and .connected and .writable
-               and .title != null and .title != "" and .lastOutputAt != null and .lastOutputAt > 0) ]
-    | sort_by(.lastOutputAt) | reverse | (first // {}) | .lastOutputAt // empty' <<<"$terms" 2>/dev/null || true)"
-  husks="$(jq -r --arg p "$wtpath" '
-    [ .result.terminals[]?
-      | select(.worktreePath == $p and ((.title // "") == "" or (.lastOutputAt // 0) == 0)) ]
-    | length' <<<"$terms" 2>/dev/null || echo 0)"
-
-  pids="$(pids_for_path "$wtpath")"
-  pid_count=0
-  [ -n "$pids" ] && pid_count="$(wc -w <<<"$pids" | tr -d ' ')"
-
   age=""
-  if [ -n "$last_output" ]; then
-    now_ms=$(( $(date +%s) * 1000 ))
-    age_s=$(( (now_ms - last_output) / 1000 ))
-    [ "$age_s" -lt 0 ] && age_s=0
-    age=", last output ${age_s}s ago"
-  fi
+  [ -n "$SEAT_AGE_S" ] && age=", last output ${SEAT_AGE_S}s ago"
 
   husk_note=""
-  [ "$husks" -gt 0 ] && husk_note=", $husks husk pane(s)"
+  [ "$SEAT_HUSKS" -gt 0 ] && husk_note=", $SEAT_HUSKS husk pane(s)"
 
-  if [ -n "$handle" ] && [ "$pid_count" -gt 0 ]; then
-    line "$role" "OK" "$handle$age; claude pid(s) $pids$husk_note"
-    if [ "$pid_count" -gt 1 ]; then
-      WARNINGS+=("$role: $pid_count claude processes share this worktree (pids $pids) — likely a pre-restart generation left running; confirm by cwd+CPU before reaping (#155)")
-    fi
-  elif [ -z "$handle" ] && [ "$pid_count" -gt 0 ]; then
-    line "$role" "DETACHED" "claude pid(s) $pids alive but NO live agent pane$husk_note — runtime-restart signature"
-    PROBLEMS+=("$role: agent process alive (pids $pids) but its terminal detached — dispatches will land nowhere")
-    ROLE_FAIL=1
-  elif [ -n "$handle" ] && [ "$pid_count" -eq 0 ]; then
-    line "$role" "NO-AGENT" "$handle is live but no claude process in $wtpath — bare shell, not a seat"
-    PROBLEMS+=("$role: terminal exists but no agent process — the session exited")
-    ROLE_FAIL=1
-  else
-    line "$role" "DOWN" "no live agent pane and no claude process$husk_note"
-    PROBLEMS+=("$role: seat is down (no pane, no process)")
-    ROLE_FAIL=1
-  fi
+  case "$SEAT_STATUS" in
+    OK)
+      line "$role" "OK" "$SEAT_HANDLE$age; claude pid(s) $SEAT_PIDS$husk_note"
+      if [ "$SEAT_PID_COUNT" -gt 1 ]; then
+        WARNINGS+=("$role: $SEAT_PID_COUNT claude processes share this worktree (pids $SEAT_PIDS) — likely a pre-restart generation left running; confirm by cwd+CPU before reaping (#155)")
+      fi
+      ;;
+    DETACHED)
+      line "$role" "DETACHED" "claude pid(s) $SEAT_PIDS alive but NO live agent pane$husk_note — runtime-restart signature"
+      PROBLEMS+=("$role: agent process alive (pids $SEAT_PIDS) but its terminal detached — dispatches will land nowhere")
+      ROLE_FAIL=1
+      ;;
+    NO-AGENT)
+      line "$role" "NO-AGENT" "$SEAT_HANDLE is live but no claude process in $wtpath — bare shell, not a seat"
+      PROBLEMS+=("$role: terminal exists but no agent process — the session exited")
+      ROLE_FAIL=1
+      ;;
+    *)
+      line "$role" "DOWN" "no live agent pane and no claude process$husk_note"
+      PROBLEMS+=("$role: seat is down (no pane, no process)")
+      ROLE_FAIL=1
+      ;;
+  esac
 done
 
 # --- summary ----------------------------------------------------------------
@@ -334,9 +291,13 @@ printf '  - %s\n' "${PROBLEMS[@]}"
 cat >&2 <<'EOF'
 
 Recovery is a DELIBERATE CEO action, not something this script does:
-  scripts/restart-team.sh          # idempotent: resumes existing seats, creates missing ones
+  scripts/restart-team.sh                       # every unhealthy seat; healthy seats are skipped
+  scripts/restart-team.sh --only code-reviewer  # one seat, when that is all the unblock needs
 Never let an automated run restart the fleet on its own — a restart racing a
 coordinator run leaves two live sessions on one seat, and both answer dispatches.
+Since #179 the restart skips seats this probe reports healthy (so it no longer
+relaunches a live coordinator on top of itself), but skip-if-healthy is a
+backstop, not a licence to automate recovery.
 After a restart: re-arm the CEO crons (team/roles/ceo.md) and check
 `orca orchestration task-list` for dispatches orphaned by the outage.
 EOF
