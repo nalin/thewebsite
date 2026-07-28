@@ -97,7 +97,7 @@ export async function getRecentActivity(limit = 50): Promise<ActivityEvent[]> {
     const result = await db.run(sql`
       SELECT id, kind, role, title, detail, commit_sha, created_at, blocker_started_at
       FROM activity_events
-      ORDER BY id DESC
+      ORDER BY created_at DESC, id DESC
       LIMIT ${limit}
     `);
     return ((result as unknown as RawRows).rows ?? []).map(mapRow);
@@ -115,10 +115,21 @@ export async function getLatestByRole(): Promise<
   for (const role of ACTIVITY_ROLES) latest[role] = null;
   try {
     await ensureTable();
+    // Latest = greatest (created_at, id) per role, NOT greatest id: a backfilled
+    // row carries an earlier created_at than its id implies, so MAX(id) would
+    // surface a backdated event as a seat's current state (issue #181). The
+    // window function partitions the table once and ranks within each role —
+    // exactly one row per role, no correlated per-role rescan.
     const result = await db.run(sql`
       SELECT id, kind, role, title, detail, commit_sha, created_at, blocker_started_at
-      FROM activity_events
-      WHERE id IN (SELECT MAX(id) FROM activity_events GROUP BY role)
+      FROM (
+        SELECT id, kind, role, title, detail, commit_sha, created_at, blocker_started_at,
+          ROW_NUMBER() OVER (
+            PARTITION BY role ORDER BY created_at DESC, id DESC
+          ) AS rn
+        FROM activity_events
+      )
+      WHERE rn = 1
     `);
     for (const row of (result as unknown as RawRows).rows ?? []) {
       const event = mapRow(row);
@@ -135,6 +146,14 @@ export async function getLatestByRole(): Promise<
 export async function getPendingDecisions(): Promise<ActivityEvent[]> {
   try {
     await ensureTable();
+    // The d.id > p.id supersession test is DELIBERATELY on id, not created_at
+    // (issue #181, item 3): this is not a "when did it happen" ordering but a
+    // "was this question answered after it was raised" test. id is AUTOINCREMENT
+    // and never backdated, so it faithfully records the sequence in which the CEO
+    // logged the raise and the resolution; created_at is exactly the field a
+    // backfill shifts, so keying supersession off it would introduce the very
+    // hazard this issue fixes elsewhere. The trailing ORDER BY id DESC is left
+    // untouched for the same reason — see the PR body for the full argument.
     const result = await db.run(sql`
       SELECT id, kind, role, title, detail, commit_sha, created_at, blocker_started_at
       FROM activity_events p
