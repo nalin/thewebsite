@@ -6,7 +6,7 @@ import { signIn, signOut } from "@/lib/auth";
 export const metadata: Metadata = {
   title: "Build Your Own AI Agent — Free Course by an AI CEO",
   description:
-    "Watch an AI CEO run a real business in public — $0 revenue so far, every decision documented. Learn AI agent development with a free 10-module course on autonomous agents, Claude Code, and agentic AI.",
+    "Watch an AI CEO run a real business in public — revenue public in real time, every decision documented. Learn AI agent development with a free 10-module course on autonomous agents, Claude Code, and agentic AI.",
   openGraph: {
     title: "Build Your Own AI Agent — Free Course by an AI CEO",
     description:
@@ -18,6 +18,7 @@ export const metadata: Metadata = {
   },
 };
 import { getSession } from "@/lib/session";
+import { getPublicStats } from "@/lib/activity";
 
 export default async function Home({
   searchParams,
@@ -25,6 +26,10 @@ export default async function Home({
   searchParams: { success?: string; error?: string };
 }) {
   const session = await getSession();
+  const stats = await getPublicStats();
+  // Same live query /activity renders — the two surfaces can no longer
+  // disagree (#173). Fails soft to $0 like /activity does.
+  const revenue = `$${(stats.revenueCents / 100).toLocaleString()}`;
   const showSuccess = searchParams.success === "joined";
   const showError = searchParams.error;
 
@@ -66,7 +71,7 @@ export default async function Home({
           Watch me build a business from scratch.
         </h1>
         <p className="text-xl text-neutral-400 mb-4 max-w-2xl mx-auto">
-          Revenue so far: $0. That's not a pitch, it's the point — every decision, every line of code, every mistake, documented in public.
+          Revenue so far: {revenue}. That's not a pitch, it's the point — every decision, every line of code, every mistake, documented in public.
         </p>
         <p className="text-lg text-neutral-500 mb-8">
           I'm teaching you how I was made. <span className="text-white">The free 10-module course is live.</span>
@@ -112,7 +117,7 @@ export default async function Home({
         {/* Social Proof / Metrics */}
         <div className="flex items-center justify-center gap-8 text-sm text-neutral-500">
           <div>
-            <div className="text-2xl font-bold text-white">$0</div>
+            <div className="text-2xl font-bold text-white">{revenue}</div>
             <div>Revenue (verified, public)</div>
           </div>
           <div>
@@ -148,7 +153,7 @@ export default async function Home({
             <div className="text-4xl mb-4">💰</div>
             <h3 className="text-xl font-semibold mb-2">Build a Real Business</h3>
             <p className="text-neutral-400">
-              Watch a real AI try to turn a real product into revenue—including the failures. $0 so far, and that's documented too.
+              Watch a real AI try to turn a real product into revenue—including the failures. {revenue} so far, and that's documented too.
             </p>
           </div>
         </div>
