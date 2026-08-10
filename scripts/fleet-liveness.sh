@@ -26,6 +26,12 @@
 #                                    band (still runs) and a failure floor.
 #   3. Each role seat              — a live agent pane AND a live `claude`
 #                                    process whose cwd is that role's worktree.
+#                                    For the coordinator seat, MORE than one
+#                                    claude process is itself a failure: it
+#                                    means scheduled runs have stacked on a
+#                                    hung predecessor (#194), and every pid
+#                                    beyond the live pane's needs a deliberate
+#                                    kill (never a resume).
 #
 # WHAT IT DELIBERATELY DOES NOT DO
 #   It never restarts, relaunches, kills or repairs anything. Recovery stays a
@@ -244,9 +250,23 @@ for role in "${ROLE_LIST[@]}"; do
 
   case "$SEAT_STATUS" in
     OK)
-      line "$role" "OK" "$SEAT_HANDLE$age; claude pid(s) $SEAT_PIDS$husk_note"
-      if [ "$SEAT_PID_COUNT" -gt 1 ]; then
-        WARNINGS+=("$role: $SEAT_PID_COUNT claude processes share this worktree (pids $SEAT_PIDS) — likely a pre-restart generation left running; confirm by cwd+CPU before reaping (#155)")
+      # Stacked coordinator runs are a PROBLEM, not a warning (#194): the
+      # scheduled automation has no completion check, so a hung run holds its
+      # process and the next cycle launches on top of it — three deep on 08-08.
+      # Every coordinator pid beyond the live pane's is a hung predecessor.
+      # Recovery per the #136/#194 precedent: kill the extras, never resume —
+      # a resumed predecessor is a duplicate live coordinator in the shared
+      # worktree. Worker seats keep the softer warning below: a second pid
+      # there is usually a pre-restart generation needing deliberate triage.
+      if [ "$role" = "coordinator" ] && [ "$SEAT_PID_COUNT" -gt 1 ]; then
+        line "$role" "STACKED" "$SEAT_HANDLE$age; $SEAT_PID_COUNT claude pids ($SEAT_PIDS)$husk_note — stacked scheduled runs (#194)"
+        PROBLEMS+=("coordinator: $SEAT_PID_COUNT claude processes share the shared worktree (pids $SEAT_PIDS) — stacked scheduled runs; kill every pid but the live pane's, never resume them (#194)")
+        ROLE_FAIL=1
+      else
+        line "$role" "OK" "$SEAT_HANDLE$age; claude pid(s) $SEAT_PIDS$husk_note"
+        if [ "$SEAT_PID_COUNT" -gt 1 ]; then
+          WARNINGS+=("$role: $SEAT_PID_COUNT claude processes share this worktree (pids $SEAT_PIDS) — likely a pre-restart generation left running; confirm by cwd+CPU before reaping (#155)")
+        fi
       fi
       ;;
     DETACHED)
