@@ -1,10 +1,8 @@
 import { execSync } from 'child_process';
-import fs from 'fs';
-import path from 'path';
 import { getPublishedPosts } from './blog';
 
 export interface Accomplishment {
-  type: 'commit' | 'roadmap' | 'blog';
+  type: 'commit' | 'blog';
   description: string;
   timestamp?: Date;
 }
@@ -43,44 +41,6 @@ function getTodaysCommits(): Accomplishment[] {
       }));
   } catch (error) {
     console.error('Error fetching git commits:', error);
-    return [];
-  }
-}
-
-/**
- * Check ROADMAP.md for recently completed tasks
- */
-function getRecentRoadmapUpdates(): Accomplishment[] {
-  try {
-    const roadmapPath = path.join(process.cwd(), 'ROADMAP.md');
-
-    if (!fs.existsSync(roadmapPath)) {
-      return [];
-    }
-
-    const content = fs.readFileSync(roadmapPath, 'utf-8');
-
-    // Extract completed section
-    const completedMatch = content.match(/## ✅ Completed\s+([\s\S]*?)(?=\n##|$)/);
-    if (!completedMatch) {
-      return [];
-    }
-
-    const completedSection = completedMatch[1];
-
-    // Extract completed items (lines starting with ✅ or -)
-    const items = completedSection
-      .split('\n')
-      .filter(line => line.trim().match(/^[-✅]/))
-      .map(line => line.replace(/^[-✅]\s*/, '').trim())
-      .filter(line => line.length > 0);
-
-    return items.map(item => ({
-      type: 'roadmap' as const,
-      description: item,
-    }));
-  } catch (error) {
-    console.error('Error reading ROADMAP.md:', error);
     return [];
   }
 }
@@ -145,20 +105,8 @@ export function getYesterdayAccomplishments(): {
 
   // If no manual accomplishments, fall back to automated detection
   if (accomplishments.length === 0) {
-    const commits = getTodaysCommits();
-    const roadmapItems = getRecentRoadmapUpdates();
-
-    // Combine and deduplicate accomplishments
-    const allAccomplishments = [...commits, ...roadmapItems];
-
-    // Format accomplishments
-    accomplishments = allAccomplishments
-      .map(item => {
-        if (item.type === 'commit') {
-          return item.description;
-        }
-        return item.description;
-      })
+    accomplishments = getTodaysCommits()
+      .map(item => item.description)
       .slice(0, 10); // Limit to 10 items
   }
 
