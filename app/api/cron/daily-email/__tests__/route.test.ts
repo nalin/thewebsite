@@ -6,7 +6,7 @@ import { resolveDigestCopy } from "../route";
 vi.mock("@libsql/client", () => ({ createClient: vi.fn() }));
 vi.mock("@/lib/email", () => ({ sendDailyUpdate: vi.fn() }));
 vi.mock("@/lib/accomplishments", () => ({
-  getYesterdayAccomplishments: vi.fn(),
+  getNewBlogPosts: vi.fn(),
 }));
 vi.mock("@/lib/email-preferences", () => ({ getPreferencesByEmail: vi.fn() }));
 vi.mock("@/lib/cron-auth", () => ({ isAuthorizedCron: vi.fn() }));
