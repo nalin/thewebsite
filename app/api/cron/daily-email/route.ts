@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@libsql/client";
 import { sendDailyUpdate, DailyUpdateData } from "@/lib/email";
-import { getYesterdayAccomplishments } from "@/lib/accomplishments";
+import { getNewBlogPosts } from "@/lib/accomplishments";
 import { getPreferencesByEmail } from "@/lib/email-preferences";
 import { isAuthorizedCron } from "@/lib/cron-auth";
 import * as Sentry from "@sentry/nextjs";
@@ -135,8 +135,8 @@ export async function GET(request: NextRequest) {
 
     console.log(`[CRON] Sending to ${emails.length} recipients`);
 
-    // Get yesterday's accomplishments and blog posts
-    const { accomplishments, newBlogPosts } = getYesterdayAccomplishments();
+    // Get blog posts that went live in the last 24 hours
+    const newBlogPosts = getNewBlogPosts();
 
     // Prepare base email data
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://thewebsite.app";
