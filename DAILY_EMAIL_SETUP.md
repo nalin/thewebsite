@@ -39,8 +39,9 @@ When the endpoint is triggered:
    accomplishments list — were retired in the #193 series and #199.)
 3. **lib/email-preferences.ts** - Per-recipient digest/unsubscribe preferences
 4. **lib/cron-auth.ts** - Shared cron authorization check
-5. **app/api/cron/daily-email/route.ts** - The trigger endpoint
-6. **vercel.json** - Vercel Cron configuration (currently `"crons": []`)
+5. **lib/email-sender.ts** - Shared sender identity (`EMAIL_FROM`)
+6. **app/api/cron/daily-email/route.ts** - The trigger endpoint
+7. **vercel.json** - Vercel Cron configuration (currently `"crons": []`)
 
 ## Environment Variables Required
 
@@ -103,7 +104,8 @@ the entry would look like:
 }
 ```
 
-(`0 17 * * *` UTC = 9am PT. Vercel cron schedules run in UTC.)
+(Vercel cron schedules run in UTC. `0 17 * * *` is 9am PT during PST and 10am
+during PDT — a fixed UTC schedule can't be 9am PT year-round.)
 
 ## Testing Locally
 
