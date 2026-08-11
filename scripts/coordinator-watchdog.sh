@@ -89,23 +89,44 @@ usage() {
   exit 0
 }
 
-while [ $# -gt 0 ]; do
-  case "$1" in
-    --dry-run) DRY_RUN=1; shift ;;
-    --help|-h) usage ;;
-    *) echo "unknown argument: $1" >&2; usage ;;
-  esac
-done
-
 # Every line goes to stdout (captured in the automation's run record) AND the
 # persistent log, so kills stay auditable across cycles even if run records
-# rotate away.
+# rotate away. Defined before arg parsing: the fail-open paths there log too.
 log() {
   local line
   line="watchdog $(date -u '+%Y-%m-%dT%H:%M:%SZ') $*"
   echo "$line"
   echo "$line" >>"$WATCHDOG_LOG" 2>/dev/null || true
 }
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --dry-run) DRY_RUN=1; shift ;;
+    --help|-h) usage ;;
+    *)
+      # Unknown args take the LOGGED fail-open path, not usage: as a precheck,
+      # a typo'd flag must neither dark-loop the automation (exit 1 forever)
+      # nor silently unguard it — it launches unguarded but says so, every
+      # cycle, in both the run record and the persistent log.
+      echo "unknown argument: $1" >&2
+      log "FAIL-OPEN: unknown argument '$1' — launching unguarded"
+      exit 0
+      ;;
+  esac
+done
+
+# Tunables are validated up front, on the same doctrine: an invalid override
+# must not fail closed (a permanent skip nobody notices) and must not skew the
+# measurement (CPU_SAMPLE_S=abc makes sleep fail instantly, turning the CPU
+# verdict into an unconditional kill). Invalid -> logged fail-open, exit 0;
+# the launched run's own #196 STACKED preflight is the second line of defense.
+for tunable in MAX_AGE_MIN CPU_SAMPLE_S CPU_DELTA_FLOOR_S; do
+  value="${!tunable}"
+  if ! [[ "$value" =~ ^[0-9]+$ ]] || [ "$value" -lt 1 ]; then
+    log "FAIL-OPEN: $tunable must be an integer >= 1 (got '$value') — launching unguarded"
+    exit 0
+  fi
+done
 
 # --- fail-open dependency gate ----------------------------------------------
 for dep in ps lsof jq; do
@@ -213,7 +234,15 @@ for pid in $OLD; do
   before="$(echo "$CPU_BEFORE" | tr ' ' '\n' | sed -n "s/^$pid://p")"
   after="$(ps_time_to_s "$(ps -o cputime= -p "$pid" 2>/dev/null | tr -d ' ')")"
   if [ "$before" = "gone" ] || [ -z "$after" ]; then
-    log "pid $pid: exited on its own during the sample window"
+    # A missing sample can be a transient ps failure, not an exit. Re-probe:
+    # a pid that is actually still alive must hold the seat, not fall through
+    # both the ALIVE and KILLED buckets and let this script exit 0 under it.
+    if kill -0 "$pid" 2>/dev/null; then
+      log "pid $pid: CPU sample unreadable but process is alive — treating seat as held"
+      ALIVE="$ALIVE $pid"
+    else
+      log "pid $pid: exited on its own during the sample window"
+    fi
     continue
   fi
   delta=$(( after - before ))
@@ -221,6 +250,15 @@ for pid in $OLD; do
     log "pid $pid: CPU +${delta}s over ${CPU_SAMPLE_S}s — alive (possibly nudge-revived); leaving it"
     ALIVE="$ALIVE $pid"
   else
+    # Re-verify identity at kill time, not just scan time: ~20-30s have
+    # passed since the lsof cwd scan, and the TERM must be provably scoped
+    # to a coordinator claude at the moment it is sent.
+    comm_now="$(ps -o comm= -p "$pid" 2>/dev/null | tr -d ' ')"
+    cwd_now="$(lsof -a -d cwd -p "$pid" -Fn 2>/dev/null | sed -n 's/^n//p' | head -1)"
+    if [ "$(basename "${comm_now:-/none}")" != "claude" ] || [ "$cwd_now" != "$COORD_WT" ]; then
+      log "pid $pid: no longer a coordinator claude at kill time (comm='$comm_now' cwd='$cwd_now') — not killing"
+      continue
+    fi
     log "pid $pid: CPU +${delta}s over ${CPU_SAMPLE_S}s — hung; killing (TERM, KILL after 10s)"
     kill "$pid" 2>/dev/null || true
     waited=0
