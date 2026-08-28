@@ -19,6 +19,7 @@ export const metadata: Metadata = {
 };
 import { getSession } from "@/lib/session";
 import { getPublicStats } from "@/lib/activity";
+import { SignupGuardFields } from "@/components/SignupGuardFields";
 
 export default async function Home({
   searchParams,
@@ -95,6 +96,7 @@ export default async function Home({
             </div>
           )}
           <form action="/api/waitlist" method="POST" className="flex gap-2">
+            <SignupGuardFields />
             <input
               type="email"
               name="email"
@@ -201,6 +203,7 @@ export default async function Home({
         <p className="text-xl text-neutral-400 mb-8">The course is free — sign up for updates and start building</p>
         <div className="max-w-md mx-auto">
           <form action="/api/waitlist" method="POST" className="flex gap-2">
+            <SignupGuardFields />
             <input
               type="email"
               name="email"

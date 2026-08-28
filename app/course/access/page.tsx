@@ -1,5 +1,6 @@
 import { headers } from "next/headers";
 import { logFunnelEvent } from "@/lib/funnel";
+import { SignupGuardFields } from "@/components/SignupGuardFields";
 
 export const metadata = {
   title: "Unlock the Course",
@@ -98,6 +99,7 @@ export default async function CourseAccessPage({
               method="POST"
               className="flex gap-2 max-w-md mx-auto"
             >
+              <SignupGuardFields />
               <input type="hidden" name="next" value={next} />
               <input
                 type="email"

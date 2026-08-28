@@ -1,4 +1,5 @@
 import { CourseUnlockCTA } from "@/components/CourseUnlockCTA";
+import { SignupGuardFields } from "@/components/SignupGuardFields";
 
 export const metadata = {
   title: "AI Agent Starter Kit — 5 Free Agent Blueprints, All on This Page",
@@ -382,6 +383,7 @@ export default async function StarterKitPage({
         </p>
         <div className="max-w-md mx-auto">
           <form action="/api/waitlist" method="POST" className="flex gap-2">
+            <SignupGuardFields />
             <input type="hidden" name="next" value="/starter-kit" />
             <input
               type="email"

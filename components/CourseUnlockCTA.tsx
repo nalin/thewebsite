@@ -1,3 +1,4 @@
+import { SignupGuardFields } from "@/components/SignupGuardFields";
 // Standard blog-post CTA into the double-opt-in course gate. Submits enter
 // the /api/course/access flow; per-post attribution comes from the referer
 // (funnel_events.source), so no extra tracking fields are needed here.
@@ -15,6 +16,7 @@ export function CourseUnlockCTA({
       <p className="text-lg font-semibold mb-2">{heading}</p>
       <p className="text-neutral-400 text-sm mb-4">{blurb}</p>
       <form action="/api/course/access" method="POST" className="flex gap-2">
+        <SignupGuardFields />
         <input type="hidden" name="next" value={next} />
         <input
           type="email"
