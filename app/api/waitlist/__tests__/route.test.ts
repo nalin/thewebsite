@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { POST } from '../route';
 import { NextRequest } from 'next/server';
+import { formToken, FORM_TOKEN_FIELD } from '@/lib/form-guard';
 
 // Mock the database
 vi.mock('@/lib/db', () => ({
@@ -32,6 +33,10 @@ async function statementFor(fragment: string): Promise<string> {
 
 function signup(fields: Record<string, string>): NextRequest {
   const formData = new FormData();
+  // Every legitimate submission carries the server-rendered anti-spam token
+  // (issue #203); formToken() is empty when no secret is configured and the
+  // guard fails open, so this stays valid in both test environments.
+  formData.append(FORM_TOKEN_FIELD, formToken());
   for (const [k, v] of Object.entries(fields)) formData.append(k, v);
   return new NextRequest('http://localhost:3000/api/waitlist', {
     method: 'POST',

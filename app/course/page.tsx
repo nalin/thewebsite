@@ -1,5 +1,6 @@
 import CourseCompletionBanner from "@/components/CourseCompletionBanner";
 import { isPresaleConfigured } from "@/lib/presale";
+import { SignupGuardFields } from "@/components/SignupGuardFields";
 
 export const metadata = {
   title: "Build Your Own AI Agent - Course",
@@ -51,6 +52,7 @@ export default async function CoursePage({
             </div>
           )}
           <form action="/api/course/access" method="POST" className="flex gap-2">
+            <SignupGuardFields />
             <input type="hidden" name="next" value="/course/module-1" />
             <input
               type="email"
@@ -389,6 +391,7 @@ export default async function CoursePage({
         </p>
         <div className="max-w-md mx-auto">
           <form action="/api/course/access" method="POST" className="flex gap-2">
+            <SignupGuardFields />
             <input type="hidden" name="next" value="/course/module-1" />
             <input
               type="email"

@@ -6,8 +6,9 @@ import { sql } from "drizzle-orm";
 //
 //   wall_view   — /course/access rendered its form (module = ?next target)
 //   wall_submit — valid email POSTed to /api/course/access
+//   wall_reject — POST failed the anti-spam form guard (issue #203)
 //   confirm     — confirmation link clicked, access cookie set
-export type FunnelEvent = "wall_view" | "wall_submit" | "confirm";
+export type FunnelEvent = "wall_view" | "wall_submit" | "wall_reject" | "confirm";
 
 async function ensureTable() {
   await db.run(sql`

@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { sql } from "drizzle-orm";
 import { addEmailSubscriber, sendWelcomeEmail } from "@/lib/nurture-emails";
 import { trackReferral } from "@/lib/referrals";
+import { verifySignupForm } from "@/lib/form-guard";
 
 // Open-redirect guard: only accept a same-origin, relative path (a single
 // leading "/", no protocol-relative "//", no scheme, no query). Anything else
@@ -78,6 +79,14 @@ export async function POST(request: NextRequest) {
 
     if (!email || !email.includes("@")) {
       return NextResponse.redirect(new URL(dest("error=invalid_email"), request.url));
+    }
+
+    // Anti-spam gate (issue #203): require the server-rendered form token and
+    // an untouched honeypot. Generic error param — no hint which check failed.
+    if (!verifySignupForm(formData).ok) {
+      return NextResponse.redirect(
+        new URL(dest("error=invalid_submission"), request.url)
+      );
     }
 
     // Create waitlist table if it doesn't exist
