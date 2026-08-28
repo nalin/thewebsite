@@ -28,11 +28,18 @@
 #      the interactive playbook prescribes:
 #        a. NUDGE — one empty Enter to the seat's live pane (the documented
 #           first move for a mid-response cutoff; it revived the 08-10 stall).
+#           Then wait NUDGE_SETTLE_S before sampling: the TUI spends ~1s of
+#           CPU just processing the keypress, and on 08-28 (run 474, #205)
+#           that second was read as "alive" on a pid that was in fact hung.
 #        b. WATCH — sample each old pid's CPU time twice, CPU_SAMPLE_S apart.
 #           A revived or genuinely working run accrues CPU during the window;
 #           the #194 hung runs had burned ~27s of CPU across HOURS (≈2ms/s),
 #           so a delta below CPU_DELTA_FLOOR_S over the window separates the
-#           two cleanly.
+#           two cleanly. The window is measured on the wall clock as well:
+#           if it took more than CPU_SAMPLE_S + SAMPLE_SLACK_S the host slept
+#           inside it (a suspended process accrues no CPU whether hung or
+#           not), so the sample is invalid and is retaken ONCE; a second
+#           invalid window is a logged FAIL-OPEN (exit 0) — see below.
 #        c. VERDICT — CPU moved: the run is alive; leave it and SKIP the
 #           cycle. CPU flat: hung; kill it (TERM, then KILL after 10s) and
 #           log the pid + session forensics line. Never resume a killed run —
@@ -46,7 +53,15 @@
 # (no run ever launches again); failing open merely restores the pre-#194
 # status quo for one cycle, and the launched run's own fleet-liveness
 # preflight hard-fails on STACKED, so the stack is still caught and handled
-# by a CEO that can actually reason about it.
+# by a CEO that can actually reason about it. A host that sleeps through
+# the sample window twice is treated the same way (#205): the verdict is
+# unknowable, and skipping would lose the slot for nothing.
+#
+# KNOWN LIMIT: Orca's --precheck-timeout counts WALL-CLOCK time and skips
+# the run when it fires. If the host sleeps for longer than the timeout
+# while this script is mid-window, the slot is lost before this script can
+# say anything (runs 473 and 475 on 08-28, #205) — nothing here can fix
+# that; keeping the window short only narrows the exposure.
 #
 # WHAT THIS SCRIPT WILL NEVER DO: touch any pid whose cwd is not exactly the
 # coordinator worktree, restart seats, or resume anything. Worker-seat
@@ -62,11 +77,15 @@
 #   Env-overridable tunables:
 #     WORKSPACE_ROOT     (default ~/orca/workspaces/thewebsite)
 #     MAX_AGE_MIN        (default 90)  pids younger than this are never touched
+#     NUDGE_SETTLE_S     (default 5)   seconds after the nudge before sampling
 #     CPU_SAMPLE_S       (default 20)  seconds between the two CPU samples
+#     SAMPLE_SLACK_S     (default 10)  wall-clock overrun that marks a window
+#                                      as slept-through (invalid sample)
 #     CPU_DELTA_FLOOR_S  (default 1)   CPU growth below this = hung
 #     WATCHDOG_LOG       (default ~/.thewebsite-coordinator-watchdog.log)
 #
-# Attach with (precheck timeout must exceed CPU_SAMPLE_S + kill wait):
+# Attach with (precheck timeout must exceed NUDGE_SETTLE_S + 2*CPU_SAMPLE_S
+# + SAMPLE_SLACK_S + kill wait):
 #   orca automations edit <automation-id> \
 #     --precheck "bash <repo>/scripts/coordinator-watchdog.sh" \
 #     --precheck-timeout 120
@@ -76,7 +95,9 @@ set -uo pipefail
 
 WORKSPACE_ROOT="${WORKSPACE_ROOT:-$HOME/orca/workspaces/thewebsite}"
 MAX_AGE_MIN="${MAX_AGE_MIN:-90}"
+NUDGE_SETTLE_S="${NUDGE_SETTLE_S:-5}"
 CPU_SAMPLE_S="${CPU_SAMPLE_S:-20}"
+SAMPLE_SLACK_S="${SAMPLE_SLACK_S:-10}"
 CPU_DELTA_FLOOR_S="${CPU_DELTA_FLOOR_S:-1}"
 WATCHDOG_LOG="${WATCHDOG_LOG:-$HOME/.thewebsite-coordinator-watchdog.log}"
 DRY_RUN=0
@@ -120,7 +141,7 @@ done
 # measurement (CPU_SAMPLE_S=abc makes sleep fail instantly, turning the CPU
 # verdict into an unconditional kill). Invalid -> logged fail-open, exit 0;
 # the launched run's own #196 STACKED preflight is the second line of defense.
-for tunable in MAX_AGE_MIN CPU_SAMPLE_S CPU_DELTA_FLOOR_S; do
+for tunable in MAX_AGE_MIN NUDGE_SETTLE_S CPU_SAMPLE_S SAMPLE_SLACK_S CPU_DELTA_FLOOR_S; do
   value="${!tunable}"
   if ! [[ "$value" =~ ^[0-9]+$ ]] || [ "$value" -lt 1 ]; then
     log "FAIL-OPEN: $tunable must be an integer >= 1 (got '$value') — launching unguarded"
@@ -220,12 +241,40 @@ else
 fi
 
 # --- 2b. watch -----------------------------------------------------------------
-CPU_BEFORE=""
-for pid in $OLD; do
-  cpu="$(ps_time_to_s "$(ps -o cputime= -p "$pid" 2>/dev/null | tr -d ' ')")"
-  CPU_BEFORE="$CPU_BEFORE $pid:${cpu:-gone}"
-done
-sleep "$CPU_SAMPLE_S"
+# Let the nudge settle first: the keypress alone costs the TUI ~1s of CPU
+# (run 474, #205), which must not land inside the measured window.
+sleep "$NUDGE_SETTLE_S"
+
+# One sample window: record CPU per old pid, sleep CPU_SAMPLE_S, then check
+# the wall clock actually advanced by about that much. A larger jump means
+# the host slept mid-window — a suspended process accrues no CPU whether it
+# is hung or working — so the window proves nothing. Returns 0 for a valid
+# window, 1 for a slept-through one; CPU_BEFORE is set either way.
+take_sample_window() {
+  local pid cpu t0 t1 elapsed
+  CPU_BEFORE=""
+  for pid in $OLD; do
+    cpu="$(ps_time_to_s "$(ps -o cputime= -p "$pid" 2>/dev/null | tr -d ' ')")"
+    CPU_BEFORE="$CPU_BEFORE $pid:${cpu:-gone}"
+  done
+  t0="$(date +%s)"
+  sleep "$CPU_SAMPLE_S"
+  t1="$(date +%s)"
+  elapsed=$(( t1 - t0 ))
+  if [ "$elapsed" -gt $(( CPU_SAMPLE_S + SAMPLE_SLACK_S )) ]; then
+    log "sample window slept through: ${elapsed}s elapsed for a ${CPU_SAMPLE_S}s sample — CPU verdict invalid"
+    return 1
+  fi
+  return 0
+}
+
+if ! take_sample_window; then
+  log "retaking the sample window once"
+  if ! take_sample_window; then
+    log "FAIL-OPEN: host slept through both sample windows — no CPU verdict possible; launching unguarded (the launched run's STACKED preflight handles:$OLD)"
+    exit 0
+  fi
+fi
 
 # --- 2c. verdict ----------------------------------------------------------------
 ALIVE=""
