@@ -40,11 +40,23 @@
 #           inside it (a suspended process accrues no CPU whether hung or
 #           not), so the sample is invalid and is retaken ONCE; a second
 #           invalid window is a logged FAIL-OPEN (exit 0) — see below.
-#        c. VERDICT — CPU moved: the run is alive; leave it and SKIP the
-#           cycle. CPU flat: hung; kill it (TERM, then KILL after 10s) and
-#           log the pid + session forensics line. Never resume a killed run —
-#           a resumed predecessor is a second live coordinator in the shared
-#           worktree, the exact #136/#194 hazard.
+#        c. CONFIRM — a pid whose first window showed CPU gets a SECOND
+#           window before it is called alive. The settle alone was not
+#           enough: run 478 (08-28 17:13Z, #205) read +1s over 20s on an
+#           awake, mains-powered host 5s after the nudge and lost the slot;
+#           the same pid read +0s two hours later and was reaped. Raising
+#           CPU_DELTA_FLOOR_S is NOT the fix: a run that is genuinely
+#           working but waiting on a tool or the API burns only ~1.3–1.8s
+#           per 20s (measured 08-28), indistinguishable from the keypress
+#           by size. It is distinguishable by persistence — real work keeps
+#           accruing, the keypress is a one-off — so growth in BOTH windows
+#           is alive and growth that vanishes in the second is hung.
+#        d. VERDICT — alive: leave it and SKIP the cycle. Hung (flat in the
+#           first window, or flat in the confirm window): kill it (TERM,
+#           then KILL after 10s) and log the pid + session forensics line.
+#           Never resume a killed run — a resumed predecessor is a second
+#           live coordinator in the shared worktree, the exact #136/#194
+#           hazard.
 #   3. Seat empty (initially, or after reaping every hung pid): exit 0.
 #
 # FAIL-OPEN ON INFRASTRUCTURE ERRORS. If a dependency is missing or `ps`
@@ -84,8 +96,14 @@
 #     CPU_DELTA_FLOOR_S  (default 1)   CPU growth below this = hung
 #     WATCHDOG_LOG       (default ~/.thewebsite-coordinator-watchdog.log)
 #
-# Attach with (precheck timeout must exceed NUDGE_SETTLE_S + 2*CPU_SAMPLE_S
-# + SAMPLE_SLACK_S + kill wait):
+# Attach with a precheck timeout above the awake-host worst case,
+#   NUDGE_SETTLE_S + 2*CPU_SAMPLE_S + ~11s per hung pid killed
+# (45s + 11s/pid at defaults: 56s for one, 89s for the historical worst of
+# four stacked; 120s holds up to six). Each slept-through retake adds
+# NUDGE_SETTLE_S or CPU_SAMPLE_S plus SAMPLE_SLACK_S, but a retake only
+# happens after the host has already slept — and Orca's wall-clock timeout
+# is then the binding limit regardless (KNOWN LIMIT above). A breach costs
+# one skipped slot, the pre-#194 status quo.
 #   orca automations edit <automation-id> \
 #     --precheck "bash <repo>/scripts/coordinator-watchdog.sh" \
 #     --precheck-timeout 120
@@ -106,7 +124,10 @@ COORD_WT="$WORKSPACE_ROOT/coordinator"
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 usage() {
-  sed -n '2,80p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//' >&2
+  # Print the whole header comment, bounded by the first non-comment line
+  # rather than a line number, so a header that grows cannot truncate --help
+  # again (#207).
+  sed -n '2,/^set -uo pipefail/p' "${BASH_SOURCE[0]}" | sed '$d' | sed 's/^# \{0,1\}//' >&2
   exit 0
 }
 
@@ -242,18 +263,31 @@ fi
 
 # --- 2b. watch -----------------------------------------------------------------
 # Let the nudge settle first: the keypress alone costs the TUI ~1s of CPU
-# (run 474, #205), which must not land inside the measured window.
-sleep "$NUDGE_SETTLE_S"
+# (run 474, #205), which should not land inside the measured window. The
+# settle is wall-clock-guarded like the windows (#207): if the host slept
+# inside it the keypress may still be pending on wake, so settle once more.
+settle_after_nudge() {
+  local t0 t1
+  t0="$(date +%s)"
+  sleep "$NUDGE_SETTLE_S"
+  t1="$(date +%s)"
+  [ $(( t1 - t0 )) -le $(( NUDGE_SETTLE_S + SAMPLE_SLACK_S )) ]
+}
+if ! settle_after_nudge; then
+  log "settle window slept through — settling once more before sampling"
+  settle_after_nudge || true
+fi
 
-# One sample window: record CPU per old pid, sleep CPU_SAMPLE_S, then check
-# the wall clock actually advanced by about that much. A larger jump means
-# the host slept mid-window — a suspended process accrues no CPU whether it
-# is hung or working — so the window proves nothing. Returns 0 for a valid
-# window, 1 for a slept-through one; CPU_BEFORE is set either way.
+# One sample window over the pids in $1: record CPU per pid, sleep
+# CPU_SAMPLE_S, then check the wall clock actually advanced by about that
+# much. A larger jump means the host slept mid-window — a suspended process
+# accrues no CPU whether it is hung or working — so the window proves
+# nothing. Returns 0 for a valid window, 1 for a slept-through one;
+# CPU_BEFORE is set either way.
 take_sample_window() {
   local pid cpu t0 t1 elapsed
   CPU_BEFORE=""
-  for pid in $OLD; do
+  for pid in $1; do
     cpu="$(ps_time_to_s "$(ps -o cputime= -p "$pid" 2>/dev/null | tr -d ' ')")"
     CPU_BEFORE="$CPU_BEFORE $pid:${cpu:-gone}"
   done
@@ -268,66 +302,111 @@ take_sample_window() {
   return 0
 }
 
-if ! take_sample_window; then
-  log "retaking the sample window once"
-  if ! take_sample_window; then
-    log "FAIL-OPEN: host slept through both sample windows — no CPU verdict possible; launching unguarded (the launched run's STACKED preflight handles:$OLD)"
-    exit 0
+# A valid window over the pids in $1, retaking once; a second slept-through
+# window is the logged FAIL-OPEN (exit 0) described in the header.
+sample_or_fail_open() {
+  if ! take_sample_window "$1"; then
+    log "retaking the sample window once"
+    if ! take_sample_window "$1"; then
+      log "FAIL-OPEN: host slept through both sample windows — no CPU verdict possible; launching unguarded (the launched run's STACKED preflight handles:$1)"
+      exit 0
+    fi
   fi
-fi
+}
 
-# --- 2c. verdict ----------------------------------------------------------------
-ALIVE=""
-KILLED=""
-for pid in $OLD; do
+# CPU growth of pid $1 since CPU_BEFORE, in whole seconds; empty when either
+# sample was unreadable.
+cpu_delta() {
+  local pid="$1" before after
   before="$(echo "$CPU_BEFORE" | tr ' ' '\n' | sed -n "s/^$pid://p")"
   after="$(ps_time_to_s "$(ps -o cputime= -p "$pid" 2>/dev/null | tr -d ' ')")"
-  if [ "$before" = "gone" ] || [ -z "$after" ]; then
-    # A missing sample can be a transient ps failure, not an exit. Re-probe:
-    # a pid that is actually still alive must hold the seat, not fall through
-    # both the ALIVE and KILLED buckets and let this script exit 0 under it.
-    if kill -0 "$pid" 2>/dev/null; then
-      log "pid $pid: CPU sample unreadable but process is alive — treating seat as held"
-      ALIVE="$ALIVE $pid"
-    else
-      log "pid $pid: exited on its own during the sample window"
-    fi
-    continue
+  if [ -z "$before" ] || [ "$before" = "gone" ] || [ -z "$after" ]; then
+    echo ""
+  else
+    echo $(( after - before ))
   fi
-  delta=$(( after - before ))
-  if [ "$delta" -ge "$CPU_DELTA_FLOOR_S" ]; then
-    log "pid $pid: CPU +${delta}s over ${CPU_SAMPLE_S}s — alive (possibly nudge-revived); leaving it"
+}
+
+# --- 2c/2d. confirm + verdict ---------------------------------------------------
+ALIVE=""
+KILLED=""
+CANDIDATE=""   # pids whose first window showed CPU — decided by the confirm window
+
+# A missing sample can be a transient ps failure, not an exit. Re-probe pid
+# $1: a pid that is actually still alive must hold the seat, not fall through
+# both the ALIVE and KILLED buckets and let this script exit 0 under it.
+hold_if_alive() {
+  if kill -0 "$1" 2>/dev/null; then
+    log "pid $1: CPU sample unreadable but process is alive — treating seat as held"
+    ALIVE="$ALIVE $1"
+  else
+    log "pid $1: exited on its own during the sample window"
+  fi
+}
+
+# Kill pid $1 (TERM, then KILL after 10s); $2 is the evidence for the log.
+reap_pid() {
+  local pid="$1" comm_now cwd_now waited
+  # Re-verify identity at kill time, not just scan time: ~30-60s have passed
+  # since the lsof cwd scan, and the TERM must be provably scoped to a
+  # coordinator claude at the moment it is sent.
+  comm_now="$(ps -o comm= -p "$pid" 2>/dev/null | tr -d ' ')"
+  cwd_now="$(lsof -a -d cwd -p "$pid" -Fn 2>/dev/null | sed -n 's/^n//p' | head -1)"
+  if [ "$(basename "${comm_now:-/none}")" != "claude" ] || [ "$cwd_now" != "$COORD_WT" ]; then
+    log "pid $pid: no longer a coordinator claude at kill time (comm='$comm_now' cwd='$cwd_now') — not killing"
+    return
+  fi
+  log "pid $pid: $2 — hung; killing (TERM, KILL after 10s)"
+  kill "$pid" 2>/dev/null || true
+  waited=0
+  while [ "$waited" -lt 10 ] && kill -0 "$pid" 2>/dev/null; do
+    sleep 1
+    waited=$(( waited + 1 ))
+  done
+  if kill -0 "$pid" 2>/dev/null; then
+    kill -9 "$pid" 2>/dev/null || true
+    sleep 1
+  fi
+  if kill -0 "$pid" 2>/dev/null; then
+    log "pid $pid: SURVIVED kill — treating seat as held"
     ALIVE="$ALIVE $pid"
   else
-    # Re-verify identity at kill time, not just scan time: ~20-30s have
-    # passed since the lsof cwd scan, and the TERM must be provably scoped
-    # to a coordinator claude at the moment it is sent.
-    comm_now="$(ps -o comm= -p "$pid" 2>/dev/null | tr -d ' ')"
-    cwd_now="$(lsof -a -d cwd -p "$pid" -Fn 2>/dev/null | sed -n 's/^n//p' | head -1)"
-    if [ "$(basename "${comm_now:-/none}")" != "claude" ] || [ "$cwd_now" != "$COORD_WT" ]; then
-      log "pid $pid: no longer a coordinator claude at kill time (comm='$comm_now' cwd='$cwd_now') — not killing"
-      continue
-    fi
-    log "pid $pid: CPU +${delta}s over ${CPU_SAMPLE_S}s — hung; killing (TERM, KILL after 10s)"
-    kill "$pid" 2>/dev/null || true
-    waited=0
-    while [ "$waited" -lt 10 ] && kill -0 "$pid" 2>/dev/null; do
-      sleep 1
-      waited=$(( waited + 1 ))
-    done
-    if kill -0 "$pid" 2>/dev/null; then
-      kill -9 "$pid" 2>/dev/null || true
-      sleep 1
-    fi
-    if kill -0 "$pid" 2>/dev/null; then
-      log "pid $pid: SURVIVED kill — treating seat as held"
-      ALIVE="$ALIVE $pid"
-    else
-      log "pid $pid: reaped (never resume it — duplicate-coordinator hazard, #136/#194)"
-      KILLED="$KILLED $pid"
-    fi
+    log "pid $pid: reaped (never resume it — duplicate-coordinator hazard, #136/#194)"
+    KILLED="$KILLED $pid"
+  fi
+}
+
+# First window over every old pid: flat = hung, kill now; growth = candidate
+# for the confirm window (the nudge's own keypress reads the same size).
+sample_or_fail_open "$OLD"
+for pid in $OLD; do
+  delta="$(cpu_delta "$pid")"
+  if [ -z "$delta" ]; then
+    hold_if_alive "$pid"
+  elif [ "$delta" -ge "$CPU_DELTA_FLOOR_S" ]; then
+    log "pid $pid: CPU +${delta}s over ${CPU_SAMPLE_S}s — confirming with a second window (a nudge keypress transient reads the same, run 478/#205)"
+    CANDIDATE="$CANDIDATE $pid"
+  else
+    reap_pid "$pid" "CPU +${delta}s over ${CPU_SAMPLE_S}s"
   fi
 done
+
+# Confirm window over the candidates only: sustained growth = alive; growth
+# that vanished = the keypress transient = hung.
+if [ -n "$CANDIDATE" ]; then
+  sample_or_fail_open "$CANDIDATE"
+  for pid in $CANDIDATE; do
+    delta="$(cpu_delta "$pid")"
+    if [ -z "$delta" ]; then
+      hold_if_alive "$pid"
+    elif [ "$delta" -ge "$CPU_DELTA_FLOOR_S" ]; then
+      log "pid $pid: CPU +${delta}s over the ${CPU_SAMPLE_S}s confirm window too — alive (possibly nudge-revived); leaving it"
+      ALIVE="$ALIVE $pid"
+    else
+      reap_pid "$pid" "CPU +${delta}s over the ${CPU_SAMPLE_S}s confirm window (the first window's growth was the nudge's keypress transient, run 478/#205)"
+    fi
+  done
+fi
 
 if [ -n "$ALIVE" ] || [ -n "$YOUNG" ]; then
   log "SKIP cycle: seat still held (young:${YOUNG:- none}; alive:${ALIVE:- none}; killed:${KILLED:- none})"
