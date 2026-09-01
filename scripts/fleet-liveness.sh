@@ -223,6 +223,15 @@ seat_probe_scan_processes
 # Both signals, and the OK/DETACHED/NO-AGENT/DOWN classification below, come
 # from seat_probe_classify (lib/seat-probe.sh). This script owns the wording;
 # the probe owns the verdict.
+#
+# Both being green is necessary and NOT sufficient (#212). A seat pinned to an
+# exhausted model consumed four consecutive dispatches in ~1s each, declining
+# locally every time, while this check reported it OK (#211) — because the two
+# things measured really were fine. So for an otherwise-OK seat we additionally
+# ask its transcript whether the last turn came from the model at all, and
+# report MUTE when it did not. MUTE is reported here only; it is deliberately
+# not a SEAT_STATUS value, so restart-team.sh cannot start relaunching seats
+# that still hold a live process.
 ROLE_FAIL=0
 
 for role in "${ROLE_LIST[@]}"; do
@@ -250,6 +259,12 @@ for role in "${ROLE_LIST[@]}"; do
 
   case "$SEAT_STATUS" in
     OK)
+      # Pane and process are both live — but neither signal proves this seat can
+      # finish a turn (#212). Ask the transcript before calling it healthy.
+      seat_probe_mute_check "$wtpath"
+      mute_age=""
+      [ -n "$SEAT_MUTE_AGE_S" ] && mute_age=" ${SEAT_MUTE_AGE_S}s ago"
+
       # Stacked coordinator runs are a PROBLEM, not a warning (#194): the
       # scheduled automation has no completion check, so a hung run holds its
       # process and the next cycle launches on top of it — three deep on 08-08.
@@ -261,6 +276,14 @@ for role in "${ROLE_LIST[@]}"; do
       if [ "$role" = "coordinator" ] && [ "$SEAT_PID_COUNT" -gt 1 ]; then
         line "$role" "STACKED" "$SEAT_HANDLE$age; $SEAT_PID_COUNT claude pids ($SEAT_PIDS)$husk_note — stacked scheduled runs (#194)"
         PROBLEMS+=("coordinator: $SEAT_PID_COUNT claude processes share the shared worktree (pids $SEAT_PIDS) — stacked scheduled runs; kill every pid but the live pane's, never resume them (#194)")
+        ROLE_FAIL=1
+      elif [ "$SEAT_MUTE" = "YES" ]; then
+        # Green by every signal this check used to have, and unable to answer.
+        # Reported like a dead seat because operationally it is one: a dispatch
+        # lands, is consumed, and produces nothing — with no error and no
+        # worker_done to poll, so silence is the only symptom (#211, #212).
+        line "$role" "MUTE" "$SEAT_HANDLE$age; claude pid(s) $SEAT_PIDS$husk_note — pane and process live, but its last turn was answered locally$mute_age: \"$SEAT_MUTE_REASON\""
+        PROBLEMS+=("$role: seat is MUTE — it will consume a dispatch and produce nothing. Last turn came from the CLI, not the model$mute_age: \"$SEAT_MUTE_REASON\". Do NOT run restart-team.sh for this: the process is healthy and relaunching duplicates the session. Repair the live seat in place (a bad model pin clears with /model, sent into the existing pane), then re-run this check. (#212)")
         ROLE_FAIL=1
       else
         line "$role" "OK" "$SEAT_HANDLE$age; claude pid(s) $SEAT_PIDS$husk_note"
@@ -313,6 +336,11 @@ cat >&2 <<'EOF'
 Recovery is a DELIBERATE CEO action, not something this script does:
   scripts/restart-team.sh                       # every unhealthy seat; healthy seats are skipped
   scripts/restart-team.sh --only code-reviewer  # one seat, when that is all the unblock needs
+A seat reported MUTE is NOT in that set: its process is alive, so a restart
+would stack a second session on it. Repair a mute seat in place instead — the
+reported reason says what it needs (a model pin clears with /model sent into
+the existing pane); relaunch only if that fails and you first close the seat.
+
 Never let an automated run restart the fleet on its own — a restart racing a
 coordinator run leaves two live sessions on one seat, and both answer dispatches.
 Since #179 the restart skips seats this probe reports healthy (so it no longer
