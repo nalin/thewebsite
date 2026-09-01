@@ -53,6 +53,28 @@
 #   SEAT_MUTE_TS      that message's timestamp ("" if there is none)
 #   SEAT_MUTE_AGE_S   seconds since it, when derivable ("" otherwise)
 #   SEAT_MUTE_RUN     how many consecutive local declines the transcript ends on
+#   SEAT_MUTE_UNKNOWN why the verdict is UNKNOWN ("" unless SEAT_MUTE=UNKNOWN)
+#
+# UNKNOWN IS NOT ONE CONDITION, AND THE DIFFERENCE IS THE WHOLE POINT (#214)
+#
+# Every ambiguity in the mute check yields UNKNOWN, and a reporting caller shows
+# UNKNOWN as nothing at all — no line, no problem entry. That is right for a
+# seat with no transcript yet and wrong for a jq that has started failing: the
+# second one silently disables the mute check for that seat, and fleet-wide if
+# it fails for every seat, while the report still reads OK. Same "green but
+# useless" shape #212 exists to close, one level up. So the cause is carried
+# out alongside the verdict and callers can tell the two apart:
+#
+#   no-transcript-dir     this seat has no transcript directory
+#   no-transcript         no readable .jsonl in it
+#   no-assistant-message  the transcript holds no assistant turn yet
+#   unexplained-decline   a local decline carrying no text to explain itself
+#   unreadable            THE CHECK ITSELF FAILED — jq missing, unreadable
+#                         file, or a parse that aborted partway
+#
+# Only `unreadable` means the measurement is broken. The other four mean it ran
+# and there was legitimately nothing to measure, which is the normal state of a
+# freshly launched seat and must stay silent.
 #
 # WHY THIS IS SEPARATE FROM seat_probe_classify, AND MUST STAY SEPARATE (#212)
 #
@@ -219,6 +241,7 @@ SEAT_MUTE_REASON=""
 SEAT_MUTE_TS=""
 SEAT_MUTE_AGE_S=""
 SEAT_MUTE_RUN=0
+SEAT_MUTE_UNKNOWN="no-transcript-dir"
 
 # Worktree path -> transcript directory. Same slug rule the coordinator
 # watchdog already uses (every non-alphanumeric becomes '-'), deliberately
@@ -268,26 +291,31 @@ seat_probe_session_dir() {
 # guessed taxonomy: "You're out of usage credits" and "API Error: 529
 # Overloaded" need different responses and the reader can tell them apart.
 #
-# Every ambiguity yields UNKNOWN, which reports nothing: no transcript
-# directory, no readable session file, no assistant message, jq unable to parse,
-# or a decline with no text to explain itself. A false "your live seat is dead"
-# is the most damaging output this file can produce, so absence of evidence
-# never becomes evidence of muteness.
+# Every ambiguity yields UNKNOWN: no transcript directory, no readable session
+# file, no assistant message, jq unable to parse, or a decline with no text to
+# explain itself. A false "your live seat is dead" is the most damaging output
+# this file can produce, so absence of evidence never becomes evidence of
+# muteness. UNKNOWN carries its cause in SEAT_MUTE_UNKNOWN so a caller can tell
+# "nothing to measure" from "the measurement broke" — see the header; the
+# verdict is identical either way, only the visibility differs.
 #
 # KNOWN REMAINING GAP (#212): this detects a local DECLINE, not "no completed
 # turn". A seat wedged with no assistant message at all — a permission prompt
 # swallowed mid-turn — still reports OK here.
 seat_probe_mute_check() {
   local wtpath="$1" dir newest f res run ts model toks text base epoch now min_declines
+  local jq_out jq_rc
 
   SEAT_MUTE="UNKNOWN"
   SEAT_MUTE_REASON=""
   SEAT_MUTE_TS=""
   SEAT_MUTE_AGE_S=""
   SEAT_MUTE_RUN=0
+  SEAT_MUTE_UNKNOWN="no-transcript-dir"
 
   dir="$(seat_probe_session_dir "$wtpath")"
   [ -d "$dir" ] || return 0
+  SEAT_MUTE_UNKNOWN="no-transcript"
 
   # Newest .jsonl, chosen WITHOUT a pipeline. `ls -t ... | head -1` looks
   # equivalent and is not: head exits after one line, ls takes SIGPIPE, and
@@ -333,22 +361,29 @@ seat_probe_mute_check() {
   # This costs nothing in detection: all 177 synthetic declines across the 364
   # real transcripts on this host carry a numeric usage block.
   #
-  # The `|| true` is not decoration. Callers run `set -euo pipefail`, so under
-  # pipefail a non-zero anywhere in this pipeline propagates out of the command
-  # substitution and `set -e` kills the WHOLE caller — jq missing from PATH took
-  # fleet-liveness down with exit 127 rather than degrading this one seat to
-  # UNKNOWN. Same failure class as the #155 SIGPIPE: a helper that is supposed
-  # to report "no data" instead silently ends the run that needed it. Absorbing
-  # the status leaves $res empty, which is exactly the UNKNOWN path below.
+  # jq runs on its OWN, with its exit status captured, rather than heading a
+  # pipeline whose status is absorbed by `|| true`. Absorbing it was necessary —
+  # callers run `set -euo pipefail`, so a non-zero anywhere in the pipeline
+  # propagates out of the command substitution and `set -e` kills the WHOLE
+  # caller; jq missing from PATH took fleet-liveness down with exit 127 rather
+  # than degrading this one seat (the #155 SIGPIPE class). But absorbing it also
+  # THREW THE STATUS AWAY, and that cost two things:
   #
-  # awk then walks the emitted messages and reports the length of the trailing
-  # run of consecutive local declines together with the last message's fields.
-  # A BENIGN decline breaks that run rather than extending it: "No response
-  # requested." is a healthy end state, so counting it as one of the two
-  # consecutive failures-to-complete-a-turn could manufacture a run=2 out of one
-  # real transient blip plus one normal no-reply dispatch — the exact false
-  # positive the persistence gate exists to prevent (#214).
-  res="$(jq -Rrc '
+  #   1. A failed check became indistinguishable from an empty transcript. Both
+  #      left $res empty and both read as UNKNOWN, which a reporting caller
+  #      prints as nothing — so a jq that starts failing at runtime disables the
+  #      mute check invisibly (#214).
+  #   2. A jq that aborted PARTWAY still had its partial output consumed, and
+  #      the verdict is read from the TAIL of what was emitted. That is the
+  #      stale-verdict class: an abort on the trailing record yields a verdict
+  #      from an older message. The type guards above close the shapes seen so
+  #      far; refusing to read a verdict out of a failed pass closes the class
+  #      whatever the next unguarded shape turns out to be.
+  #
+  # `|| jq_rc=$?` keeps `set -e` off it while preserving the status, and a
+  # non-zero now means UNKNOWN/unreadable — never a verdict.
+  jq_rc=0
+  jq_out="$(jq -Rrc '
       fromjson? | objects
       | select(.type == "assistant")
       | ((.message | objects) // {}) as $m
@@ -359,7 +394,25 @@ seat_probe_mute_check() {
           ([ ($u.input_tokens | numbers), ($u.output_tokens | numbers) ] as $t
            | if ($t | length) == 0 then -1 else ($t | add) end),
           (((($c[0] | objects) // {}) | (.text | strings)) // "") ]
-      | @tsv' "$newest" 2>/dev/null \
+      | @tsv' "$newest" 2>/dev/null)" || jq_rc=$?
+
+  if [ "$jq_rc" -ne 0 ]; then
+    SEAT_MUTE_UNKNOWN="unreadable"
+    return 0
+  fi
+  if [ -z "$jq_out" ]; then
+    SEAT_MUTE_UNKNOWN="no-assistant-message"
+    return 0
+  fi
+
+  # awk walks the emitted messages and reports the length of the trailing run of
+  # consecutive local declines together with the last message's fields. A BENIGN
+  # decline breaks that run rather than extending it: "No response requested."
+  # is a healthy end state, so counting it as one of the two consecutive
+  # failures-to-complete-a-turn could manufacture a run=2 out of one real
+  # transient blip plus one normal no-reply dispatch — the exact false positive
+  # the persistence gate exists to prevent (#214).
+  res="$(printf '%s\n' "$jq_out" \
     | SEAT_PROBE_BENIGN_DECLINE="$SEAT_PROBE_BENIGN_DECLINE" awk -F'\t' '
         BEGIN { benign = ENVIRON["SEAT_PROBE_BENIGN_DECLINE"] }
         { n++; ts[n]=$1; mo[n]=$2; tk[n]=$3; tx[n]=$4 }
@@ -375,7 +428,12 @@ seat_probe_mute_check() {
           }
           printf "%d\t%s\t%s\t%s\t%s\n", run, ts[n], mo[n], tk[n], tx[n]
         }' || true)"
-  [ -n "$res" ] || return 0
+  # jq emitted lines, so awk had at least one record and always prints. An empty
+  # $res here therefore means awk itself failed — a broken check, not no data.
+  if [ -z "$res" ]; then
+    SEAT_MUTE_UNKNOWN="unreadable"
+    return 0
+  fi
 
   run="$(printf '%s' "$res" | cut -f1)"
   ts="$(printf '%s' "$res" | cut -f2)"
@@ -386,6 +444,7 @@ seat_probe_mute_check() {
   # A real answer from the model: not mute, and nothing more to say.
   if [ "$model" != "<synthetic>" ] || [ "$toks" != "0" ]; then
     SEAT_MUTE="NO"
+    SEAT_MUTE_UNKNOWN=""
     return 0
   fi
 
@@ -404,6 +463,7 @@ seat_probe_mute_check() {
     case "$text" in
       "$SEAT_PROBE_BENIGN_DECLINE"*)
         SEAT_MUTE="NO"
+        SEAT_MUTE_UNKNOWN=""
         return 0
         ;;
     esac
@@ -412,6 +472,7 @@ seat_probe_mute_check() {
   # A decline with no text cannot explain itself; raising an unexplained alarm
   # is worse than raising none.
   if [ -z "$text" ]; then
+    SEAT_MUTE_UNKNOWN="unexplained-decline"
     return 0
   fi
 
@@ -423,10 +484,12 @@ seat_probe_mute_check() {
   min_declines="$(seat_probe_min_declines)"
   if [ "$run" -lt "$min_declines" ]; then
     SEAT_MUTE="NO"
+    SEAT_MUTE_UNKNOWN=""
     return 0
   fi
 
   SEAT_MUTE="YES"
+  SEAT_MUTE_UNKNOWN=""
 
   # Age is a convenience, never a gate. If the timestamp will not parse, report
   # muteness without it rather than suppressing the finding.
