@@ -66,7 +66,7 @@
 # out alongside the verdict and callers can tell the two apart:
 #
 #   no-transcript-dir     this seat has no transcript directory
-#   no-transcript         no readable .jsonl in it
+#   no-transcript         no .jsonl in it at all
 #   no-assistant-message  the transcript holds no assistant turn yet
 #   unexplained-decline   a local decline carrying no text to explain itself
 #   unreadable            THE CHECK ITSELF FAILED — jq missing, unreadable
@@ -331,7 +331,19 @@ seat_probe_mute_check() {
       newest="$f"
     fi
   done
-  [ -n "$newest" ] && [ -r "$newest" ] || return 0
+  [ -n "$newest" ] || return 0
+
+  # These two are not the same condition and must not share a cause. An empty
+  # directory is "nothing to measure" and stays silent; a transcript that EXISTS
+  # and cannot be read is the check failing, and #216's whole point is that a
+  # failed check must say so. Folding them together left a permission-broken
+  # transcript silently disabling the mute check for that seat — the exact
+  # failure #216 was written to close, surviving inside its own fix because this
+  # guard runs before jq and so never reached the status capture.
+  if [ ! -r "$newest" ]; then
+    SEAT_MUTE_UNKNOWN="unreadable"
+    return 0
+  fi
 
   # `fromjson? | objects` survives malformed lines and bare scalars, but that
   # only covers a line that will not PARSE. A line that parses into the wrong

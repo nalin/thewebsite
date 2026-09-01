@@ -305,7 +305,7 @@ for role in "${ROLE_LIST[@]}"; do
         mute_note=""
         if [ "$SEAT_MUTE" = "UNKNOWN" ] && [ "$SEAT_MUTE_UNKNOWN" = "unreadable" ]; then
           mute_note=" — MUTE CHECK DID NOT RUN (transcript unreadable); liveness here is pane+process only"
-          WARNINGS+=("$role: the mute check could not run (transcript unreadable — jq missing, or a pass that aborted), so this OK covers pane and process only and a seat answering locally would still read OK. Re-run with jq on PATH and check the seat's transcript directory (#214)")
+          WARNINGS+=("$role: the mute check could not run (the transcript could not be read — an unreadable file, jq missing, or a scan that aborted), so this OK covers pane and process only and a seat answering locally would still read OK. Check jq is on PATH and that this seat's newest transcript is readable (#214)")
         fi
         line "$role" "OK" "$SEAT_HANDLE$age; claude pid(s) $SEAT_PIDS$husk_note$mute_note"
         if [ "$SEAT_PID_COUNT" -gt 1 ]; then
