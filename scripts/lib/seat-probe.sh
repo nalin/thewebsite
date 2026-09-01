@@ -49,9 +49,10 @@
 #
 # And after seat_probe_mute_check (#212):
 #   SEAT_MUTE         YES | NO | UNKNOWN
-#   SEAT_MUTE_REASON  the local decline's own text ("" unless YES)
-#   SEAT_MUTE_TS      that message's timestamp ("" unless YES)
+#   SEAT_MUTE_REASON  the trailing decline's own text ("" if there is none)
+#   SEAT_MUTE_TS      that message's timestamp ("" if there is none)
 #   SEAT_MUTE_AGE_S   seconds since it, when derivable ("" otherwise)
+#   SEAT_MUTE_RUN     how many consecutive local declines the transcript ends on
 #
 # WHY THIS IS SEPARATE FROM seat_probe_classify, AND MUST STAY SEPARATE (#212)
 #
@@ -179,6 +180,18 @@ seat_probe_classify() {
 # so the check is testable against fixtures without touching a real seat.
 SEAT_PROBE_SESSION_BASE="${SEAT_PROBE_SESSION_BASE:-$HOME/.claude/projects}"
 SEAT_PROBE_BENIGN_DECLINE="${SEAT_PROBE_BENIGN_DECLINE:-No response requested.}"
+# How many consecutive local declines the transcript must END on before the seat
+# is called mute. See the persistence rationale in seat_probe_mute_check.
+SEAT_PROBE_MUTE_MIN_DECLINES="${SEAT_PROBE_MUTE_MIN_DECLINES:-2}"
+
+# Initialised at source time so a caller that reads them before ever calling
+# seat_probe_mute_check cannot trip `set -u`. SEAT_STATUS gets the same
+# treatment from restart-team.sh; this file should not depend on that.
+SEAT_MUTE="UNKNOWN"
+SEAT_MUTE_REASON=""
+SEAT_MUTE_TS=""
+SEAT_MUTE_AGE_S=""
+SEAT_MUTE_RUN=0
 
 # Worktree path -> transcript directory. Same slug rule the coordinator
 # watchdog already uses (every non-alphanumeric becomes '-'), deliberately
@@ -187,36 +200,59 @@ seat_probe_session_dir() {
   printf '%s/%s\n' "$SEAT_PROBE_SESSION_BASE" "$(printf '%s' "$1" | sed 's/[^A-Za-z0-9]/-/g')"
 }
 
-# Decide whether a seat's LAST turn was answered by the model or by the CLI.
+# Decide whether a seat is MUTE: pane- and process-live, but unable to complete
+# a turn.
 #
 # The tell is structural, not a string match: the CLI records a local decline as
 # an assistant message with model "<synthetic>" and zero input+output tokens.
 # Measured across every seat transcript on this host, that signature covers the
-# whole family of causes that leave a seat green but useless — exhausted
-# credits, an expired login, a revoked token, and transient API failures alike.
+# whole family of causes that leave a seat green but useless.
 #
-# Exactly one local decline is BENIGN and must not raise an alarm: the
-# "No response requested." the CLI writes when a dispatch asked for no reply.
-# That is a normal, healthy end state and was the one false positive available
-# here, so it is suppressed explicitly rather than left to a heuristic.
+# BUT A SINGLE DECLINE IS NOT MUTENESS, and this is the correction that makes
+# the check usable. Measured over 308 real transcripts: 143 of them END on a
+# local decline, and 100 of those 143 are TRANSIENT transport conditions —
+# ENOTFOUND, "your computer went to sleep mid-response", connection closed,
+# request timed out — where the seat is perfectly healthy and answers the next
+# dispatch. Only ~40 are durable (an expired login, a revoked token, an
+# exhausted model pin). Host sleep and DNS blips are endemic here, so a check
+# that fires on one decline would go red on the single most common way a session
+# ends — and a check that is usually wrong is one the loop learns to ignore,
+# which is exactly how the durable case gets missed again. That was measured on
+# the review of this very change: the reviewing seat recorded "API Error:
+# Connection lost mid-response", then went on to complete the review.
 #
-# Everything else fails CLOSED to reporting but OPEN to alarm severity: the
-# decline's own text is carried out verbatim in SEAT_MUTE_REASON instead of
-# being sorted into a guessed taxonomy of error strings. "You're out of usage
-# credits" and "API Error: 529 Overloaded" need different responses, and the
-# reader can tell them apart at a glance; this probe should not pretend to.
+# So require PERSISTENCE instead of guessing at the wording of errors. Every one
+# of those 143 historical cases ends on a run of exactly ONE decline. The real
+# incident (#211) does not: its consecutive-decline run grows 1, 2, 3, 4 across
+# the four starved dispatches. Requiring SEAT_PROBE_MUTE_MIN_DECLINES (2)
+# suppresses all 143 single-event false positives and still catches the real
+# thing from the second dispatch onward, at a cost of one cycle of latency.
+# That measures muteness rather than inferring it from an error's text.
+#
+# One decline is BENIGN outright: the "No response requested." the CLI writes
+# when a dispatch asked for no reply. It is a normal, healthy end state.
+#
+# The decline's own text is carried out verbatim rather than sorted into a
+# guessed taxonomy: "You're out of usage credits" and "API Error: 529
+# Overloaded" need different responses and the reader can tell them apart.
 #
 # Every ambiguity yields UNKNOWN, which reports nothing: no transcript
-# directory, no readable session file, no assistant message, or jq unable to
-# parse. A false "your live seat is dead" is the most damaging output this file
-# can produce, so absence of evidence never becomes evidence of muteness.
+# directory, no readable session file, no assistant message, jq unable to parse,
+# or a decline with no text to explain itself. A false "your live seat is dead"
+# is the most damaging output this file can produce, so absence of evidence
+# never becomes evidence of muteness.
+#
+# KNOWN REMAINING GAP (#212): this detects a local DECLINE, not "no completed
+# turn". A seat wedged with no assistant message at all — a permission prompt
+# swallowed mid-turn — still reports OK here.
 seat_probe_mute_check() {
-  local wtpath="$1" dir newest f last ts model toks text base epoch now
+  local wtpath="$1" dir newest f res run ts model toks text base epoch now
 
   SEAT_MUTE="UNKNOWN"
   SEAT_MUTE_REASON=""
   SEAT_MUTE_TS=""
   SEAT_MUTE_AGE_S=""
+  SEAT_MUTE_RUN=0
 
   dir="$(seat_probe_session_dir "$wtpath")"
   [ -d "$dir" ] || return 0
@@ -237,22 +273,42 @@ seat_probe_mute_check() {
   done
   [ -n "$newest" ] && [ -r "$newest" ] || return 0
 
-  # `fromjson? | objects` survives both malformed lines and bare scalars: a
-  # single bad line must not abort the pass and take the verdict with it.
-  last="$(jq -Rrc '
+  # `fromjson? | objects` survives malformed lines and bare scalars. The
+  # content accessor is type-guarded as well: `.message.content[0]` on a
+  # STRING-typed content aborts the whole jq pass, and because the result is
+  # read from the tail that would silently yield a verdict from an older
+  # message instead of UNKNOWN — the one path where this could fail to a wrong
+  # answer rather than to no answer.
+  #
+  # awk then walks the emitted messages and reports the length of the trailing
+  # run of consecutive local declines together with the last message's fields.
+  res="$(jq -Rrc '
       fromjson? | objects
       | select(.type == "assistant")
       | [ (.timestamp // ""),
           (.message.model // ""),
           ((.message.usage.input_tokens // 0) + (.message.usage.output_tokens // 0)),
-          ((.message.content[0].text) // "") ]
-      | @tsv' "$newest" 2>/dev/null | tail -1)"
-  [ -n "$last" ] || return 0
+          ( (.message.content) as $c
+            | if ($c | type) == "array" then (($c[0] // {}) | if type == "object" then (.text // "") else "" end)
+              else "" end ) ]
+      | @tsv' "$newest" 2>/dev/null \
+    | awk -F'\t' '
+        { n++; ts[n]=$1; mo[n]=$2; tk[n]=$3; tx[n]=$4 }
+        END {
+          if (n == 0) exit 0
+          run = 0
+          for (i = n; i >= 1; i--) {
+            if (mo[i] == "<synthetic>" && tk[i] + 0 == 0) run++; else break
+          }
+          printf "%d\t%s\t%s\t%s\t%s\n", run, ts[n], mo[n], tk[n], tx[n]
+        }')"
+  [ -n "$res" ] || return 0
 
-  ts="$(printf '%s' "$last" | cut -f1)"
-  model="$(printf '%s' "$last" | cut -f2)"
-  toks="$(printf '%s' "$last" | cut -f3)"
-  text="$(printf '%s' "$last" | cut -f4-)"
+  run="$(printf '%s' "$res" | cut -f1)"
+  ts="$(printf '%s' "$res" | cut -f2)"
+  model="$(printf '%s' "$res" | cut -f3)"
+  toks="$(printf '%s' "$res" | cut -f4)"
+  text="$(printf '%s' "$res" | cut -f5-)"
 
   # A real answer from the model: not mute, and nothing more to say.
   if [ "$model" != "<synthetic>" ] || [ "$toks" != "0" ]; then
@@ -260,6 +316,9 @@ seat_probe_mute_check() {
     return 0
   fi
 
+  # The pattern is the CASE SUBJECT's counterpart here, so an override
+  # containing glob metacharacters would match more than intended (a bare '*'
+  # would suppress every decline). The default is literal and safe.
   case "$text" in
     "$SEAT_PROBE_BENIGN_DECLINE"*)
       SEAT_MUTE="NO"
@@ -267,13 +326,26 @@ seat_probe_mute_check() {
       ;;
   esac
 
-  SEAT_MUTE="YES"
+  # A decline with no text cannot explain itself; raising an unexplained alarm
+  # is worse than raising none.
+  if [ -z "$text" ]; then
+    return 0
+  fi
+
   SEAT_MUTE_REASON="$text"
   SEAT_MUTE_TS="$ts"
+  SEAT_MUTE_RUN="$run"
 
-  # Age is a convenience, never a gate — a decline is the last word on this
-  # seat whether it landed a minute or a week ago. If the timestamp will not
-  # parse, report muteness without it rather than suppressing the finding.
+  # Persistence gate: one decline is overwhelmingly a transient blip.
+  if [ "$run" -lt "$SEAT_PROBE_MUTE_MIN_DECLINES" ]; then
+    SEAT_MUTE="NO"
+    return 0
+  fi
+
+  SEAT_MUTE="YES"
+
+  # Age is a convenience, never a gate. If the timestamp will not parse, report
+  # muteness without it rather than suppressing the finding.
   base="${ts%%.*}"
   base="${base%Z}"
   epoch="$(TZ=UTC date -j -f '%Y-%m-%dT%H:%M:%S' "$base" '+%s' 2>/dev/null || true)"
