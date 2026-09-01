@@ -30,6 +30,9 @@
 #   seat_probe_scan_processes            # once per run — builds the pid->cwd map
 #   seat_probe_classify "$worktree_path" # per seat — sets SEAT_* below
 #
+# Optionally, and ONLY for a reporting caller:
+#   seat_probe_mute_check "$worktree_path"   # sets SEAT_MUTE* below
+#
 # After seat_probe_classify, these globals describe that seat:
 #   SEAT_STATUS       OK | DETACHED | NO-AGENT | DOWN | MISSING
 #   SEAT_PIDS         space-separated claude pids with that cwd ("" if none)
@@ -43,6 +46,35 @@
 # value means a dispatch goes nowhere, but they are NOT interchangeable:
 # DETACHED still has a live process (reaping it is a separate decision from
 # relaunching a pane), while DOWN has neither.
+#
+# And after seat_probe_mute_check (#212):
+#   SEAT_MUTE         YES | NO | UNKNOWN
+#   SEAT_MUTE_REASON  the local decline's own text ("" unless YES)
+#   SEAT_MUTE_TS      that message's timestamp ("" unless YES)
+#   SEAT_MUTE_AGE_S   seconds since it, when derivable ("" otherwise)
+#
+# WHY THIS IS SEPARATE FROM seat_probe_classify, AND MUST STAY SEPARATE (#212)
+#
+# A seat can be pane-live and process-live and still be unable to complete a
+# turn. On 2026-08-31/09-01 the code-reviewer seat was pinned to an exhausted
+# model: it consumed every dispatch in ~1s and declined locally, so four
+# consecutive runs read `code-reviewer OK` while no review could happen (#211).
+# Both signals this probe measures really were green — the gap is that neither
+# measures a COMPLETED TURN.
+#
+# The fix is additive on purpose. SEAT_STATUS keeps its exact current meaning
+# and vocabulary, because restart-team.sh branches on it: it skips a seat only
+# when SEAT_STATUS = OK, and every other value falls through to relaunch. A new
+# SEAT_STATUS value would therefore make restart-team.sh relaunch a seat whose
+# claude process is ALIVE — two live sessions on one seat, both answering
+# dispatches, which is the precise hazard this shared probe was written to
+# remove. So muteness is reported through its own globals, and this function is
+# never called by seat_probe_classify. restart-team.sh does not call it and is
+# byte-for-byte unaffected.
+#
+# That is also operationally right: a restart is the WRONG repair for a mute
+# seat. The process is healthy; run 510 cleared the real incident by sending
+# `/model opus` into the existing seat, in seconds, killing nothing.
 
 # Build the pid -> cwd map for every live `claude` process on the machine.
 # Deliberately independent of the Orca runtime: a runtime restart leaves these
@@ -138,5 +170,105 @@ seat_probe_classify() {
   else
     SEAT_STATUS="DOWN"
   fi
+  return 0
+}
+
+# --- muteness (#212) --------------------------------------------------------
+#
+# Transcript root and the one decline text that is NOT a fault, both overridable
+# so the check is testable against fixtures without touching a real seat.
+SEAT_PROBE_SESSION_BASE="${SEAT_PROBE_SESSION_BASE:-$HOME/.claude/projects}"
+SEAT_PROBE_BENIGN_DECLINE="${SEAT_PROBE_BENIGN_DECLINE:-No response requested.}"
+
+# Worktree path -> transcript directory. Same slug rule the coordinator
+# watchdog already uses (every non-alphanumeric becomes '-'), deliberately
+# reused rather than re-derived so the two cannot drift apart.
+seat_probe_session_dir() {
+  printf '%s/%s\n' "$SEAT_PROBE_SESSION_BASE" "$(printf '%s' "$1" | sed 's/[^A-Za-z0-9]/-/g')"
+}
+
+# Decide whether a seat's LAST turn was answered by the model or by the CLI.
+#
+# The tell is structural, not a string match: the CLI records a local decline as
+# an assistant message with model "<synthetic>" and zero input+output tokens.
+# Measured across every seat transcript on this host, that signature covers the
+# whole family of causes that leave a seat green but useless — exhausted
+# credits, an expired login, a revoked token, and transient API failures alike.
+#
+# Exactly one local decline is BENIGN and must not raise an alarm: the
+# "No response requested." the CLI writes when a dispatch asked for no reply.
+# That is a normal, healthy end state and was the one false positive available
+# here, so it is suppressed explicitly rather than left to a heuristic.
+#
+# Everything else fails CLOSED to reporting but OPEN to alarm severity: the
+# decline's own text is carried out verbatim in SEAT_MUTE_REASON instead of
+# being sorted into a guessed taxonomy of error strings. "You're out of usage
+# credits" and "API Error: 529 Overloaded" need different responses, and the
+# reader can tell them apart at a glance; this probe should not pretend to.
+#
+# Every ambiguity yields UNKNOWN, which reports nothing: no transcript
+# directory, no readable session file, no assistant message, or jq unable to
+# parse. A false "your live seat is dead" is the most damaging output this file
+# can produce, so absence of evidence never becomes evidence of muteness.
+seat_probe_mute_check() {
+  local wtpath="$1" dir newest last ts model toks text base epoch now
+
+  SEAT_MUTE="UNKNOWN"
+  SEAT_MUTE_REASON=""
+  SEAT_MUTE_TS=""
+  SEAT_MUTE_AGE_S=""
+
+  dir="$(seat_probe_session_dir "$wtpath")"
+  [ -d "$dir" ] || return 0
+
+  newest="$(ls -t "$dir"/*.jsonl 2>/dev/null | head -1)"
+  [ -n "$newest" ] && [ -r "$newest" ] || return 0
+
+  # `fromjson? | objects` survives both malformed lines and bare scalars: a
+  # single bad line must not abort the pass and take the verdict with it.
+  last="$(jq -Rrc '
+      fromjson? | objects
+      | select(.type == "assistant")
+      | [ (.timestamp // ""),
+          (.message.model // ""),
+          ((.message.usage.input_tokens // 0) + (.message.usage.output_tokens // 0)),
+          ((.message.content[0].text) // "") ]
+      | @tsv' "$newest" 2>/dev/null | tail -1)"
+  [ -n "$last" ] || return 0
+
+  ts="$(printf '%s' "$last" | cut -f1)"
+  model="$(printf '%s' "$last" | cut -f2)"
+  toks="$(printf '%s' "$last" | cut -f3)"
+  text="$(printf '%s' "$last" | cut -f4-)"
+
+  # A real answer from the model: not mute, and nothing more to say.
+  if [ "$model" != "<synthetic>" ] || [ "$toks" != "0" ]; then
+    SEAT_MUTE="NO"
+    return 0
+  fi
+
+  case "$text" in
+    "$SEAT_PROBE_BENIGN_DECLINE"*)
+      SEAT_MUTE="NO"
+      return 0
+      ;;
+  esac
+
+  SEAT_MUTE="YES"
+  SEAT_MUTE_REASON="$text"
+  SEAT_MUTE_TS="$ts"
+
+  # Age is a convenience, never a gate — a decline is the last word on this
+  # seat whether it landed a minute or a week ago. If the timestamp will not
+  # parse, report muteness without it rather than suppressing the finding.
+  base="${ts%%.*}"
+  base="${base%Z}"
+  epoch="$(TZ=UTC date -j -f '%Y-%m-%dT%H:%M:%S' "$base" '+%s' 2>/dev/null || true)"
+  if [ -n "$epoch" ]; then
+    now="$(date +%s)"
+    SEAT_MUTE_AGE_S=$(( now - epoch ))
+    [ "$SEAT_MUTE_AGE_S" -lt 0 ] && SEAT_MUTE_AGE_S=0
+  fi
+
   return 0
 }
