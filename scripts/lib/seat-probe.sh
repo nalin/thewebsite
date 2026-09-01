@@ -183,6 +183,33 @@ SEAT_PROBE_BENIGN_DECLINE="${SEAT_PROBE_BENIGN_DECLINE:-No response requested.}"
 # How many consecutive local declines the transcript must END on before the seat
 # is called mute. See the persistence rationale in seat_probe_mute_check.
 SEAT_PROBE_MUTE_MIN_DECLINES="${SEAT_PROBE_MUTE_MIN_DECLINES:-2}"
+SEAT_PROBE_MUTE_MIN_DECLINES_DEFAULT=2
+
+# An unvalidated tunable does not fail neutrally here, it fails toward ALARM:
+# `[ abc -lt 2 ]` returns status 2, the `if` reads that as false, control falls
+# through to SEAT_MUTE="YES", and the check becomes unconditionally-mute while
+# leaking a raw `integer expression expected` into the report (#214). So
+# validate at use and fail OPEN to the default, the same doctrine
+# coordinator-watchdog.sh applies to its own tunables — an invalid override must
+# not skew the measurement. The warning goes to stderr because a silent fallback
+# would make a typo'd knob undetectable.
+seat_probe_min_declines() {
+  case "${SEAT_PROBE_MUTE_MIN_DECLINES:-}" in
+    "" | *[!0-9]*)
+      printf 'seat-probe: SEAT_PROBE_MUTE_MIN_DECLINES must be a positive integer (got %s) — using %s\n' \
+        "'${SEAT_PROBE_MUTE_MIN_DECLINES:-}'" "$SEAT_PROBE_MUTE_MIN_DECLINES_DEFAULT" >&2
+      printf '%s\n' "$SEAT_PROBE_MUTE_MIN_DECLINES_DEFAULT"
+      return 0
+      ;;
+  esac
+  if [ "$SEAT_PROBE_MUTE_MIN_DECLINES" -lt 1 ]; then
+    printf 'seat-probe: SEAT_PROBE_MUTE_MIN_DECLINES must be >= 1 (got %s) — using %s\n' \
+      "$SEAT_PROBE_MUTE_MIN_DECLINES" "$SEAT_PROBE_MUTE_MIN_DECLINES_DEFAULT" >&2
+    printf '%s\n' "$SEAT_PROBE_MUTE_MIN_DECLINES_DEFAULT"
+    return 0
+  fi
+  printf '%s\n' "$SEAT_PROBE_MUTE_MIN_DECLINES"
+}
 
 # Initialised at source time so a caller that reads them before ever calling
 # seat_probe_mute_check cannot trip `set -u`. SEAT_STATUS gets the same
@@ -230,7 +257,12 @@ seat_probe_session_dir() {
 # That measures muteness rather than inferring it from an error's text.
 #
 # One decline is BENIGN outright: the "No response requested." the CLI writes
-# when a dispatch asked for no reply. It is a normal, healthy end state.
+# when a dispatch asked for no reply. It is a normal, healthy end state, so it
+# BREAKS the consecutive run rather than extending it. Counting it would let one
+# transient blip plus one normal no-reply dispatch add up to run=2 — a
+# manufactured alarm of exactly the shape the persistence gate exists to
+# prevent. Rare (2 benign declines in 306 transcripts) but a plain
+# inconsistency; fixed in #214.
 #
 # The decline's own text is carried out verbatim rather than sorted into a
 # guessed taxonomy: "You're out of usage credits" and "API Error: 529
@@ -246,7 +278,7 @@ seat_probe_session_dir() {
 # turn". A seat wedged with no assistant message at all — a permission prompt
 # swallowed mid-turn — still reports OK here.
 seat_probe_mute_check() {
-  local wtpath="$1" dir newest f res run ts model toks text base epoch now
+  local wtpath="$1" dir newest f res run ts model toks text base epoch now min_declines
 
   SEAT_MUTE="UNKNOWN"
   SEAT_MUTE_REASON=""
@@ -273,32 +305,54 @@ seat_probe_mute_check() {
   done
   [ -n "$newest" ] && [ -r "$newest" ] || return 0
 
-  # `fromjson? | objects` survives malformed lines and bare scalars. The
-  # content accessor is type-guarded as well: `.message.content[0]` on a
-  # STRING-typed content aborts the whole jq pass, and because the result is
-  # read from the tail that would silently yield a verdict from an older
-  # message instead of UNKNOWN — the one path where this could fail to a wrong
-  # answer rather than to no answer.
+  # `fromjson? | objects` survives malformed lines and bare scalars, but that
+  # only covers a line that will not PARSE. A line that parses into the wrong
+  # SHAPE — `.message` a string, `.message.usage` a string, `.message.content`
+  # a string — makes the accessor a type error, and a type error aborts the
+  # whole jq pass. Because the verdict is read from the TAIL of what jq
+  # emitted, an abort on the trailing record silently yields a verdict from an
+  # OLDER message: the one path in this file that fails to a *wrong* answer
+  # rather than to UNKNOWN. #213 guarded the content accessor, which closed the
+  # two observed instances; every other accessor was still bare, so the class
+  # stayed open (#214).
+  #
+  # So each accessor is type-guarded to DEGRADE rather than abort: a malformed
+  # record still emits, with empty/zero fields. That matters more than skipping
+  # it would — a skipped trailing record leaves the same stale tail an abort
+  # does, whereas a degraded one is not "<synthetic>" and so reads as a real
+  # answer, i.e. MUTE=NO. Ambiguity fails toward "this seat is fine", never
+  # toward a false "your live seat is dead".
   #
   # awk then walks the emitted messages and reports the length of the trailing
   # run of consecutive local declines together with the last message's fields.
+  # A BENIGN decline breaks that run rather than extending it: "No response
+  # requested." is a healthy end state, so counting it as one of the two
+  # consecutive failures-to-complete-a-turn could manufacture a run=2 out of one
+  # real transient blip plus one normal no-reply dispatch — the exact false
+  # positive the persistence gate exists to prevent (#214).
   res="$(jq -Rrc '
       fromjson? | objects
       | select(.type == "assistant")
-      | [ (.timestamp // ""),
-          (.message.model // ""),
-          ((.message.usage.input_tokens // 0) + (.message.usage.output_tokens // 0)),
-          ( (.message.content) as $c
-            | if ($c | type) == "array" then (($c[0] // {}) | if type == "object" then (.text // "") else "" end)
-              else "" end ) ]
+      | ((.message | objects) // {}) as $m
+      | (($m.usage | objects) // {}) as $u
+      | (($m.content | arrays) // []) as $c
+      | [ ((.timestamp | strings) // ""),
+          (($m.model | strings) // ""),
+          ([ ($u.input_tokens | numbers), ($u.output_tokens | numbers) ] | add // 0),
+          (((($c[0] | objects) // {}) | (.text | strings)) // "") ]
       | @tsv' "$newest" 2>/dev/null \
-    | awk -F'\t' '
+    | SEAT_PROBE_BENIGN_DECLINE="$SEAT_PROBE_BENIGN_DECLINE" awk -F'\t' '
+        BEGIN { benign = ENVIRON["SEAT_PROBE_BENIGN_DECLINE"] }
         { n++; ts[n]=$1; mo[n]=$2; tk[n]=$3; tx[n]=$4 }
         END {
           if (n == 0) exit 0
           run = 0
           for (i = n; i >= 1; i--) {
-            if (mo[i] == "<synthetic>" && tk[i] + 0 == 0) run++; else break
+            if (mo[i] != "<synthetic>" || tk[i] + 0 != 0) break
+            # An empty override must not turn index() into "everything is
+            # benign", which would make the seat permanently unmutable.
+            if (benign != "" && index(tx[i], benign) == 1) break
+            run++
           }
           printf "%d\t%s\t%s\t%s\t%s\n", run, ts[n], mo[n], tk[n], tx[n]
         }')"
@@ -337,7 +391,8 @@ seat_probe_mute_check() {
   SEAT_MUTE_RUN="$run"
 
   # Persistence gate: one decline is overwhelmingly a transient blip.
-  if [ "$run" -lt "$SEAT_PROBE_MUTE_MIN_DECLINES" ]; then
+  min_declines="$(seat_probe_min_declines)"
+  if [ "$run" -lt "$min_declines" ]; then
     SEAT_MUTE="NO"
     return 0
   fi
