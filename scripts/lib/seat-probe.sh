@@ -65,7 +65,7 @@
 # useless" shape #212 exists to close, one level up. So the cause is carried
 # out alongside the verdict and callers can tell the two apart:
 #
-#   no-transcript-dir     this seat has no transcript directory
+#   no-transcript-dir     this seat has no transcript directory at all
 #   no-transcript         no .jsonl in it at all
 #   no-assistant-message  the transcript holds no assistant turn yet
 #   unexplained-decline   a local decline carrying no text to explain itself
@@ -315,6 +315,30 @@ seat_probe_mute_check() {
 
   dir="$(seat_probe_session_dir "$wtpath")"
   [ -d "$dir" ] || return 0
+
+  # The directory guard needs the same split the file guard got in #218, for the
+  # same reason and with the same failure if it does not: `[ -d ]` stays true on
+  # an unreadable directory (stat works through the parent), the glob below then
+  # expands to nothing because it cannot be READ, and the seat lands on the
+  # silent "no transcripts here" path — a permission-broken directory disabling
+  # the mute check with no line and no warning.
+  #
+  # -r is what the glob needs; -x is what stat'ing the entries needs (`[ -e ]`
+  # and `-nt` in the loop). chmod 000 removes both, and either alone is enough
+  # to make the enumeration lie, so both are required before trusting it.
+  #
+  # This is the LAST of the guards that run before jq. Every one of them can
+  # fail for two distinguishable reasons — "there is nothing here" and "I cannot
+  # look" — and each was written folding the two together, so the whole class
+  # had to be closed one guard at a time: jq's exit status (#216), the file
+  # (#218), and now the directory. The set is closed, and the invariant to hold
+  # any future guard to is stated once here: a guard that returns without a
+  # verdict MUST say which of the two it is.
+  if [ ! -r "$dir" ] || [ ! -x "$dir" ]; then
+    SEAT_MUTE_UNKNOWN="unreadable"
+    return 0
+  fi
+
   SEAT_MUTE_UNKNOWN="no-transcript"
 
   # Newest .jsonl, chosen WITHOUT a pipeline. `ls -t ... | head -1` looks
