@@ -72,7 +72,13 @@
 #     ~/.claude/projects/<slugged cwd>/<session>.jsonl records
 #     {"type":"system","subtype":"turn_duration"} when a turn ends.
 #       last turn_duration >= last user/assistant message  -> FINISHED-IDLE
-#       a message after it, or no turn_duration at all     -> MID-TURN (#194)
+#       a message after the last turn_duration             -> MID-TURN (#194)
+#       no turn_duration anywhere in the file              -> UNKNOWN
+#   That last case is absence of evidence, not evidence of a hang: 23% of real
+#   transcripts (69/303 when measured) contain no turn_duration entry at all,
+#   including runs that demonstrably finished. Those sessions never emitted the
+#   records, so the file cannot tell a finished run from a stalled one and it
+#   fails open like every other ambiguous case.
 #   The pid maps to one file by birth time (the automation sets
 #   reuseSession:false, so a run owns exactly one session) within
 #   SESSION_MATCH_SLACK_S. Anything ambiguous — no directory, no match, two
@@ -311,10 +317,16 @@ classify_pid() {
   last_msg="$(jq -rR 'fromjson? | select(.timestamp and (.type == "user" or .type == "assistant")) | .timestamp' "$f" 2>/dev/null | tail -1)"
   last_turn="$(jq -rR 'fromjson? | select(.timestamp and .type == "system" and .subtype == "turn_duration") | .timestamp' "$f" 2>/dev/null | tail -1)"
   if [ -z "$last_turn" ]; then
-    echo "MID-TURN (no turn ever completed; last write ${last_msg:-none})"
+    # No turn_duration anywhere: this session never wrote those records, which
+    # says nothing about whether the run finished. Calling it MID-TURN would
+    # report a confident false stall — the #209 defect in a narrower form.
+    echo "UNKNOWN (transcript records no turn ends; cannot tell finished from mid-turn)"
   elif [ -z "$last_msg" ] || ! [ "$last_msg" \> "$last_turn" ]; then
     # Timestamps are fixed-width UTC ISO-8601, so a string compare is a time
     # compare. Turn ended at or after the last message -> the run was done.
+    # This relies on uniform precision: a bare '...59Z' would sort AFTER
+    # '...59.763Z' ('Z' > '.') and read as a false MID-TURN. Every transcript
+    # the writer produces is millisecond-precision, so this holds today.
     echo "FINISHED-IDLE (turn ended $last_turn)"
   else
     echo "MID-TURN (message at $last_msg after the last turn end $last_turn)"
