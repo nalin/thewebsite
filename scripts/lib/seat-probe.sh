@@ -211,7 +211,7 @@ seat_probe_session_dir() {
 # parse. A false "your live seat is dead" is the most damaging output this file
 # can produce, so absence of evidence never becomes evidence of muteness.
 seat_probe_mute_check() {
-  local wtpath="$1" dir newest last ts model toks text base epoch now
+  local wtpath="$1" dir newest f last ts model toks text base epoch now
 
   SEAT_MUTE="UNKNOWN"
   SEAT_MUTE_REASON=""
@@ -221,7 +221,20 @@ seat_probe_mute_check() {
   dir="$(seat_probe_session_dir "$wtpath")"
   [ -d "$dir" ] || return 0
 
-  newest="$(ls -t "$dir"/*.jsonl 2>/dev/null | head -1)"
+  # Newest .jsonl, chosen WITHOUT a pipeline. `ls -t ... | head -1` looks
+  # equivalent and is not: head exits after one line, ls takes SIGPIPE, and
+  # under this file's callers (`set -euo pipefail`) that 141 propagates and
+  # kills the whole run. It hides on a small directory — ls finishes into the
+  # pipe buffer before head closes it — and only fires once a seat accumulates
+  # enough transcripts to outrun the buffer. The coordinator seat has 303,
+  # which truncated fleet-liveness to five lines and exit 141. No pipe, no bug.
+  newest=""
+  for f in "$dir"/*.jsonl; do
+    [ -e "$f" ] || continue
+    if [ -z "$newest" ] || [ "$f" -nt "$newest" ]; then
+      newest="$f"
+    fi
+  done
   [ -n "$newest" ] && [ -r "$newest" ] || return 0
 
   # `fromjson? | objects` survives both malformed lines and bare scalars: a
