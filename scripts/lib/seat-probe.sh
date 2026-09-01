@@ -323,6 +323,14 @@ seat_probe_mute_check() {
   # answer, i.e. MUTE=NO. Ambiguity fails toward "this seat is fine", never
   # toward a false "your live seat is dead".
   #
+  # The `|| true` is not decoration. Callers run `set -euo pipefail`, so under
+  # pipefail a non-zero anywhere in this pipeline propagates out of the command
+  # substitution and `set -e` kills the WHOLE caller — jq missing from PATH took
+  # fleet-liveness down with exit 127 rather than degrading this one seat to
+  # UNKNOWN. Same failure class as the #155 SIGPIPE: a helper that is supposed
+  # to report "no data" instead silently ends the run that needed it. Absorbing
+  # the status leaves $res empty, which is exactly the UNKNOWN path below.
+  #
   # awk then walks the emitted messages and reports the length of the trailing
   # run of consecutive local declines together with the last message's fields.
   # A BENIGN decline breaks that run rather than extending it: "No response
@@ -355,7 +363,7 @@ seat_probe_mute_check() {
             run++
           }
           printf "%d\t%s\t%s\t%s\t%s\n", run, ts[n], mo[n], tk[n], tx[n]
-        }')"
+        }' || true)"
   [ -n "$res" ] || return 0
 
   run="$(printf '%s' "$res" | cut -f1)"
