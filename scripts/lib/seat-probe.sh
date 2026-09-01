@@ -323,6 +323,16 @@ seat_probe_mute_check() {
   # answer, i.e. MUTE=NO. Ambiguity fails toward "this seat is fine", never
   # toward a false "your live seat is dead".
   #
+  # The token total is why that last sentence needs -1 rather than 0. Mapping an
+  # UNREADABLE usage block to 0 would have been the one place the invariant
+  # broke: combined with model "<synthetic>" it reads as a confirmed local
+  # decline, so a garbage usage block would COUNT TOWARD the run and fail toward
+  # alarm (measured at the #214 gate: NO run=0 -> YES run=3). -1 says "no
+  # readable count", which both breaks the awk run and fails the shell's != "0"
+  # test, so the record reads as a real answer like every other degraded shape.
+  # This costs nothing in detection: all 177 synthetic declines across the 364
+  # real transcripts on this host carry a numeric usage block.
+  #
   # The `|| true` is not decoration. Callers run `set -euo pipefail`, so under
   # pipefail a non-zero anywhere in this pipeline propagates out of the command
   # substitution and `set -e` kills the WHOLE caller — jq missing from PATH took
@@ -346,7 +356,8 @@ seat_probe_mute_check() {
       | (($m.content | arrays) // []) as $c
       | [ ((.timestamp | strings) // ""),
           (($m.model | strings) // ""),
-          ([ ($u.input_tokens | numbers), ($u.output_tokens | numbers) ] | add // 0),
+          ([ ($u.input_tokens | numbers), ($u.output_tokens | numbers) ] as $t
+           | if ($t | length) == 0 then -1 else ($t | add) end),
           (((($c[0] | objects) // {}) | (.text | strings)) // "") ]
       | @tsv' "$newest" 2>/dev/null \
     | SEAT_PROBE_BENIGN_DECLINE="$SEAT_PROBE_BENIGN_DECLINE" awk -F'\t' '
@@ -378,15 +389,25 @@ seat_probe_mute_check() {
     return 0
   fi
 
-  # The pattern is the CASE SUBJECT's counterpart here, so an override
-  # containing glob metacharacters would match more than intended (a bare '*'
-  # would suppress every decline). The default is literal and safe.
-  case "$text" in
-    "$SEAT_PROBE_BENIGN_DECLINE"*)
-      SEAT_MUTE="NO"
-      return 0
-      ;;
-  esac
+  # The -n guard is the point of this block, and it mirrors the identical guard
+  # in the awk loop above; without it the two disagree. The expansion is quoted,
+  # so an override's glob metacharacters are LITERAL — '*' matches a text
+  # BEGINNING with an asterisk, not everything. (An earlier revision of this
+  # comment claimed the opposite and named glob metacharacters as the hazard.
+  # That was measured wrong at the #214 gate: '*', '?' and 'You*' all leave a
+  # mute seat correctly reporting YES.) The real hazard is an EMPTY value, which
+  # collapses the pattern to a bare '*' that does match everything and would
+  # make the seat permanently unmutable — the same hole the awk guard closes,
+  # one layer up, and unreachable through the environment only because the `:-`
+  # default above rewrites an empty override before it gets here.
+  if [ -n "$SEAT_PROBE_BENIGN_DECLINE" ]; then
+    case "$text" in
+      "$SEAT_PROBE_BENIGN_DECLINE"*)
+        SEAT_MUTE="NO"
+        return 0
+        ;;
+    esac
+  fi
 
   # A decline with no text cannot explain itself; raising an unexplained alarm
   # is worse than raising none.
