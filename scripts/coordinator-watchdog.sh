@@ -34,8 +34,9 @@
 #        b. WATCH — sample each old pid's CPU time twice, CPU_SAMPLE_S apart.
 #           A revived or genuinely working run accrues CPU during the window;
 #           the #194 hung runs had burned ~27s of CPU across HOURS (≈2ms/s),
-#           so a delta below CPU_DELTA_FLOOR_S over the window separates the
-#           two cleanly. The window is measured on the wall clock as well:
+#           so a delta below CPU_DELTA_FLOOR_S over the window separates a
+#           working process from an idle one cleanly (idle because it hung
+#           or idle because it finished — see the classification note below). The window is measured on the wall clock as well:
 #           if it took more than CPU_SAMPLE_S + SAMPLE_SLACK_S the host slept
 #           inside it (a suspended process accrues no CPU whether hung or
 #           not), so the sample is invalid and is retaken ONCE; a second
@@ -51,12 +52,44 @@
 #           by size. It is distinguishable by persistence — real work keeps
 #           accruing, the keypress is a one-off — so growth in BOTH windows
 #           is alive and growth that vanishes in the second is hung.
-#        d. VERDICT — alive: leave it and SKIP the cycle. Hung (flat in the
-#           first window, or flat in the confirm window): kill it (TERM,
-#           then KILL after 10s) and log the pid + session forensics line.
-#           Never resume a killed run — a resumed predecessor is a second
-#           live coordinator in the shared worktree, the exact #136/#194
-#           hazard.
+#        d. VERDICT — alive: leave it and SKIP the cycle. Not alive: kill it
+#           (TERM, then KILL after 10s) and log the pid + session forensics
+#           line. Never resume a killed run — a resumed predecessor is a
+#           second live coordinator in the shared worktree, the exact
+#           #136/#194 hazard.
+#
+#   The CPU protocol decides WHETHER to reap. It cannot say WHY, and for
+#   three weeks it claimed to: every reap logged "hung". On 08-31 all three
+#   reaped pids (19873, 72968, 40412 — runs 503/504/505) had finished their
+#   run cleanly and idled ~1h50m at the prompt; a finished CLI and a mid-turn
+#   hang both burn ~0s of CPU and are indistinguishable by the sample (#209).
+#   The label mattered because it is the evidence stream for #194, whose open
+#   question is whether coordinator runs are still stalling — it was reporting
+#   an unbroken run of stalls that never happened.
+#
+#   So each old pid is CLASSIFIED from its session transcript before the
+#   nudge, and the verdict rides along into the reap line:
+#     ~/.claude/projects/<slugged cwd>/<session>.jsonl records
+#     {"type":"system","subtype":"turn_duration"} when a turn ends.
+#       last turn_duration >= last user/assistant message  -> FINISHED-IDLE
+#       a message after the last turn_duration             -> MID-TURN (#194)
+#       no turn_duration anywhere in the file              -> UNKNOWN
+#   That last case is absence of evidence, not evidence of a hang: 23% of real
+#   transcripts (69/303 when measured) contain no turn_duration entry at all,
+#   including runs that demonstrably finished. Those sessions never emitted the
+#   records, so the file cannot tell a finished run from a stalled one and it
+#   fails open like every other ambiguous case.
+#   The pid maps to one file by birth time (the automation sets
+#   reuseSession:false, so a run owns exactly one session) within
+#   SESSION_MATCH_SLACK_S. Anything ambiguous — no directory, no match, two
+#   matches, a file written within the last sample window — is UNKNOWN and
+#   logs as it always did.
+#
+#   THIS IS LOG-ONLY BY DESIGN. Classification never changes what gets
+#   killed: the kill is correct for a finished run and for a hung one alike,
+#   and it is the highest-risk line in the ops loop. A FINISHED-IDLE pid
+#   could skip the nudge and both windows (~45s of the 120s budget) — that
+#   is a separate, separately-reviewed change, not this one.
 #   3. Seat empty (initially, or after reaping every hung pid): exit 0.
 #
 # FAIL-OPEN ON INFRASTRUCTURE ERRORS. If a dependency is missing or `ps`
@@ -93,11 +126,15 @@
 #     CPU_SAMPLE_S       (default 20)  seconds between the two CPU samples
 #     SAMPLE_SLACK_S     (default 10)  wall-clock overrun that marks a window
 #                                      as slept-through (invalid sample)
-#     CPU_DELTA_FLOOR_S  (default 1)   CPU growth below this = hung
+#     CPU_DELTA_FLOOR_S  (default 1)   CPU growth below this = not working
+#     SESSION_MATCH_SLACK_S (default 180) pid-start vs session-birth window
+#     SESSION_DIR_BASE   (default ~/.claude/projects) transcript root
 #     WATCHDOG_LOG       (default ~/.thewebsite-coordinator-watchdog.log)
 #
 # Attach with a precheck timeout above the awake-host worst case,
-#   NUDGE_SETTLE_S + 2*CPU_SAMPLE_S + ~11s per hung pid killed
+#   NUDGE_SETTLE_S + 2*CPU_SAMPLE_S + ~11s per pid killed, plus classification
+# (measured <1s per pid against a 303-file transcript dir whose largest file
+# is 2.5MB — it is two jq passes and one stat sweep, not a factor in the budget)
 # (45s + 11s/pid at defaults: 56s for one, 89s for the historical worst of
 # four stacked; 120s holds up to six). Each slept-through retake adds
 # NUDGE_SETTLE_S or CPU_SAMPLE_S plus SAMPLE_SLACK_S, but a retake only
@@ -117,6 +154,8 @@ NUDGE_SETTLE_S="${NUDGE_SETTLE_S:-5}"
 CPU_SAMPLE_S="${CPU_SAMPLE_S:-20}"
 SAMPLE_SLACK_S="${SAMPLE_SLACK_S:-10}"
 CPU_DELTA_FLOOR_S="${CPU_DELTA_FLOOR_S:-1}"
+SESSION_MATCH_SLACK_S="${SESSION_MATCH_SLACK_S:-180}"
+SESSION_DIR_BASE="${SESSION_DIR_BASE:-$HOME/.claude/projects}"
 WATCHDOG_LOG="${WATCHDOG_LOG:-$HOME/.thewebsite-coordinator-watchdog.log}"
 DRY_RUN=0
 
@@ -162,7 +201,7 @@ done
 # measurement (CPU_SAMPLE_S=abc makes sleep fail instantly, turning the CPU
 # verdict into an unconditional kill). Invalid -> logged fail-open, exit 0;
 # the launched run's own #196 STACKED preflight is the second line of defense.
-for tunable in MAX_AGE_MIN NUDGE_SETTLE_S CPU_SAMPLE_S SAMPLE_SLACK_S CPU_DELTA_FLOOR_S; do
+for tunable in MAX_AGE_MIN NUDGE_SETTLE_S CPU_SAMPLE_S SAMPLE_SLACK_S CPU_DELTA_FLOOR_S SESSION_MATCH_SLACK_S; do
   value="${!tunable}"
   if ! [[ "$value" =~ ^[0-9]+$ ]] || [ "$value" -lt 1 ]; then
     log "FAIL-OPEN: $tunable must be an integer >= 1 (got '$value') — launching unguarded"
@@ -208,6 +247,100 @@ ps_time_to_s() {
   echo $(( (10#$days * 86400) + (10#$h * 3600) + (10#$m * 60) + 10#$s ))
 }
 
+# --- session classification (log-only) ----------------------------------------
+# Why a pid stopped burning CPU, read from its own transcript. See the header:
+# this NEVER decides whether to kill, only what the kill line says (#209).
+
+# The transcript directory Claude Code derives from a cwd: every non-alphanumeric
+# character becomes a dash, leading slash included.
+session_dir_for_cwd() {
+  printf '%s/%s\n' "$SESSION_DIR_BASE" "$(printf '%s' "$1" | sed 's/[^A-Za-z0-9]/-/g')"
+}
+
+# Epoch second a pid started, derived from its own elapsed time so no
+# platform-specific lstart parsing is needed. Empty if ps could not answer.
+pid_start_epoch() {
+  local age
+  age="$(ps_time_to_s "$(ps -o etime= -p "$1" 2>/dev/null | tr -d ' ')")"
+  [ -n "$age" ] || { echo ""; return; }
+  echo $(( $(date +%s) - age ))
+}
+
+# The one session file belonging to pid $1: the automation runs with
+# reuseSession:false, so a run owns exactly one transcript whose birth time
+# lands within SESSION_MATCH_SLACK_S of the process start. Two matches is as
+# unusable as none — both echo "" and the caller reports UNKNOWN.
+session_file_for_pid() {
+  local dir start birth diff f match="" count=0
+  dir="$(session_dir_for_cwd "$COORD_WT")"
+  [ -d "$dir" ] || { echo ""; return; }
+  start="$(pid_start_epoch "$1")"
+  [ -n "$start" ] || { echo ""; return; }
+  for f in "$dir"/*.jsonl; do
+    [ -f "$f" ] || continue
+    birth="$(stat -f %B "$f" 2>/dev/null)"
+    case "${birth:-x}" in *[!0-9]*) continue ;; esac
+    diff=$(( birth - start ))
+    [ "$diff" -lt 0 ] && diff=$(( -diff ))
+    if [ "$diff" -le "$SESSION_MATCH_SLACK_S" ]; then
+      match="$f"
+      count=$(( count + 1 ))
+    fi
+  done
+  [ "$count" = "1" ] && echo "$match" || echo ""
+}
+
+# "FINISHED-IDLE <ts>" | "MID-TURN <ts>" | "UNKNOWN (<why>)" for pid $1.
+# `fromjson?` drops any partially-written trailing line rather than failing the
+# whole read — a live process may be mid-append.
+classify_pid() {
+  local f last_msg last_turn mtime now idle
+  f="$(session_file_for_pid "$1")"
+  [ -n "$f" ] || { echo "UNKNOWN (no single session file matched)"; return; }
+  mtime="$(stat -f %m "$f" 2>/dev/null)"
+  now="$(date +%s)"
+  case "${mtime:-x}" in
+    *[!0-9]*) ;;
+    *) idle=$(( now - mtime ))
+       # A transcript still being appended to cannot be judged: the run may be
+       # between a tool call and its result. Never call such a pid finished.
+       # A future mtime (clock step, NTP correction) is unjudgeable for the
+       # same reason and must not read as "very fresh" by accident.
+       if [ "$idle" -lt 0 ]; then
+         echo "UNKNOWN (session mtime is $(( -idle ))s in the future — clock skew)"
+         return
+       elif [ "$idle" -lt $(( CPU_SAMPLE_S + NUDGE_SETTLE_S )) ]; then
+         echo "UNKNOWN (session written ${idle}s ago — too fresh to judge)"
+         return
+       fi ;;
+  esac
+  last_msg="$(jq -rR 'fromjson? | select(.timestamp and (.type == "user" or .type == "assistant")) | .timestamp' "$f" 2>/dev/null | tail -1)"
+  last_turn="$(jq -rR 'fromjson? | select(.timestamp and .type == "system" and .subtype == "turn_duration") | .timestamp' "$f" 2>/dev/null | tail -1)"
+  if [ -z "$last_turn" ]; then
+    # No turn_duration anywhere: this session never wrote those records, which
+    # says nothing about whether the run finished. Calling it MID-TURN would
+    # report a confident false stall — the #209 defect in a narrower form.
+    echo "UNKNOWN (transcript records no turn ends; cannot tell finished from mid-turn)"
+  elif [ -z "$last_msg" ] || ! [ "$last_msg" \> "$last_turn" ]; then
+    # Timestamps are fixed-width UTC ISO-8601, so a string compare is a time
+    # compare. Turn ended at or after the last message -> the run was done.
+    # This relies on uniform precision: a bare '...59Z' would sort AFTER
+    # '...59.763Z' ('Z' > '.') and read as a false MID-TURN. Every transcript
+    # the writer produces is millisecond-precision, so this holds today.
+    echo "FINISHED-IDLE (turn ended $last_turn)"
+  else
+    echo "MID-TURN (message at $last_msg after the last turn end $last_turn)"
+  fi
+}
+
+# pid=verdict pairs, one per line, snapshotted before the nudge.
+VERDICTS=""
+verdict_for() {
+  local v
+  v="$(printf '%s\n' "$VERDICTS" | sed -n "s/^$1=//p" | head -1)"
+  echo "${v:-UNKNOWN (not classified)}"
+}
+
 # --- discover predecessors ----------------------------------------------------
 seat_probe_scan_processes
 PIDS="$(seat_probe_pids_for_path "$COORD_WT")"
@@ -239,6 +372,16 @@ if [ -z "$OLD" ]; then
   log "SKIP cycle: live run(s) under ${MAX_AGE_MIN}m hold the seat ($YOUNG )"
   exit 1
 fi
+
+# Classify before the nudge, so the verdict describes the state the watchdog
+# found rather than the state it just poked. Log-only (#209) — no pid's fate
+# changes here.
+for pid in $OLD; do
+  verdict="$(classify_pid "$pid")"
+  VERDICTS="$VERDICTS
+$pid=$verdict"
+  log "pid $pid: session says $verdict"
+done
 
 if [ "$DRY_RUN" = "1" ]; then
   log "DRY-RUN: would nudge + CPU-sample old pid(s):$OLD — exiting 1 without acting"
@@ -356,7 +499,7 @@ reap_pid() {
     log "pid $pid: no longer a coordinator claude at kill time (comm='$comm_now' cwd='$cwd_now') — not killing"
     return
   fi
-  log "pid $pid: $2 — hung; killing (TERM, KILL after 10s)"
+  log "pid $pid: $2; $(verdict_for "$pid") — killing (TERM, KILL after 10s)"
   kill "$pid" 2>/dev/null || true
   waited=0
   while [ "$waited" -lt 10 ] && kill -0 "$pid" 2>/dev/null; do
@@ -413,5 +556,5 @@ if [ -n "$ALIVE" ] || [ -n "$YOUNG" ]; then
   exit 1
 fi
 
-log "seat clear after reaping hung pid(s):${KILLED:- none} — launch"
+log "seat clear after reaping pid(s):${KILLED:- none} — launch"
 exit 0
