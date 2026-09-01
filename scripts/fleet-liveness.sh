@@ -286,7 +286,28 @@ for role in "${ROLE_LIST[@]}"; do
         PROBLEMS+=("$role: seat is MUTE — it will consume a dispatch and produce nothing. Last turn came from the CLI, not the model$mute_age: \"$SEAT_MUTE_REASON\". Do NOT run restart-team.sh for this: the process is healthy and relaunching duplicates the session. Repair the live seat in place (a bad model pin clears with /model, sent into the existing pane), then re-run this check. (#212)")
         ROLE_FAIL=1
       else
-        line "$role" "OK" "$SEAT_HANDLE$age; claude pid(s) $SEAT_PIDS$husk_note"
+        # A broken mute check must not read as a clean one (#214). UNKNOWN is
+        # the probe's "no verdict", and printing it as a bare OK was right for
+        # the seat that simply has no transcript yet and wrong for a jq that has
+        # started failing: that silently disables the mute check for this seat —
+        # fleet-wide if it fails for all of them — while every line still says
+        # OK. The same "green but useless" shape #212 exists to close, one level
+        # up. So the cause decides. `unreadable` means the measurement itself
+        # failed and is surfaced; the other causes mean it ran and there was
+        # nothing to measure, which is the normal state of a fresh seat and
+        # stays silent.
+        #
+        # It is a WARNING, never a problem, and the displayed status stays OK.
+        # A check that cannot run is not evidence the seat is sick — treating it
+        # as one would make the whole fleet fail closed the moment jq broke,
+        # which is the false "your live seat is dead" this probe refuses to
+        # produce. What it costs is knowledge, and the operator is told that.
+        mute_note=""
+        if [ "$SEAT_MUTE" = "UNKNOWN" ] && [ "$SEAT_MUTE_UNKNOWN" = "unreadable" ]; then
+          mute_note=" — MUTE CHECK DID NOT RUN (transcript unreadable); liveness here is pane+process only"
+          WARNINGS+=("$role: the mute check could not run (transcript unreadable — jq missing, or a pass that aborted), so this OK covers pane and process only and a seat answering locally would still read OK. Re-run with jq on PATH and check the seat's transcript directory (#214)")
+        fi
+        line "$role" "OK" "$SEAT_HANDLE$age; claude pid(s) $SEAT_PIDS$husk_note$mute_note"
         if [ "$SEAT_PID_COUNT" -gt 1 ]; then
           WARNINGS+=("$role: $SEAT_PID_COUNT claude processes share this worktree (pids $SEAT_PIDS) — likely a pre-restart generation left running; confirm by cwd+CPU before reaping (#155)")
         fi
