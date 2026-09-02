@@ -32,6 +32,7 @@
 #
 # Optionally, and ONLY for a reporting caller:
 #   seat_probe_mute_check "$worktree_path"   # sets SEAT_MUTE* below
+#   seat_probe_stall_check "$worktree_path"  # sets SEAT_STALL* below; SLEEPS
 #
 # After seat_probe_classify, these globals describe that seat:
 #   SEAT_STATUS       OK | DETACHED | NO-AGENT | DOWN | MISSING
@@ -54,6 +55,14 @@
 #   SEAT_MUTE_AGE_S   seconds since it, when derivable ("" otherwise)
 #   SEAT_MUTE_RUN     how many consecutive local declines the transcript ends on
 #   SEAT_MUTE_UNKNOWN why the verdict is UNKNOWN ("" unless SEAT_MUTE=UNKNOWN)
+#
+# And after seat_probe_stall_check (#217):
+#   SEAT_STALL         YES | NO | UNKNOWN
+#   SEAT_STALL_TS      timestamp of the trailing unanswered user record ("" if none)
+#   SEAT_STALL_AGE_S   seconds since it, when derivable ("" otherwise)
+#   SEAT_STALL_CPU     the measured per-pid CPU deltas, for the report ("" if
+#                      no window was taken)
+#   SEAT_STALL_UNKNOWN why the verdict is UNKNOWN ("" unless SEAT_STALL=UNKNOWN)
 #
 # UNKNOWN IS NOT ONE CONDITION, AND THE DIFFERENCE IS THE WHOLE POINT (#214)
 #
@@ -299,9 +308,13 @@ seat_probe_session_dir() {
 # "nothing to measure" from "the measurement broke" — see the header; the
 # verdict is identical either way, only the visibility differs.
 #
-# KNOWN REMAINING GAP (#212): this detects a local DECLINE, not "no completed
-# turn". A seat wedged with no assistant message at all — a permission prompt
-# swallowed mid-turn — still reports OK here.
+# NOT THE SAME CHECK AS seat_probe_stall_check, AND THEY CANNOT OVERLAP (#217).
+# This one detects a local DECLINE: the seat answered, just not with the model.
+# Its transcript therefore ends on an ASSISTANT record, which is precisely the
+# record seat_probe_stall_check requires to be absent. A seat wedged with no
+# assistant message at all — a permission prompt swallowed mid-turn — reports
+# MUTE=NO here and is caught there instead. The two verdicts are structurally
+# mutually exclusive; neither subsumes the other.
 seat_probe_mute_check() {
   local wtpath="$1" dir newest f res run ts model toks text base epoch now min_declines
   local jq_out jq_rc
@@ -536,6 +549,430 @@ seat_probe_mute_check() {
     now="$(date +%s)"
     SEAT_MUTE_AGE_S=$(( now - epoch ))
     [ "$SEAT_MUTE_AGE_S" -lt 0 ] && SEAT_MUTE_AGE_S=0
+  fi
+
+  return 0
+}
+
+# --- stalled: received work, never completed a turn (#217) ------------------
+#
+# The other half of #212. seat_probe_mute_check catches a seat that ANSWERED
+# locally; this catches one that did not answer at all — a permission prompt
+# swallowed mid-turn, a session wedged after an update. That seat is pane-live
+# and process-live, reports OK, consumes the next dispatch and produces
+# nothing: operationally identical to the mute case, and invisible to every
+# other signal in this file.
+#
+# THE SIGNAL IS LOCAL TO THE TRANSCRIPT — NO DISPATCH RECORDS NEEDED
+#
+# #214 assumed this needed "age of the last turn relative to a dispatch". It
+# does not, which matters because the orchestration run binding is fenced and
+# this probe cannot read it. A dispatch lands in the transcript as a `user`
+# record; a completed turn is an `assistant` record after it. "Received work,
+# never completed a turn" is just a transcript ENDING ON AN UNANSWERED `user`
+# RECORD — the same file seat_probe_mute_check already reads.
+#
+# AND THAT SIGNAL ALONE CANNOT DO THE JOB, WHICH IS WHY THERE IS A SECOND ONE
+#
+# The tail of legitimate turns is enormous. Measured over the 308 transcripts
+# on this host: 85 real user->assistant gaps exceeded an hour and the longest
+# took five. So a waiting-time threshold low enough to catch a seat wedged for
+# twenty minutes fires on hundreds of turns that were simply long, and one
+# above the observed max catches nothing. There is no usable threshold, and the
+# failing direction here is a false "your live seat is dead" — the single
+# output this file is written never to produce.
+#
+# So the transcript signal is paired with a CONFIRMED-IDLE CPU READING, the
+# protocol coordinator-watchdog.sh already uses (#205, #207): sample CPU across
+# a window, then confirm with a SECOND window, because one sample cannot tell a
+# working process from a stuck one.
+#
+#   unanswered `user` record  AND  CPU flat across two confirmed windows
+#     = a seat that received work and is not working on it
+#
+# A long-running turn fails the second condition BY CONSTRUCTION, which is
+# exactly what the age threshold alone could not do.
+#
+# Measured live on this host while writing this, and it reproduces #207's
+# numbers: a claude mid-turn accrued +1.30s then +1.43s of CPU per 20s window;
+# one idle at the prompt accrued +0.24s then +0.33s. The 1.0s floor sits
+# between them with better than 3x margin on both sides.
+#
+# WHY THIS COUNTS CENTISECONDS WHEN THE WATCHDOG COUNTS WHOLE SECONDS
+#
+# Deliberate, not drift. The watchdog separates a hung run burning ~2ms/s from
+# one that is working, so whole seconds are ample. Here the two populations are
+# 0.3s and 1.3s per window, and truncating both to whole seconds lets an idle
+# seat that happens to straddle a second boundary read as +1s — the floor
+# exactly — and so read as working. That direction is SAFE (a stalled seat is
+# missed for a cycle, never a live one condemned) but it is needlessly lossy
+# when `ps -o cputime=` reports hundredths on this platform for free. The
+# watchdog's own parser is left untouched: its threshold is correct at its own
+# precision, and this change does not touch that file.
+#
+# COST, AND WHY A HEALTHY FLEET PAYS NONE OF IT
+#
+# This function SLEEPS — two windows, ~40s. It is therefore gated behind the
+# free half: the CPU windows are taken only for a seat whose transcript already
+# ends on an unanswered user record. On a healthy fleet no seat does, and the
+# check costs one jq pass per seat, the same as the mute check.
+#
+# The one seat that would otherwise always pay it is the caller's own. A
+# coordinator running this probe is BY CONSTRUCTION mid-turn — the transcript
+# record for the turn that invoked the script is the unanswered user record —
+# so its own seat would take 40s of windows every run to confirm what the
+# script running at all already proves. That seat short-circuits to NO. It is
+# not a blind spot: a stacked hung predecessor on the coordinator seat is
+# caught by the SEAT_PID_COUNT check, which fires before this one.
+#
+# UNKNOWN CAUSES (same doctrine as the mute check: only `unreadable` and
+# `sample-invalid` mean the measurement itself broke and must be surfaced;
+# the rest mean it ran and there was nothing to measure, and stay silent):
+#
+#   no-transcript-dir  no transcript directory for this seat
+#   no-transcript      no .jsonl in it
+#   no-conversation    no user or assistant record in the newest transcript
+#   no-process         no live claude on this seat, so no CPU to read
+#   unreadable         THE CHECK ITSELF FAILED — jq missing, unreadable file
+#                      or directory, or a scan that aborted partway
+#   sample-invalid     the host slept through both CPU windows, twice each; a
+#                      suspended process accrues no CPU whether hung or
+#                      working, so the window proves nothing (#205)
+
+# Seconds between the two samples of one CPU window, the wall-clock overrun
+# that marks a window as slept-through, and the CPU growth (in CENTISECONDS)
+# below which a process is not working. Overridable for tests.
+SEAT_PROBE_CPU_SAMPLE_S="${SEAT_PROBE_CPU_SAMPLE_S:-20}"
+SEAT_PROBE_CPU_SAMPLE_S_DEFAULT=20
+SEAT_PROBE_CPU_SLACK_S="${SEAT_PROBE_CPU_SLACK_S:-10}"
+SEAT_PROBE_CPU_SLACK_S_DEFAULT=10
+SEAT_PROBE_CPU_FLOOR_CS="${SEAT_PROBE_CPU_FLOOR_CS:-100}"
+SEAT_PROBE_CPU_FLOOR_CS_DEFAULT=100
+
+# Initialised at source time, like the SEAT_MUTE* set, so a caller that reads
+# them before ever calling seat_probe_stall_check cannot trip `set -u`.
+SEAT_STALL="UNKNOWN"
+SEAT_STALL_TS=""
+SEAT_STALL_AGE_S=""
+SEAT_STALL_CPU=""
+SEAT_STALL_UNKNOWN="no-transcript-dir"
+SEAT_PROBE_CPU_DELTAS=""
+
+# Validate one non-negative-integer tunable, failing OPEN to its default.
+#
+# Same doctrine and the same reason as seat_probe_min_declines: an unvalidated
+# tunable does not fail neutrally, it fails toward whichever branch a status-2
+# `[` comparison happens to land on, while leaking `integer expression
+# expected` into the report (#214). The warning goes to stderr because a silent
+# fallback makes a typo'd knob undetectable.
+#
+# $1 name, $2 value, $3 default, $4 minimum.
+seat_probe_uint() {
+  local name="$1" val="$2" def="$3" min="$4"
+  case "$val" in
+    "" | *[!0-9]*)
+      printf 'seat-probe: %s must be a non-negative integer (got %s) — using %s\n' \
+        "$name" "'$val'" "$def" >&2
+      printf '%s\n' "$def"
+      return 0
+      ;;
+  esac
+  if [ "$val" -lt "$min" ]; then
+    printf 'seat-probe: %s must be >= %s (got %s) — using %s\n' \
+      "$name" "$min" "$val" "$def" >&2
+    printf '%s\n' "$def"
+    return 0
+  fi
+  printf '%s\n' "$val"
+}
+
+# `ps -o cputime=` for pid $1, in CENTISECONDS; empty when unreadable.
+#
+# Accepts every shape ps produces: [DD-]HH:MM:SS[.cc], MM:SS[.cc], SS[.cc].
+# A missing fraction is .00 — Linux ps omits it — so this does not depend on
+# the hundredths Darwin happens to print. Anything non-numeric yields empty,
+# which callers treat as "no reading", never as zero.
+seat_probe_cputime_cs() {
+  local t="$1" frac=0 days=0 h=0 m=0 s=0
+  [ -n "$t" ] || { echo ""; return; }
+  case "$t" in
+    *.*) frac="${t#*.}"; t="${t%%.*}" ;;
+  esac
+  # One digit after the point is TENTHS, so it must be scaled; three or more is
+  # truncated to hundredths rather than rounded. Getting this wrong in the
+  # generous direction is what would let an idle seat read as working.
+  case "${#frac}" in
+    1) frac="${frac}0" ;;
+    2) : ;;
+    *) frac="$(printf '%s' "$frac" | cut -c1-2)" ;;
+  esac
+  case "$t" in
+    *-*) days="${t%%-*}"; t="${t#*-}" ;;
+  esac
+  case "$t" in
+    *:*:*) h="${t%%:*}"; t="${t#*:}"; m="${t%%:*}"; s="${t#*:}" ;;
+    *:*)   m="${t%%:*}"; s="${t#*:}" ;;
+    *)     s="$t" ;;
+  esac
+  case "$days$h$m$s$frac" in
+    "" | *[!0-9]*) echo ""; return ;;
+  esac
+  echo $(( (((10#$days * 86400) + (10#$h * 3600) + (10#$m * 60) + 10#$s) * 100) + 10#$frac ))
+}
+
+# The claude process this very script is running inside, if any: walk the
+# parent chain from $$ and return the first ancestor whose comm basename is
+# `claude`. Empty when the caller is not running inside a seat.
+#
+# `ps -o ppid=` per hop rather than one `ps -A` pass, because the chain is
+# short (a handful of hops) and a bounded loop cannot outlive a ps that starts
+# returning junk — the guard below stops on any non-numeric or non-advancing
+# ppid, so a truncated read ends the walk instead of spinning.
+seat_probe_self_claude_pid() {
+  local pid="$$" hops=0 comm ppid
+  while [ "$hops" -lt 20 ]; do
+    case "$pid" in "" | 0 | 1 | *[!0-9]*) return 0 ;; esac
+    comm="$(ps -o comm= -p "$pid" 2>/dev/null | tr -d ' ')"
+    if [ "$(basename "${comm:-/none}")" = "claude" ]; then
+      printf '%s\n' "$pid"
+      return 0
+    fi
+    ppid="$(ps -o ppid= -p "$pid" 2>/dev/null | tr -d ' ')"
+    [ "$ppid" != "$pid" ] || return 0
+    pid="$ppid"
+    hops=$(( hops + 1 ))
+  done
+  return 0
+}
+
+# Take one CPU window over the pids in $1.
+#
+# Sets SEAT_PROBE_CPU_DELTAS to "pid:delta_cs" per pid ("pid:none" when either
+# sample was unreadable). Returns 0 for a valid window, 1 for one the host
+# slept through — a suspended process accrues no CPU whether it is hung or
+# working, so a window whose wall clock jumped proves nothing (#205, #207).
+seat_probe_cpu_window() {
+  local pids="$1" pid before after t0 t1 elapsed sample slack
+  sample="$(seat_probe_uint SEAT_PROBE_CPU_SAMPLE_S "${SEAT_PROBE_CPU_SAMPLE_S:-}" "$SEAT_PROBE_CPU_SAMPLE_S_DEFAULT" 1)"
+  slack="$(seat_probe_uint SEAT_PROBE_CPU_SLACK_S "${SEAT_PROBE_CPU_SLACK_S:-}" "$SEAT_PROBE_CPU_SLACK_S_DEFAULT" 0)"
+
+  SEAT_PROBE_CPU_DELTAS=""
+  local befores=""
+  for pid in $pids; do
+    before="$(seat_probe_cputime_cs "$(ps -o cputime= -p "$pid" 2>/dev/null | tr -d ' ')")"
+    befores="$befores $pid:${before:-none}"
+  done
+
+  t0="$(date +%s)"
+  sleep "$sample"
+  t1="$(date +%s)"
+  elapsed=$(( t1 - t0 ))
+
+  for pid in $pids; do
+    before="$(printf '%s' "$befores" | tr ' ' '\n' | sed -n "s/^$pid://p")"
+    after="$(seat_probe_cputime_cs "$(ps -o cputime= -p "$pid" 2>/dev/null | tr -d ' ')")"
+    if [ -z "$before" ] || [ "$before" = "none" ] || [ -z "$after" ]; then
+      SEAT_PROBE_CPU_DELTAS="$SEAT_PROBE_CPU_DELTAS $pid:none"
+    else
+      SEAT_PROBE_CPU_DELTAS="$SEAT_PROBE_CPU_DELTAS $pid:$(( after - before ))"
+    fi
+  done
+  SEAT_PROBE_CPU_DELTAS="${SEAT_PROBE_CPU_DELTAS# }"
+
+  [ "$elapsed" -le $(( sample + slack )) ]
+}
+
+# Did the window in SEAT_PROBE_CPU_DELTAS show any process working?
+#
+# Yes if ANY pid grew by at least the floor. An UNREADABLE delta also counts as
+# working: a pid whose cputime stopped being readable is a process that changed
+# under us, and this file's standing doctrine is that ambiguity fails toward
+# "the seat is fine" — never toward a false "your live seat is dead".
+seat_probe_cpu_window_busy() {
+  local entry delta floor
+  floor="$(seat_probe_uint SEAT_PROBE_CPU_FLOOR_CS "${SEAT_PROBE_CPU_FLOOR_CS:-}" "$SEAT_PROBE_CPU_FLOOR_CS_DEFAULT" 1)"
+  for entry in $SEAT_PROBE_CPU_DELTAS; do
+    delta="${entry#*:}"
+    [ "$delta" = "none" ] && return 0
+    case "$delta" in *[!0-9-]*) return 0 ;; esac
+    [ "$delta" -ge "$floor" ] && return 0
+  done
+  return 1
+}
+
+# A valid window over the pids in $1, retaking ONCE before giving up — the same
+# retake the watchdog does, for the same reason: one slept-through window is a
+# routine event on this host (#194's root cause is a 1-minute sleep setting),
+# two in a row is not.
+seat_probe_cpu_window_or_fail() {
+  seat_probe_cpu_window "$1" && return 0
+  seat_probe_cpu_window "$1"
+}
+
+# Decide whether a seat is STALLED: pane- and process-live, holding work it has
+# not answered, and not working on it. See the long-form rationale above.
+seat_probe_stall_check() {
+  local wtpath="$1" dir newest f jq_out jq_rc last_type pids self base epoch now
+
+  SEAT_STALL="UNKNOWN"
+  SEAT_STALL_TS=""
+  SEAT_STALL_AGE_S=""
+  SEAT_STALL_CPU=""
+  SEAT_STALL_UNKNOWN="no-transcript-dir"
+
+  dir="$(seat_probe_session_dir "$wtpath")"
+  [ -d "$dir" ] || return 0
+
+  # Both bits, for the reason spelled out at the same guard in the mute check:
+  # `[ -d ]` stays true on an unreadable directory (stat works through the
+  # parent), the glob then expands to nothing because it cannot be READ, and
+  # the seat lands on the silent "no transcripts here" path. -r is what the
+  # glob needs; -x is what stat'ing the entries needs.
+  if [ ! -r "$dir" ] || [ ! -x "$dir" ]; then
+    SEAT_STALL_UNKNOWN="unreadable"
+    return 0
+  fi
+
+  SEAT_STALL_UNKNOWN="no-transcript"
+
+  # Newest .jsonl WITHOUT a pipeline. `ls -t | head -1` is not equivalent: head
+  # exits after one line, ls takes SIGPIPE, and under `set -euo pipefail` that
+  # 141 kills the whole caller once a seat has enough transcripts to outrun the
+  # pipe buffer. The coordinator seat has 302 (#155).
+  newest=""
+  for f in "$dir"/*.jsonl; do
+    [ -e "$f" ] || continue
+    if [ -z "$newest" ] || [ "$f" -nt "$newest" ]; then
+      newest="$f"
+    fi
+  done
+  [ -n "$newest" ] || return 0
+
+  # Exists but cannot be read is the check FAILING, not an empty directory —
+  # kept distinct for the reason #216/#218 exist.
+  if [ ! -r "$newest" ]; then
+    SEAT_STALL_UNKNOWN="unreadable"
+    return 0
+  fi
+
+  # Every accessor is type-guarded to DEGRADE rather than abort, because a type
+  # error aborts the whole jq pass and the verdict is read from the TAIL of
+  # what was emitted — an abort on the trailing record would silently yield a
+  # verdict from an OLDER record. That is the stale-verdict class #214 closed
+  # in the mute check, and it is if anything sharper here: the record this
+  # function cares about is precisely the last one.
+  #
+  # A degraded record emits an empty type, which matches neither "user" nor
+  # "assistant" and so falls out of the select — leaving the tail to the last
+  # WELL-FORMED conversational record. Combined with the captured exit status
+  # below (a non-zero pass yields no verdict at all), a malformed trailing
+  # record cannot manufacture a stall.
+  #
+  # Records are ordered BY FILE POSITION, never by timestamp: 5 of the 24,560
+  # user/assistant records on this host step BACKWARDS in time, so a
+  # timestamp sort would reorder the tail this verdict is read from.
+  #
+  # Sidechain (subagent) records are not excluded. Measured: 0 of the 307
+  # transcripts on this host contain any, and in none does their presence
+  # change which record is last. If a seat starts using subagents, a sidechain
+  # tail means the main thread still owes a turn too — so the verdict stays
+  # correct and the CPU windows decide it either way.
+  jq_rc=0
+  jq_out="$(jq -Rrc '
+      fromjson? | objects
+      | ((.type | strings) // "") as $t
+      | select($t == "user" or $t == "assistant")
+      | [ $t, ((.timestamp | strings) // "") ]
+      | @tsv' "$newest" 2>/dev/null)" || jq_rc=$?
+
+  if [ "$jq_rc" -ne 0 ]; then
+    SEAT_STALL_UNKNOWN="unreadable"
+    return 0
+  fi
+  if [ -z "$jq_out" ]; then
+    SEAT_STALL_UNKNOWN="no-conversation"
+    return 0
+  fi
+
+  # awk rather than `tail -1`, so no pipeline status is discarded and the empty
+  # case below can only mean awk itself failed.
+  last_type="$(printf '%s\n' "$jq_out" | awk -F'\t' '{ t=$1; ts=$2 } END { if (NR) printf "%s\t%s\n", t, ts }' || true)"
+  if [ -z "$last_type" ]; then
+    SEAT_STALL_UNKNOWN="unreadable"
+    return 0
+  fi
+  SEAT_STALL_TS="$(printf '%s' "$last_type" | cut -f2)"
+  last_type="$(printf '%s' "$last_type" | cut -f1)"
+
+  # The turn was answered. Nothing owed, nothing to measure, no windows taken —
+  # this is the path a healthy fleet takes, and it is why the check is free.
+  if [ "$last_type" != "user" ]; then
+    SEAT_STALL="NO"
+    SEAT_STALL_TS=""
+    SEAT_STALL_UNKNOWN=""
+    return 0
+  fi
+
+  pids="$(seat_probe_pids_for_path "$wtpath")"
+  if [ -z "$pids" ]; then
+    SEAT_STALL_UNKNOWN="no-process"
+    return 0
+  fi
+
+  # The caller's own seat. A coordinator running this probe is mid-turn by
+  # construction — the record for the turn that invoked the script IS the
+  # unanswered user record — so taking 40s of windows would only confirm what
+  # the script running at all already proves.
+  self="$(seat_probe_self_claude_pid)"
+  if [ -n "$self" ]; then
+    case " $pids " in
+      *" $self "*)
+        SEAT_STALL="NO"
+        SEAT_STALL_CPU="self:$self"
+        SEAT_STALL_UNKNOWN=""
+        return 0
+        ;;
+    esac
+  fi
+
+  if ! seat_probe_cpu_window_or_fail "$pids"; then
+    SEAT_STALL_UNKNOWN="sample-invalid"
+    return 0
+  fi
+  SEAT_STALL_CPU="w1:$SEAT_PROBE_CPU_DELTAS"
+  if seat_probe_cpu_window_busy; then
+    SEAT_STALL="NO"
+    SEAT_STALL_UNKNOWN=""
+    return 0
+  fi
+
+  # CONFIRM. One flat window is not enough — the whole reason #207 added a
+  # second one is that a single sample cannot tell a working process from a
+  # stuck one.
+  if ! seat_probe_cpu_window_or_fail "$pids"; then
+    SEAT_STALL_UNKNOWN="sample-invalid"
+    return 0
+  fi
+  SEAT_STALL_CPU="$SEAT_STALL_CPU w2:$SEAT_PROBE_CPU_DELTAS"
+  if seat_probe_cpu_window_busy; then
+    SEAT_STALL="NO"
+    SEAT_STALL_UNKNOWN=""
+    return 0
+  fi
+
+  SEAT_STALL="YES"
+  SEAT_STALL_UNKNOWN=""
+
+  # Age is a convenience, never a gate — the whole point of this check is that
+  # no age threshold can decide it. If the timestamp will not parse, report the
+  # stall without it rather than suppressing the finding.
+  base="${SEAT_STALL_TS%%.*}"
+  base="${base%Z}"
+  epoch="$(TZ=UTC date -j -f '%Y-%m-%dT%H:%M:%S' "$base" '+%s' 2>/dev/null || true)"
+  if [ -n "$epoch" ]; then
+    now="$(date +%s)"
+    SEAT_STALL_AGE_S=$(( now - epoch ))
+    [ "$SEAT_STALL_AGE_S" -lt 0 ] && SEAT_STALL_AGE_S=0
   fi
 
   return 0
