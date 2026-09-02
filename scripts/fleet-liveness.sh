@@ -37,8 +37,10 @@
 #                                    all — reported as MUTE when its last turn
 #                                    was answered locally rather than by the
 #                                    model (#212), and as STALLED when it holds
-#                                    an unanswered turn and is burning no CPU
-#                                    (#217). Neither is a SEAT_STATUS value.
+#                                    an unanswered DISPATCH — a prompt with no
+#                                    reply of any kind after it, not merely a
+#                                    tool call in flight — and is burning no
+#                                    CPU (#217). Neither is a SEAT_STATUS value.
 #
 # WHAT IT DELIBERATELY DOES NOT DO
 #   It never restarts, relaunches, kills or repairs anything. Recovery stays a

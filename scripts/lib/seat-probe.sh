@@ -308,13 +308,18 @@ seat_probe_session_dir() {
 # "nothing to measure" from "the measurement broke" — see the header; the
 # verdict is identical either way, only the visibility differs.
 #
-# NOT THE SAME CHECK AS seat_probe_stall_check, AND THEY CANNOT OVERLAP (#217).
-# This one detects a local DECLINE: the seat answered, just not with the model.
-# Its transcript therefore ends on an ASSISTANT record, which is precisely the
-# record seat_probe_stall_check requires to be absent. A seat wedged with no
-# assistant message at all — a permission prompt swallowed mid-turn — reports
-# MUTE=NO here and is caught there instead. The two verdicts are structurally
-# mutually exclusive; neither subsumes the other.
+# NOT THE SAME CHECK AS seat_probe_stall_check (#217). This one detects a local
+# DECLINE: the seat answered, just not with the model. Its transcript therefore
+# ends on an ASSISTANT record, which is precisely the record
+# seat_probe_stall_check requires to be absent. A seat that produced no
+# assistant message at all reports MUTE=NO here and is caught there instead.
+#
+# In the ordinary case the two verdicts do not overlap, but that is NOT a
+# structural guarantee and it was wrong to state it as one: a transcript of
+# [decline, decline, dispatch] yields MUTE=YES and also opens the stall gate.
+# What actually keeps them apart is the CALLER — fleet-liveness.sh tests MUTE
+# first and reaches the stall check only in the elif — so a caller that ran
+# both independently would have to decide the precedence itself.
 seat_probe_mute_check() {
   local wtpath="$1" dir newest f res run ts model toks text base epoch now min_declines
   local jq_out jq_rc
@@ -557,11 +562,23 @@ seat_probe_mute_check() {
 # --- stalled: received work, never completed a turn (#217) ------------------
 #
 # The other half of #212. seat_probe_mute_check catches a seat that ANSWERED
-# locally; this catches one that did not answer at all — a permission prompt
-# swallowed mid-turn, a session wedged after an update. That seat is pane-live
+# locally; this catches one that did not answer AT ALL. That seat is pane-live
 # and process-live, reports OK, consumes the next dispatch and produces
 # nothing: operationally identical to the mute case, and invisible to every
 # other signal in this file.
+#
+# THE EXACT SHAPE CAUGHT, STATED NARROWLY SO IT IS NOT OVERSOLD
+#
+# A dispatch that is followed by NO assistant record. That is a real and
+# current failure: session f1f60284 in the coordinator worktree took the CEO
+# prompt at 2026-09-02T11:45:53Z and wrote one user record and zero assistant
+# records before the watchdog reaped it two hours later (#221).
+#
+# It does NOT catch a turn wedged AFTER the model has spoken — a permission
+# prompt raised on a tool call leaves the transcript ending on the assistant's
+# tool_use record, and this check reads that as answered. Detecting that needs
+# a different signal, and claiming it here would be the kind of check that is
+# usually wrong the file already has three issues about.
 #
 # THE SIGNAL IS LOCAL TO THE TRANSCRIPT — NO DISPATCH RECORDS NEEDED
 #
@@ -593,10 +610,18 @@ seat_probe_mute_check() {
 # A long-running turn fails the second condition BY CONSTRUCTION, which is
 # exactly what the age threshold alone could not do.
 #
-# Measured live on this host while writing this, and it reproduces #207's
-# numbers: a claude mid-turn accrued +1.30s then +1.43s of CPU per 20s window;
-# one idle at the prompt accrued +0.24s then +0.33s. The 1.0s floor sits
-# between them with better than 3x margin on both sides.
+# Measured live on this host, reproducing #207's numbers: a claude mid-turn
+# accrued +1.30s then +1.43s of CPU per 20s window; one idle at the prompt
+# accrued +0.24s then +0.33s. The 1.0s floor sits between them.
+#
+# THE TWO MARGINS ARE NOT THE SAME SIZE, AND THE SMALL ONE IS THE ONE THAT
+# MATTERS. Against the idle population (24-33cs) the floor has better than 3x
+# headroom — that side only risks missing a stalled seat for a cycle. Against
+# the busy population the margin is far thinner: an independent live sweep
+# during review measured mid-turn seats at 123, 134, 138 and 144cs, i.e. about
+# 1.3x the floor. THAT is the side protecting against a false "your live seat
+# is dead", so anyone raising this floor should size the change against 123cs,
+# not against 130.
 #
 # WHY THIS COUNTS CENTISECONDS WHEN THE WATCHDOG COUNTS WHOLE SECONDS
 #
@@ -613,9 +638,13 @@ seat_probe_mute_check() {
 # COST, AND WHY A HEALTHY FLEET PAYS NONE OF IT
 #
 # This function SLEEPS — two windows, ~40s. It is therefore gated behind the
-# free half: the CPU windows are taken only for a seat whose transcript already
-# ends on an unanswered user record. On a healthy fleet no seat does, and the
-# check costs one jq pass per seat, the same as the mute check.
+# free half: the CPU windows are taken only for a seat whose transcript ends on
+# an unanswered DISPATCH — a plain user record, not a tool result. That
+# distinction is what makes the claim true: keying the gate on the record type
+# alone opened it on ordinary mid-turn traffic (both live seats, during
+# review), turning a 2s fleet check into a 20-40s one. With tool results
+# excluded the gate opens on 3 of 319 transcripts here, so a healthy fleet pays
+# one jq pass per seat, the same as the mute check.
 #
 # The one seat that would otherwise always pay it is the caller's own. A
 # coordinator running this probe is BY CONSTRUCTION mid-turn — the transcript
@@ -683,7 +712,12 @@ seat_probe_uint() {
     printf '%s\n' "$def"
     return 0
   fi
-  printf '%s\n' "$val"
+  # Emit CANONICAL DECIMAL. The value is validated as digits, but the callers
+  # use it in arithmetic where bash reads a leading zero as octal — so an
+  # override of `0100` would silently become 64. The direction is safe (a lower
+  # floor reads busy more readily) but the surprise is not worth keeping
+  # (review of #217).
+  printf '%s\n' "$(( 10#$val ))"
 }
 
 # `ps -o cputime=` for pid $1, in CENTISECONDS; empty when unreadable.
@@ -706,7 +740,12 @@ seat_probe_cputime_cs() {
     2) : ;;
     *) frac="$(printf '%s' "$frac" | cut -c1-2)" ;;
   esac
+  # A LEADING dash is junk, not a day separator. Splitting on it leaves an empty
+  # `days` that 10# reads as 0, so "-5" would return a reading of 500 — and this
+  # parser's whole invariant is that junk yields NO reading, never a number
+  # (review of #217).
   case "$t" in
+    -*) echo ""; return ;;
     *-*) days="${t%%-*}"; t="${t#*-}" ;;
   esac
   case "$t" in
@@ -791,10 +830,20 @@ seat_probe_cpu_window() {
 seat_probe_cpu_window_busy() {
   local entry delta floor
   floor="$(seat_probe_uint SEAT_PROBE_CPU_FLOOR_CS "${SEAT_PROBE_CPU_FLOOR_CS:-}" "$SEAT_PROBE_CPU_FLOOR_CS_DEFAULT" 1)"
+  # No pids measured at all is a window that never ran, and a measurement that
+  # never ran must read BUSY like every other broken one. Unreachable from
+  # seat_probe_stall_check (its no-process guard fires first), but a future
+  # caller reaching here with nothing would otherwise get "idle" out of thin air
+  # (review of #217).
+  [ -n "$SEAT_PROBE_CPU_DELTAS" ] || return 0
   for entry in $SEAT_PROBE_CPU_DELTAS; do
     delta="${entry#*:}"
     [ "$delta" = "none" ] && return 0
-    case "$delta" in *[!0-9-]*) return 0 ;; esac
+    # A NEGATIVE delta means the reading went backwards — a recycled pid, not an
+    # idle process — so it belongs with the unreadable cases, not with zero. The
+    # old `*[!0-9-]*` class admitted the leading dash and then `[ -5 -ge 100 ]`
+    # counted it toward STALLED: the one direction that can only hurt.
+    case "$delta" in *[!0-9]*) return 0 ;; esac
     [ "$delta" -ge "$floor" ] && return 0
   done
   return 1
@@ -812,7 +861,7 @@ seat_probe_cpu_window_or_fail() {
 # Decide whether a seat is STALLED: pane- and process-live, holding work it has
 # not answered, and not working on it. See the long-form rationale above.
 seat_probe_stall_check() {
-  local wtpath="$1" dir newest f jq_out jq_rc last_type pids self base epoch now
+  local wtpath="$1" dir newest f jq_out jq_rc last_type last_kind pids self base epoch now
 
   SEAT_STALL="UNKNOWN"
   SEAT_STALL_TS=""
@@ -877,12 +926,46 @@ seat_probe_stall_check() {
   # change which record is last. If a seat starts using subagents, a sidechain
   # tail means the main thread still owes a turn too — so the verdict stays
   # correct and the CPU windows decide it either way.
+  #
+  # A TOOL RESULT IS ALSO WRITTEN AS A `user` RECORD, AND IT IS NOT A DISPATCH.
+  #
+  # This is the correction that makes the gate mean what #217 asked for. The
+  # CLI records the result of every tool call as a `user`-typed record, so a
+  # transcript that ends on one is showing the ORDINARY MID-TURN STATE of any
+  # turn that called a tool and has not yet emitted its next assistant message
+  # — not a seat that received work and never answered.
+  #
+  # Measured over the 319 transcripts on this host, of the 23 that end on a
+  # `user` record, 20 end on a tool result. Keying the gate on the record TYPE
+  # alone would therefore open it on 87% mid-turn traffic, including both live
+  # seats at the moment this was reviewed, and hand the entire discrimination
+  # to the CPU windows — which is not the design, and which also cost a healthy
+  # `fleet-liveness.sh` run 20-40s instead of the 2s it takes today.
+  #
+  # A dispatch carries a string or `text` blocks; a tool result carries a
+  # `tool_result` block (and usually a top-level `toolUseResult`). Both markers
+  # are checked, and ANY tool_result block in the content disqualifies the
+  # record — a mixed block is still a turn in progress, and the ambiguous
+  # direction has to be "the seat is fine". With this filter the gate opens on
+  # 3 of 319 transcripts here, and all three are genuine unanswered dispatches.
+  #
+  # The kind is computed with the same degrade-never-abort discipline as the
+  # type: `.message.content? | type` cannot raise on a missing or scalar
+  # content, and `.type? // ""` inside the map cannot raise on a non-object
+  # element. A record whose kind cannot be determined falls to "plain" and is
+  # then decided by the CPU windows, never by this filter alone.
   jq_rc=0
   jq_out="$(jq -Rrc '
       fromjson? | objects
       | ((.type | strings) // "") as $t
       | select($t == "user" or $t == "assistant")
-      | [ $t, ((.timestamp | strings) // "") ]
+      | (if $t != "user" then "plain"
+         elif ((.toolUseResult? // null) != null) then "toolres"
+         elif ((.message.content? | type) == "array"
+               and (([.message.content[]? | (.type? // "")] | index("tool_result")) != null))
+           then "toolres"
+         else "plain" end) as $kind
+      | [ $t, $kind, ((.timestamp | strings) // "") ]
       | @tsv' "$newest" 2>/dev/null)" || jq_rc=$?
 
   if [ "$jq_rc" -ne 0 ]; then
@@ -896,17 +979,21 @@ seat_probe_stall_check() {
 
   # awk rather than `tail -1`, so no pipeline status is discarded and the empty
   # case below can only mean awk itself failed.
-  last_type="$(printf '%s\n' "$jq_out" | awk -F'\t' '{ t=$1; ts=$2 } END { if (NR) printf "%s\t%s\n", t, ts }' || true)"
+  last_type="$(printf '%s\n' "$jq_out" | awk -F'\t' '{ t=$1; k=$2; ts=$3 } END { if (NR) printf "%s\t%s\t%s\n", t, k, ts }' || true)"
   if [ -z "$last_type" ]; then
     SEAT_STALL_UNKNOWN="unreadable"
     return 0
   fi
-  SEAT_STALL_TS="$(printf '%s' "$last_type" | cut -f2)"
+  SEAT_STALL_TS="$(printf '%s' "$last_type" | cut -f3)"
+  last_kind="$(printf '%s' "$last_type" | cut -f2)"
   last_type="$(printf '%s' "$last_type" | cut -f1)"
 
-  # The turn was answered. Nothing owed, nothing to measure, no windows taken —
-  # this is the path a healthy fleet takes, and it is why the check is free.
-  if [ "$last_type" != "user" ]; then
+  # The turn was answered, or is in progress. Nothing owed that this check can
+  # see, nothing to measure, no windows taken — this is the path a healthy
+  # fleet takes, and it is why the check is free. A tool result lands here for
+  # the reason spelled out at the jq pass: it is mid-turn traffic, not a
+  # dispatch.
+  if [ "$last_type" != "user" ] || [ "$last_kind" != "plain" ]; then
     SEAT_STALL="NO"
     SEAT_STALL_TS=""
     SEAT_STALL_UNKNOWN=""
