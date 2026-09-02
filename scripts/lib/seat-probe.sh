@@ -950,21 +950,38 @@ seat_probe_stall_check() {
   # 3 of 319 transcripts here, and all three are genuine unanswered dispatches.
   #
   # The kind is computed with the same degrade-never-abort discipline as the
-  # type: `.message.content? | type` cannot raise on a missing or scalar
-  # content, and `.type? // ""` inside the map cannot raise on a non-object
-  # element. A record whose kind cannot be determined falls to "plain" and is
-  # then decided by the CPU windows, never by this filter alone.
+  # type, and the guard has to sit on `.message` ITSELF, not on `.message.content`.
+  # A non-object `.message` makes `.message.content?` yield `empty`; an `elif`
+  # whose CONDITION is empty produces no output at all, so the record would
+  # vanish from the pass rather than fall through to "plain" — the trailing
+  # dispatch dropped, and the verdict read from an older record. That is the
+  # #214 stale-verdict class re-opened inside its own fix, and it does not
+  # announce itself: 0 of the 316 transcripts here have such a record, so
+  # nothing would have caught it in use.
+  #
+  # `((.message | objects) // {}) as $m` is the idiom seat_probe_mute_check
+  # already uses, and it makes every downstream accessor total: $m.content on a
+  # missing key is null, `null | type` is "null", and `.type? // ""` inside the
+  # map cannot raise on a non-object element. Every conversational record now
+  # emits exactly one row, and a record whose kind cannot be determined falls to
+  # "plain" — decided by the CPU windows, never suppressed by this filter.
+  #
+  # The toolUseResult test is `has(...) and != null`, NOT `// null`. jq's `//`
+  # treats `false` as absent, so a tool whose result is the literal `false`
+  # would have been read as "no tool result here" and OPENED the gate — the
+  # unsafe direction, since every other ambiguity in this file closes it.
   jq_rc=0
   jq_out="$(jq -Rrc '
       fromjson? | objects
       | ((.type | strings) // "") as $t
       | select($t == "user" or $t == "assistant")
-      | (if $t != "user" then "plain"
-         elif ((.toolUseResult? // null) != null) then "toolres"
-         elif ((.message.content? | type) == "array"
-               and (([.message.content[]? | (.type? // "")] | index("tool_result")) != null))
-           then "toolres"
-         else "plain" end) as $kind
+      | (((.message | objects) // {}) as $m
+         | if $t != "user" then "plain"
+           elif (has("toolUseResult") and (.toolUseResult != null)) then "toolres"
+           elif (($m.content | type) == "array"
+                 and (([$m.content[]? | (.type? // "")] | index("tool_result")) != null))
+             then "toolres"
+           else "plain" end) as $kind
       | [ $t, $kind, ((.timestamp | strings) // "") ]
       | @tsv' "$newest" 2>/dev/null)" || jq_rc=$?
 
