@@ -31,7 +31,16 @@
 #                                    means scheduled runs have stacked on a
 #                                    hung predecessor (#194), and every pid
 #                                    beyond the live pane's needs a deliberate
-#                                    kill (never a resume).
+#                                    kill (never a resume). A seat that is
+#                                    green on both signals is additionally
+#                                    asked whether it can finish a turn at
+#                                    all — reported as MUTE when its last turn
+#                                    was answered locally rather than by the
+#                                    model (#212), and as STALLED when it holds
+#                                    an unanswered DISPATCH — a prompt with no
+#                                    reply of any kind after it, not merely a
+#                                    tool call in flight — and is burning no
+#                                    CPU (#217). Neither is a SEAT_STATUS value.
 #
 # WHAT IT DELIBERATELY DOES NOT DO
 #   It never restarts, relaunches, kills or repairs anything. Recovery stays a
@@ -53,6 +62,9 @@
 #   Env-overridable tunables:
 #     MIN_FREE_GB     (default 2)   below this, disk is a FAILURE
 #     WARN_FREE_GB    (default 10)  below this, disk is a WARNING
+#     SEAT_PROBE_CPU_SAMPLE_S (default 20) seconds per stall-check CPU window
+#     SEAT_PROBE_CPU_FLOOR_CS (default 100) CPU growth in CENTISECONDS below
+#                     which a process counts as not working
 #     WORKSPACE_ROOT  (default ~/orca/workspaces/thewebsite)
 #     ROLES           same as --roles
 #
@@ -285,6 +297,28 @@ for role in "${ROLE_LIST[@]}"; do
         line "$role" "MUTE" "$SEAT_HANDLE$age; claude pid(s) $SEAT_PIDS$husk_note — pane and process live, but its last turn was answered locally$mute_age: \"$SEAT_MUTE_REASON\""
         PROBLEMS+=("$role: seat is MUTE — it will consume a dispatch and produce nothing. Last turn came from the CLI, not the model$mute_age: \"$SEAT_MUTE_REASON\". Do NOT run restart-team.sh for this: the process is healthy and relaunching duplicates the session. Repair the live seat in place (a bad model pin clears with /model, sent into the existing pane), then re-run this check. (#212)")
         ROLE_FAIL=1
+      elif { seat_probe_stall_check "$wtpath"; [ "$SEAT_STALL" = "YES" ]; }; then
+        # Green by every signal above, holding a dispatch, and not working on
+        # it. The other half of #212: the mute case answered locally, this one
+        # produced NO reply of any kind — the turn never started. Reported like
+        # a dead seat for the same reason MUTE is: a dispatch lands, is
+        # consumed, and produces nothing.
+        #
+        # A permission prompt is NOT this. The library is explicit that a prompt
+        # raised on a tool call leaves the transcript ending on the assistant's
+        # tool_use record, which reads as answered — so this alarm can never
+        # fire on one, and telling the operator to go look for one would send
+        # them after the one cause that by construction is not there (#217).
+        #
+        # Reported here only, and deliberately NOT a SEAT_STATUS value, for the
+        # reason stated at the top of this block: restart-team.sh relaunches on
+        # any status other than OK, so a new one would stack a second session
+        # onto a seat that still holds a live process (#212, #217).
+        stall_age=""
+        [ -n "$SEAT_STALL_AGE_S" ] && stall_age=" ${SEAT_STALL_AGE_S}s ago"
+        line "$role" "STALLED" "$SEAT_HANDLE$age; claude pid(s) $SEAT_PIDS$husk_note — took a dispatch$stall_age, never began a turn, and burned no CPU across two confirmed windows [$SEAT_STALL_CPU]"
+        PROBLEMS+=("$role: seat is STALLED — it received work$stall_age, never completed a turn, and is not working on it (CPU flat across two confirmed windows: $SEAT_STALL_CPU). It will consume the next dispatch and produce nothing. Do NOT run restart-team.sh for this: the process is alive and relaunching duplicates the session. Look at the live pane first: the seat took a dispatch and never began a turn, so expect a session that is up but idle — NOT a pending permission prompt, which this alarm cannot fire on (a prompt on a tool call leaves the transcript ending on an assistant record, which reads as answered). If it is genuinely wedged, close the seat before relaunching it. (#217)")
+        ROLE_FAIL=1
       else
         # A broken mute check must not read as a clean one (#214). UNKNOWN is
         # the probe's "no verdict", and printing it as a bare OK was right for
@@ -307,7 +341,24 @@ for role in "${ROLE_LIST[@]}"; do
           mute_note=" — MUTE CHECK DID NOT RUN (transcript unreadable); liveness here is pane+process only"
           WARNINGS+=("$role: the mute check could not run (the transcript could not be read — an unreadable file or directory, jq missing, or a scan that aborted), so this OK covers pane and process only and a seat answering locally would still read OK. Check jq is on PATH and that this seat's transcript directory and its newest file are both readable (#214)")
         fi
-        line "$role" "OK" "$SEAT_HANDLE$age; claude pid(s) $SEAT_PIDS$husk_note$mute_note"
+
+        # The stall check gets the identical treatment, and for the identical
+        # reason (#214): its two broken-measurement causes are surfaced and its
+        # nothing-to-measure causes stay silent. Adding a check whose failure
+        # read as a clean OK would re-open the exact class the mute check spent
+        # three rounds closing. `unreadable` is the scan failing; `sample-invalid`
+        # is the host having slept through all four CPU windows, which on this
+        # machine (#194's 1-minute sleep setting) is a real and recurring
+        # condition rather than a hypothetical one.
+        stall_note=""
+        if [ "$SEAT_STALL" = "UNKNOWN" ] && [ "$SEAT_STALL_UNKNOWN" = "unreadable" ]; then
+          stall_note=" — STALL CHECK DID NOT RUN (transcript unreadable)"
+          WARNINGS+=("$role: the stall check could not run (the transcript could not be read — an unreadable file or directory, jq missing, or a scan that aborted), so a seat holding work it never answered would still read OK here. Check jq is on PATH and that this seat's transcript directory and its newest file are both readable (#217)")
+        elif [ "$SEAT_STALL" = "UNKNOWN" ] && [ "$SEAT_STALL_UNKNOWN" = "sample-invalid" ]; then
+          stall_note=" — STALL CHECK DID NOT RUN (host slept through the CPU windows)"
+          WARNINGS+=("$role: this seat holds an unanswered turn, but the host slept through both CPU sample windows twice, so whether it is working could not be measured — a suspended process accrues no CPU either way. No verdict was taken rather than a guessed one. Re-run when the host is awake; the keep-awake decision is #194 (#217)")
+        fi
+        line "$role" "OK" "$SEAT_HANDLE$age; claude pid(s) $SEAT_PIDS$husk_note$mute_note$stall_note"
         if [ "$SEAT_PID_COUNT" -gt 1 ]; then
           WARNINGS+=("$role: $SEAT_PID_COUNT claude processes share this worktree (pids $SEAT_PIDS) — likely a pre-restart generation left running; confirm by cwd+CPU before reaping (#155)")
         fi
@@ -357,10 +408,12 @@ cat >&2 <<'EOF'
 Recovery is a DELIBERATE CEO action, not something this script does:
   scripts/restart-team.sh                       # every unhealthy seat; healthy seats are skipped
   scripts/restart-team.sh --only code-reviewer  # one seat, when that is all the unblock needs
-A seat reported MUTE is NOT in that set: its process is alive, so a restart
-would stack a second session on it. Repair a mute seat in place instead — the
-reported reason says what it needs (a model pin clears with /model sent into
-the existing pane); relaunch only if that fails and you first close the seat.
+A seat reported MUTE or STALLED is NOT in that set: its process is alive, so a
+restart would stack a second session on it. Repair those in place instead —
+a MUTE seat's reported reason says what it needs (a model pin clears with
+/model sent into the existing pane), and a STALLED seat took a dispatch and
+never began a turn at all, so look at the live pane before doing anything.
+Relaunch only if that fails and you first close the seat.
 
 Never let an automated run restart the fleet on its own — a restart racing a
 coordinator run leaves two live sessions on one seat, and both answer dispatches.
