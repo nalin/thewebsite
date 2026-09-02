@@ -62,9 +62,15 @@
 #   Env-overridable tunables:
 #     MIN_FREE_GB     (default 2)   below this, disk is a FAILURE
 #     WARN_FREE_GB    (default 10)  below this, disk is a WARNING
-#     SEAT_PROBE_CPU_SAMPLE_S (default 20) seconds per stall-check CPU window
+#     SEAT_PROBE_CPU_SAMPLE_S (default 20, max 300) seconds per stall-check
+#                     CPU window
 #     SEAT_PROBE_CPU_FLOOR_CS (default 100) CPU growth in CENTISECONDS below
-#                     which a process counts as not working
+#                     which a process counts as not working. Capped at
+#                     SEAT_PROBE_CPU_SAMPLE_S * 100 — the most one process can
+#                     accrue on one core in a window — because a floor above
+#                     that reports a working seat as STALLED (#222).
+#                     Either knob outside its range warns on stderr and falls
+#                     back to its default; it never skews a verdict.
 #     WORKSPACE_ROOT  (default ~/orca/workspaces/thewebsite)
 #     ROLES           same as --roles
 #
