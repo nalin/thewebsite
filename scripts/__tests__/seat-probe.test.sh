@@ -20,7 +20,7 @@
 # Every rejection falls OPEN — to the knob's default, and to the verdict that
 # says the seat is fine. seat-probe.sh may fail toward "this seat is working"
 # and never toward "your live seat is dead", because a false alarm sends
-# restart-team.sh at a healthy seat and stacks a second session on it. Section 6
+# restart-team.sh at a healthy seat and stacks a second session on it. Section 7
 # sweeps that invariant across every knob; the rest of the file checks the
 # specific paths that were once wrong in the other direction.
 #
@@ -365,7 +365,91 @@ assert_eq 'floor: the wrap-to-1 override falls open' "$uint_default_floor" "$(ru
 assert_eq 'floor: a leading-zero floor is decimal'  '100'  "$(run_floor 0100 20)"
 
 # ============================================================================
-section 'Section 3 — seat_probe_min_declines: the persistence gate knob'
+section 'Section 3 — seat_probe_cpu_window_busy: the BUSY/IDLE decision'
+# ============================================================================
+
+# THE FALSE-ALARM-CRITICAL HALF OF THE STALLED VERDICT (#228). Every other part
+# of the stall check only narrows the population; this function alone decides
+# whether a live seat is working. A wrong BUSY->IDLE flip here is the exact
+# output the fail-open invariant forbids — fleet-liveness.sh reports STALLED
+# and restart-team.sh stacks a second session on a seat that was working.
+#
+# It is also the cheapest thing in this file to pin, because it SLEEPS NOTHING.
+# The function that sleeps is seat_probe_cpu_window; this one is a pure
+# decision over SEAT_PROBE_CPU_DELTAS, so every case below costs microseconds
+# and the harness's ~1s budget is untouched. The header's "the stall check
+# SLEEPS when it reaches its CPU windows" is true of the window, not of the
+# decision, and it is why this half went uncovered until #228.
+#
+# That the gap was real was proved by MUTATION, not by reading: both #220
+# defects reintroduced in a scratch copy left the harness green at 109/0.
+
+# name deltas want(BUSY|IDLE) [floor]
+busy_case() {
+  local name="$1" deltas="$2" want="$3" floor="${4:-$uint_default_floor}"
+  local rc got
+  # UNPIPED, and in a SUBSHELL. bash leaves a `VAR=x func` prefix assignment
+  # SET in the calling shell after the call (unlike a prefix on a real
+  # command), so a prefix here would leak one case's floor into every case
+  # after it — and the leak would read as a passing boundary.
+  ( SEAT_PROBE_CPU_FLOOR_CS="$floor"
+    SEAT_PROBE_CPU_DELTAS="$deltas"
+    seat_probe_cpu_window_busy ) 2>/dev/null
+  rc=$?
+  case "$rc" in
+    0) got=BUSY ;;
+    1) got=IDLE ;;
+    *) fail "$name" "returned $rc; this decision is 0=BUSY / 1=IDLE and nothing else"
+       return 0 ;;
+  esac
+  assert_eq "$name" "$want" "$got"
+}
+
+# The two defects #220 fixed, each one review round's worth of argument.
+busy_case 'cpu-busy: a negative delta is a recycled pid, not idleness' '111:-5'   BUSY
+busy_case 'cpu-busy: an empty window never ran, so it cannot read idle' ''        BUSY
+busy_case 'cpu-busy: an unreadable delta reads busy'                   '111:none' BUSY
+busy_case 'cpu-busy: a non-numeric delta reads busy'                   '111:abc'  BUSY
+# An entry carrying no colon at all: `${entry#*:}` leaves it whole, and
+# whatever it then looks like must still land on BUSY.
+busy_case 'cpu-busy: a malformed entry with no colon reads busy'       '111'      BUSY
+
+# The floor boundary, at and below it. The two IDLE lines here are the only
+# assertions in this section allowed to come back IDLE at all.
+busy_case 'cpu-busy: one centisecond below the floor reads idle' '111:99'  IDLE
+busy_case 'cpu-busy: the floor itself reads busy'                '111:100' BUSY
+busy_case 'cpu-busy: a zero delta reads idle'                    '111:0'   IDLE
+
+# ANY pid working makes the window busy; it takes every pid idle to read idle.
+busy_case 'cpu-busy: every pid below the floor reads idle'  '111:0 222:5'    IDLE
+busy_case 'cpu-busy: one busy pid among idle ones'          '111:0 222:250'  BUSY
+busy_case 'cpu-busy: one unreadable pid among idle ones'    '111:0 222:none' BUSY
+
+# The floor knob reaches the decision...
+busy_case 'cpu-busy: a raised floor is honoured'     '111:100' IDLE 250
+busy_case 'cpu-busy: a raised floor is not exceeded' '111:250' BUSY 250
+
+# ...and a REJECTED floor may not. This is #222's harm path end to end: an
+# over-large floor is refused by seat_probe_uint, the decision runs on the
+# default, and a pid that spent a whole second of CPU still reads BUSY. Were
+# the rejected value to get through, 100cs would read IDLE and a working seat
+# would be reported STALLED — which is how #222 was found.
+busy_err="$TMPROOT/cpu-busy.err"
+( SEAT_PROBE_CPU_FLOOR_CS=9999
+  SEAT_PROBE_CPU_DELTAS='111:100'
+  seat_probe_cpu_window_busy ) 2>"$busy_err"
+busy_rc=$?
+assert_eq 'cpu-busy: an over-large floor falls open, so the floor still reads busy' \
+  '0' "$busy_rc"
+if [ -s "$busy_err" ]; then
+  pass 'cpu-busy: the rejected floor warns on stderr'
+else
+  fail 'cpu-busy: the rejected floor warns on stderr' \
+    'the fallback was SILENT; a typod knob must warn'
+fi
+
+# ============================================================================
+section 'Section 4 — seat_probe_min_declines: the persistence gate knob'
 # ============================================================================
 
 run_min_declines() {
@@ -385,7 +469,7 @@ assert_eq 'min-declines: over-large is accepted (fails toward "fine")' \
   '999999' "$(run_min_declines 999999)"
 
 # ============================================================================
-section 'Section 4 — seat_probe_mute_check: fixture transcripts'
+section 'Section 5 — seat_probe_mute_check: fixture transcripts'
 # ============================================================================
 
 # Runs the check UNPIPED and asserts the whole verdict at once. The check must
@@ -709,7 +793,7 @@ else
 fi
 
 # ============================================================================
-section 'Section 5 — seat_probe_stall_check: fixture transcripts'
+section 'Section 6 — seat_probe_stall_check: fixture transcripts'
 # ============================================================================
 
 # NOTE ON COST. Every fixture below has an EMPTY pid map, so the check stops at
@@ -898,7 +982,7 @@ mute_case  'mute+stall: a seat that never answered is not MUTE...' \
 stall_case 'mute+stall: ...it is the stall check that sees it' "$wt" UNKNOWN no-process
 
 # ============================================================================
-section 'Section 6 — the fail-open invariant, swept across every knob'
+section 'Section 7 — the fail-open invariant, swept across every knob'
 # ============================================================================
 
 # THE ONE INVARIANT THE WHOLE FILE RESTS ON. Every rejection falls open to the
@@ -999,7 +1083,7 @@ done
 [ "$alarm" -eq 0 ] && pass 'fail-open: no bad knob value turns a healthy seat into an alarm'
 
 # ============================================================================
-section 'Section 7 — the caller contract'
+section 'Section 8 — the caller contract'
 # ============================================================================
 
 # Both real callers source this file under `set -euo pipefail`, and one of them
