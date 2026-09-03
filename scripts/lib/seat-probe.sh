@@ -224,6 +224,11 @@ SEAT_PROBE_MUTE_MIN_DECLINES_DEFAULT=2
 # coordinator-watchdog.sh applies to its own tunables — an invalid override must
 # not skew the measurement. The warning goes to stderr because a silent fallback
 # would make a typo'd knob undetectable.
+#
+# It takes no ceiling. Over-large it demands a decline run no transcript can
+# reach, so the seat is reported NOT mute — toward "the seat is fine", the only
+# direction this file may fail in. The knob whose over-large value points the
+# other way is SEAT_PROBE_CPU_FLOOR_CS, and that one is bounded (#222).
 seat_probe_min_declines() {
   case "${SEAT_PROBE_MUTE_MIN_DECLINES:-}" in
     "" | *[!0-9]*)
@@ -677,6 +682,14 @@ SEAT_PROBE_CPU_SLACK_S="${SEAT_PROBE_CPU_SLACK_S:-10}"
 SEAT_PROBE_CPU_SLACK_S_DEFAULT=10
 SEAT_PROBE_CPU_FLOOR_CS="${SEAT_PROBE_CPU_FLOOR_CS:-100}"
 SEAT_PROBE_CPU_FLOOR_CS_DEFAULT=100
+# Ceiling on the sample window. The stall check takes up to two windows per
+# seat and fleet-liveness.sh walks every seat, so the sample is multiplied by
+# the roster before it is spent — and the probe runs inside a coordinator run
+# that fires every two hours. 300s keeps a whole fleet sweep an order of
+# magnitude inside that cadence; a probe that cannot finish is a probe that did
+# not run. It is also what makes the derived floor ceiling below a real number
+# rather than one an override can inflate at will.
+SEAT_PROBE_CPU_SAMPLE_MAX_S=300
 
 # Initialised at source time, like the SEAT_MUTE* set, so a caller that reads
 # them before ever calling seat_probe_stall_check cannot trip `set -u`.
@@ -695,9 +708,11 @@ SEAT_PROBE_CPU_DELTAS=""
 # expected` into the report (#214). The warning goes to stderr because a silent
 # fallback makes a typo'd knob undetectable.
 #
-# $1 name, $2 value, $3 default, $4 minimum.
+# $1 name, $2 value, $3 default, $4 minimum, $5 maximum (OPTIONAL; empty means
+# unbounded). A maximum belongs on a knob whose over-large value fails toward a
+# FALSE ALARM — see the call sites, which say which direction each one fails.
 seat_probe_uint() {
-  local name="$1" val="$2" def="$3" min="$4"
+  local name="$1" val="$2" def="$3" min="$4" max="${5:-}" bare
   case "$val" in
     "" | *[!0-9]*)
       printf 'seat-probe: %s must be a non-negative integer (got %s) — using %s\n' \
@@ -706,7 +721,31 @@ seat_probe_uint() {
       return 0
       ;;
   esac
-  if [ "$val" -lt "$min" ]; then
+  # DIGIT COUNT DECIDES THE MAGNITUDE, not `[`. A 20-digit override is still all
+  # digits, and every numeric path that could reject it — `[ -gt ]` and `$(( ))`
+  # alike — first wraps it into the 64-bit range, where it can land anywhere:
+  # 99999999999999999999 becomes 7766279631452241919, and 18446744073709551617
+  # becomes 1. A guard that has to be right about a number cannot be the thing
+  # that mangles it, so length screens the value out before any arithmetic sees
+  # it (#222).
+  bare="$val"
+  while [ "${#bare}" -gt 1 ] && [ "${bare#0}" != "$bare" ]; do
+    bare="${bare#0}"
+  done
+  if [ -n "$max" ] && { [ "${#bare}" -gt "${#max}" ] || \
+    { [ "${#bare}" -eq "${#max}" ] && [ "$bare" \> "$max" ]; }; }; then
+    printf 'seat-probe: %s must be <= %s (got %s) — using %s\n' \
+      "$name" "$max" "$val" "$def" >&2
+    printf '%s\n' "$def"
+    return 0
+  fi
+  if [ "${#bare}" -gt 18 ]; then
+    printf 'seat-probe: %s is too large to compare (got %s) — using %s\n' \
+      "$name" "$val" "$def" >&2
+    printf '%s\n' "$def"
+    return 0
+  fi
+  if [ "$bare" -lt "$min" ]; then
     printf 'seat-probe: %s must be >= %s (got %s) — using %s\n' \
       "$name" "$min" "$val" "$def" >&2
     printf '%s\n' "$def"
@@ -718,6 +757,34 @@ seat_probe_uint() {
   # floor reads busy more readily) but the surprise is not worth keeping
   # (review of #217).
   printf '%s\n' "$(( 10#$val ))"
+}
+
+# The validated sample window, in seconds. Both the window that spends it and
+# the floor that is measured against it must agree on ONE number, so neither
+# reads the raw variable.
+seat_probe_cpu_sample_s() {
+  seat_probe_uint SEAT_PROBE_CPU_SAMPLE_S "${SEAT_PROBE_CPU_SAMPLE_S:-}" \
+    "$SEAT_PROBE_CPU_SAMPLE_S_DEFAULT" 1 "$SEAT_PROBE_CPU_SAMPLE_MAX_S"
+}
+
+# The validated CPU floor, in centiseconds, bounded by the window it is read
+# against.
+#
+# This is the one tunable in the file whose over-large value fails toward a
+# FALSE ALARM, which is the single output seat-probe.sh is written never to
+# produce: with per-window deltas of 150 and 140cs, floor=100 reads BUSY and
+# floor=10000 reads IDLE, so fleet-liveness.sh calls a working seat STALLED
+# (#222). The bound is physical, not a tuning opinion — one process pinned to
+# one core accrues sample_s * 100 centiseconds across the window, so a floor
+# above that can only be cleared by a process using more than a whole core, and
+# every seat that is merely working reads idle. Values below the ceiling can
+# still be badly tuned; this closes the region where the knob cannot mean what
+# it says. Like every other validation here it fails OPEN to the default.
+seat_probe_cpu_floor_cs() {
+  local sample
+  sample="$(seat_probe_cpu_sample_s)"
+  seat_probe_uint SEAT_PROBE_CPU_FLOOR_CS "${SEAT_PROBE_CPU_FLOOR_CS:-}" \
+    "$SEAT_PROBE_CPU_FLOOR_CS_DEFAULT" 1 "$(( sample * 100 ))"
 }
 
 # `ps -o cputime=` for pid $1, in CENTISECONDS; empty when unreadable.
@@ -792,7 +859,11 @@ seat_probe_self_claude_pid() {
 # working, so a window whose wall clock jumped proves nothing (#205, #207).
 seat_probe_cpu_window() {
   local pids="$1" pid before after t0 t1 elapsed sample slack
-  sample="$(seat_probe_uint SEAT_PROBE_CPU_SAMPLE_S "${SEAT_PROBE_CPU_SAMPLE_S:-}" "$SEAT_PROBE_CPU_SAMPLE_S_DEFAULT" 1)"
+  sample="$(seat_probe_cpu_sample_s)"
+  # SLACK is deliberately left UNBOUNDED. Over-large, it declares every window
+  # valid however long the host slept — which sends the reading toward BUSY and
+  # so toward "the seat is fine", the direction this file is allowed to fail in.
+  # Only a knob that can fail toward a false alarm gets a ceiling (#222).
   slack="$(seat_probe_uint SEAT_PROBE_CPU_SLACK_S "${SEAT_PROBE_CPU_SLACK_S:-}" "$SEAT_PROBE_CPU_SLACK_S_DEFAULT" 0)"
 
   SEAT_PROBE_CPU_DELTAS=""
@@ -829,7 +900,7 @@ seat_probe_cpu_window() {
 # "the seat is fine" — never toward a false "your live seat is dead".
 seat_probe_cpu_window_busy() {
   local entry delta floor
-  floor="$(seat_probe_uint SEAT_PROBE_CPU_FLOOR_CS "${SEAT_PROBE_CPU_FLOOR_CS:-}" "$SEAT_PROBE_CPU_FLOOR_CS_DEFAULT" 1)"
+  floor="$(seat_probe_cpu_floor_cs)"
   # No pids measured at all is a window that never ran, and a measurement that
   # never ran must read BUSY like every other broken one. Unreachable from
   # seat_probe_stall_check (its no-process guard fires first), but a future
