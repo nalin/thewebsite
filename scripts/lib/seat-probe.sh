@@ -225,26 +225,34 @@ SEAT_PROBE_MUTE_MIN_DECLINES_DEFAULT=2
 # not skew the measurement. The warning goes to stderr because a silent fallback
 # would make a typo'd knob undetectable.
 #
-# It takes no ceiling. Over-large it demands a decline run no transcript can
-# reach, so the seat is reported NOT mute — toward "the seat is fine", the only
-# direction this file may fail in. The knob whose over-large value points the
-# other way is SEAT_PROBE_CPU_FLOOR_CS, and that one is bounded (#222).
+# It takes no CEILING — over-large, it should demand a decline run no transcript
+# can reach, which reports the seat NOT mute, toward "the seat is fine" and the
+# only direction this file may fail in. The knob whose over-large value points
+# the other way is SEAT_PROBE_CPU_FLOOR_CS, and that one is bounded (#222).
+#
+# BUT "NO CEILING" IS NOT THE SAME AS "NO MAGNITUDE SCREEN", and reading it that
+# way left this knob failing toward ALARM — found by the retained harness (#225)
+# on the very invariant the harness was written to sweep. A hand-rolled
+# `[ "$val" -lt 1 ]` cannot judge a 20-digit value: under bash 3.2 it does not
+# wrap, it ERRORS with `integer expression expected` and returns status 2, the
+# `if` reads that as false, and control falls through to the bottom — returning
+# the raw over-large value. It then fails the SAME way one layer up, where
+# `[ "$run" -lt "$min_declines" ]` errors identically and falls through to
+# SEAT_MUTE="YES". Measured: SEAT_PROBE_MUTE_MIN_DECLINES=18446744073709551617
+# turns ONE transient decline into a mute verdict and leaks the raw `[` error
+# into the report — precisely the two failures the validation in this function
+# exists to prevent, surviving inside it for every value `[` cannot compare.
+#
+# So the check is not hand-rolled any more: it delegates to seat_probe_uint,
+# whose digit-count screen (#222) refuses a value before any arithmetic sees it.
+# Same doctrine, one implementation — an unbounded max there still means "no
+# ceiling", and the 18-digit cutoff rejects only what `[` could not have
+# compared anyway. A forward reference: seat_probe_uint is defined further down,
+# which is fine because nothing calls this at source time.
 seat_probe_min_declines() {
-  case "${SEAT_PROBE_MUTE_MIN_DECLINES:-}" in
-    "" | *[!0-9]*)
-      printf 'seat-probe: SEAT_PROBE_MUTE_MIN_DECLINES must be a positive integer (got %s) — using %s\n' \
-        "'${SEAT_PROBE_MUTE_MIN_DECLINES:-}'" "$SEAT_PROBE_MUTE_MIN_DECLINES_DEFAULT" >&2
-      printf '%s\n' "$SEAT_PROBE_MUTE_MIN_DECLINES_DEFAULT"
-      return 0
-      ;;
-  esac
-  if [ "$SEAT_PROBE_MUTE_MIN_DECLINES" -lt 1 ]; then
-    printf 'seat-probe: SEAT_PROBE_MUTE_MIN_DECLINES must be >= 1 (got %s) — using %s\n' \
-      "$SEAT_PROBE_MUTE_MIN_DECLINES" "$SEAT_PROBE_MUTE_MIN_DECLINES_DEFAULT" >&2
-    printf '%s\n' "$SEAT_PROBE_MUTE_MIN_DECLINES_DEFAULT"
-    return 0
-  fi
-  printf '%s\n' "$SEAT_PROBE_MUTE_MIN_DECLINES"
+  seat_probe_uint SEAT_PROBE_MUTE_MIN_DECLINES \
+    "${SEAT_PROBE_MUTE_MIN_DECLINES:-}" \
+    "$SEAT_PROBE_MUTE_MIN_DECLINES_DEFAULT" 1 ""
 }
 
 # Initialised at source time so a caller that reads them before ever calling
