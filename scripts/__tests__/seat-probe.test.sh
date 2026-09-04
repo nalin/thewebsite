@@ -1499,12 +1499,33 @@ dead_run "$wt" s1 202609011100
 # Set in THIS shell, not a subshell: dark_case reports through PASS/FAIL
 # counters, and a `( ... )` wrapper would increment a copy that dies with it —
 # the same subshell trap the seat counter at the top of this file exists for.
-# Restored to the source-time value rather than unset, because the getter warns
-# on a set-but-empty knob once sourcing's `:-` has already run.
+#
+# SAVE AND RESTORE THE PRIOR VALUE, NEVER A LITERAL 10. A literal looks
+# equivalent and is not: it overwrites whatever the OPERATOR set, for every case
+# after this one, and two of them exist precisely to notice that value —
+# `dark knob: the window defaults to 10` and the 300-session case, which asserts
+# SEAT_DARK_TOTAL=10. Measured with `SEAT_PROBE_DARK_WINDOW=25` exported: with
+# the literal the suite reports 167/0 and SAYS NOTHING; with the save/restore it
+# reports 165/2, which is the same pair of failures the file had before this
+# case existed. The literal does not fix the ambient-knob defect (#234) — it
+# HIDES it, and #234 was filed non-blocking on the sole ground that it fails
+# LOUD. Worse, `the window defaults to 10` would then pass because an unrelated
+# fixture four lines up clobbered the variable, not because the default is 10 —
+# a case passing for the wrong reason, which is the thing this section exists to
+# not do.
+#
+# A plain save is always safe here, and an earlier revision of this comment
+# claimed otherwise — that restoring the prior value risked a set-but-empty knob
+# the getter warns on. That is true only of a value captured BEFORE sourcing.
+# Sourcing runs `SEAT_PROBE_DARK_WINDOW="${SEAT_PROBE_DARK_WINDOW:-10}"`, so by
+# the time any case runs the variable is always set and non-empty — measured,
+# knob unset gives 10 and knob=25 gives 25. The empty state that comment was
+# guarding against is not reachable from here.
+dark_window_save="$SEAT_PROBE_DARK_WINDOW"
 SEAT_PROBE_DARK_WINDOW=4
 dark_case 'dark: an unprompted session still consumes a window slot' \
   "$wt" NO '' 2 2
-SEAT_PROBE_DARK_WINDOW=10
+SEAT_PROBE_DARK_WINDOW="$dark_window_save"
 
 # Files that are not transcripts are ignored rather than counted or tripped over.
 wt="$(new_seat)"
