@@ -35,11 +35,18 @@
 #   * Exit codes are asserted from UNPIPED runs. `head`/`grep` in a pipeline
 #     replace the status of the thing under test and hide truncation, which is
 #     how the SIGPIPE class (#155) survived being "verified" once already.
+#   * The caller's environment cannot change what this file asserts (#234).
+#     Every SEAT_PROBE_* knob is read with `:-` at source time, so an exported
+#     value used to silently change the measurement — SEAT_PROBE_CPU_FLOOR_CS=300
+#     turned 167/0 into 165/2, indicting working code. The knob list is DERIVED
+#     from seat-probe.sh rather than typed here, and normalised at startup; see
+#     the block above `knob_reset`, and Section 10, which pins all of it.
 #   * The stall check SLEEPS when it reaches its CPU windows. No fixture here
 #     has a live pid, so every case short-circuits before that; the whole
-#     harness runs in a few seconds (measured 6.6s with Section 7's 300-session
-#     fixture, against 2.4s before it). If a case here starts taking 40s,
-#     something reached the windows that should not have.
+#     harness runs in a few seconds — ~7.5s on this host, dominated by Section
+#     7's 300-session fixture, and unchanged by the isolation above (main
+#     measured 7.4-8.3s over three runs, this file 7.4-7.6s). If a case here
+#     starts taking 40s, something reached the windows that should not have.
 #
 # Usage:
 #   bash scripts/__tests__/seat-probe.test.sh          # run everything
@@ -55,7 +62,7 @@ set -uo pipefail
 VERBOSE=0
 case "${1:-}" in
   -v | --verbose) VERBOSE=1 ;;
-  -h | --help) sed -n '2,60p' "$0"; exit 0 ;;
+  -h | --help) sed -n '2,54p' "$0"; exit 0 ;;
   "") ;;
   *) printf 'unknown argument: %s\n' "$1" >&2; exit 2 ;;
 esac
@@ -203,16 +210,93 @@ rec_garbage() { printf 'this line is not json at all\n'; }
 rec_scalar()  { printf '42\n'; }
 rec_summary() { printf '{"type":"summary","summary":"a compacted conversation"}\n'; }
 
-# --- the library under test -------------------------------------------------
+# --- the library under test, and its knobs (#234) ----------------------------
+#
+# THE SUITE MUST ASSERT THE SAME THING IN ANY CALLER'S ENVIRONMENT.
+#
+# Every SEAT_PROBE_* knob is read from the environment with `:-` at source time,
+# so a value the operator legitimately exported silently changed what this file
+# measured. Measured on abef26c, before this block existed:
+#
+#   clean                             -> 167 / 0
+#   SEAT_PROBE_CPU_FLOOR_CS=300       -> 165 / 2
+#   SEAT_PROBE_MUTE_MIN_DECLINES=5    -> 159 / 8
+#
+# Those failures indict working code: the busy-window cases inject a 250cs delta
+# that stops clearing a 300cs floor, and the mute cases assert a persistence gate
+# of 2. An operator with a shell knob set gets a red suite and no hint why.
+#
+# THE KNOB LIST IS DERIVED FROM THE LIBRARY, NEVER TYPED HERE. A hand-written
+# list is wrong the moment someone adds a knob, and it is wrong SILENTLY — the
+# new knob simply stays inherited, so the defect looks closed while it is half
+# open. So the names come out of seat-probe.sh itself, matching the one shape
+# that means "this variable is read from the environment": a self-referential
+# default assignment, `SEAT_PROBE_X="${SEAT_PROBE_X:-...}"`. The backreference in
+# the pattern is what makes it self-referential and so excludes the internal
+# state (SEAT_PROBE_PIDS, SEAT_PROBE_CWDS, SEAT_PROBE_CPU_DELTAS) and the
+# unconditional constants (the *_DEFAULT set, CPU_SAMPLE_MAX_S, DARK_WINDOW_MAX),
+# none of which an ambient value can reach.
+#
+# An empty derivation is a BROKEN derivation, not "no knobs", and it must stop
+# the run rather than silently normalise nothing — the whole point of this block
+# is that its failure mode is not invisible.
+SEAT_PROBE_KNOBS="$(sed -n 's/^\(SEAT_PROBE_[A-Z0-9_]*\)="\${\1:-.*$/\1/p' "$PROBE")"
+if [ -z "$SEAT_PROBE_KNOBS" ]; then
+  printf 'could not derive the SEAT_PROBE_* knob list from %s\n' "$PROBE" >&2
+  printf 'the isolation in this file depends on it; refusing to run unisolated\n' >&2
+  exit 2
+fi
 
-# Point the probe at fixtures BEFORE sourcing: the transcript base is captured
-# at source time with `:-`.
-SEAT_PROBE_SESSION_BASE="$TMPROOT/projects"
-export SEAT_PROBE_SESSION_BASE
-mkdir -p "$SEAT_PROBE_SESSION_BASE"
+# The fixture transcript base. This is the one knob the HARNESS owns rather than
+# neutralises: every fixture case depends on it pointing here, so the baseline
+# sets it deliberately instead of falling back to the library's ~/.claude default.
+FIXTURE_BASE="$TMPROOT/projects"
+mkdir -p "$FIXTURE_BASE"
 
-# shellcheck source=scripts/lib/seat-probe.sh
-. "$PROBE"
+# Put every knob back to the value the LIBRARY documents, by unsetting the lot
+# and re-sourcing so the library's own `:-` defaults apply. Re-sourcing rather
+# than assigning transcribed values is deliberate: it means no default is ever
+# copied into this file, so none can drift from the library. Sourcing is safe to
+# repeat — seat-probe.sh states that it defines functions only and that sourcing
+# has no side effects, and it assigns SEAT_PROBE_PIDS/CWDS only inside
+# seat_probe_scan_processes, so the explicitly empty pid map below survives.
+#
+# SEAT_PROBE_CPU_DELTAS is the one piece of internal state the library DOES
+# assign at top level, so it is carried across: this resets knobs, not the
+# window measurement a caller may be part-way through.
+#
+# THIS IS THE ONE MECHANISM. A case that wants a different knob value sets it
+# and calls knob_reset afterwards; there is no second save/restore idiom in this
+# file. Cases that set a knob inside a SUBSHELL — the fail-open sweeps, the
+# min-declines cases, the BENIGN_DECLINE cases — need nothing, because the
+# subshell discards the change on its own. The baseline is a starting point, not
+# a ban.
+knob_reset() {
+  local k deltas="${SEAT_PROBE_CPU_DELTAS:-}"
+  for k in $SEAT_PROBE_KNOBS; do
+    unset "$k"
+  done
+  # Set BEFORE sourcing: the library captures it with `:-`, so this wins.
+  SEAT_PROBE_SESSION_BASE="$FIXTURE_BASE"
+  export SEAT_PROBE_SESSION_BASE
+  # shellcheck source=scripts/lib/seat-probe.sh
+  . "$PROBE"
+  SEAT_PROBE_CPU_DELTAS="$deltas"
+}
+
+knob_reset
+
+# A child run started by the isolation cases at the bottom of this file: print
+# the baseline every knob actually holds and stop. It exists so those cases can
+# observe THIS file's real startup path under a poisoned environment, rather than
+# a copy of the logic that would pass whether or not the startup call above is
+# still there.
+if [ "${SEAT_PROBE_TEST_PRINT_BASELINE:-}" = "1" ]; then
+  for knob in $SEAT_PROBE_KNOBS; do
+    printf '%s=%s\n' "$knob" "${!knob}"
+  done
+  exit 0
+fi
 
 # An explicitly EMPTY pid map. Nothing here consults the real process table, so
 # no case can be decided by which seats happen to be up — and every stall
@@ -1500,32 +1584,32 @@ dead_run "$wt" s1 202609011100
 # counters, and a `( ... )` wrapper would increment a copy that dies with it —
 # the same subshell trap the seat counter at the top of this file exists for.
 #
-# SAVE AND RESTORE THE PRIOR VALUE, NEVER A LITERAL 10. A literal looks
-# equivalent and is not: it overwrites whatever the OPERATOR set, for every case
-# after this one, and two of them exist precisely to notice that value —
-# `dark knob: the window defaults to 10` and the 300-session case, which asserts
-# SEAT_DARK_TOTAL=10. Measured with `SEAT_PROBE_DARK_WINDOW=25` exported: with
-# the literal the suite reports 167/0 and SAYS NOTHING; with the save/restore it
-# reports 165/2, which is the same pair of failures the file had before this
-# case existed. The literal does not fix the ambient-knob defect (#234) — it
-# HIDES it, and #234 was filed non-blocking on the sole ground that it fails
-# LOUD. Worse, `the window defaults to 10` would then pass because an unrelated
-# fixture four lines up clobbered the variable, not because the default is 10 —
-# a case passing for the wrong reason, which is the thing this section exists to
-# not do.
+# Restored with knob_reset — the file's ONE restore mechanism (#234) — rather
+# than by assigning a literal 10 or by saving the prior value here. Both of those
+# were tried and each was wrong in its own way:
 #
-# A plain save is always safe here, and an earlier revision of this comment
-# claimed otherwise — that restoring the prior value risked a set-but-empty knob
-# the getter warns on. That is true only of a value captured BEFORE sourcing.
-# Sourcing runs `SEAT_PROBE_DARK_WINDOW="${SEAT_PROBE_DARK_WINDOW:-10}"`, so by
-# the time any case runs the variable is always set and non-empty — measured,
-# knob unset gives 10 and knob=25 gives 25. The empty state that comment was
-# guarding against is not reachable from here.
-dark_window_save="$SEAT_PROBE_DARK_WINDOW"
+#   A LITERAL is wrong because two later cases exist precisely to read this knob
+#   (`dark knob: the window defaults to 10`, and the 300-session case, which
+#   asserts SEAT_DARK_TOTAL=10). Writing a literal makes them pass because an
+#   unrelated fixture assigned the variable, not because the library's default is
+#   10 — a case passing for the wrong reason.
+#
+#   A LOCAL SAVE/RESTORE is right in isolation and wrong as a pattern: it is a
+#   second mechanism for the job the baseline already does, and the two would
+#   drift. It also only ever protected this one knob.
+#
+# knob_reset restores the LIBRARY's documented default, which since #234 is also
+# what the suite started from — the ambient value was neutralised at startup, so
+# there is no operator setting left here to preserve or to clobber. That is the
+# difference between this and the earlier save/restore: that one preserved an
+# ambient value because the suite still inherited it, and neutralising the knob
+# for one case while leaving the rest of the file inheriting would have hidden
+# #234 rather than closed it. It is closed now, file-wide, so "restore the
+# default" and "restore what the suite had" are the same value by construction.
 SEAT_PROBE_DARK_WINDOW=4
 dark_case 'dark: an unprompted session still consumes a window slot' \
   "$wt" NO '' 2 2
-SEAT_PROBE_DARK_WINDOW="$dark_window_save"
+knob_reset
 
 # Files that are not transcripts are ignored rather than counted or tripped over.
 wt="$(new_seat)"
@@ -1830,6 +1914,121 @@ if [ "$rc" -eq 0 ]; then
 else
   fail 'contract: a full pass over one seat survives `set -euo pipefail`' "exit $rc"
 fi
+
+# ============================================================================
+section 'Section 10 — the harness isolates itself from the caller (#234)'
+# ============================================================================
+
+# These three cases pin the isolation at the top of this file, and each pins a
+# DIFFERENT claim, because one case covering "isolation works" would leave the
+# other two claims resting on nothing:
+#
+#   1. the derived knob list is the complete set the library reads
+#   2. knob_reset really puts a poisoned knob back
+#   3. the STARTUP path really calls it
+#
+# Claims 2 and 3 need care to be worth anything. A case that merely asserts the
+# knobs are at their defaults passes in a clean environment whether or not any of
+# this code exists — which is the trap this file has been bitten by twice now
+# (#231/#232, and the M10 row at the #237 gate). So case 2 poisons the knobs
+# itself before checking, and case 3 runs THIS FILE as a child under a poisoned
+# environment and reads back what the real startup produced. Both fail in a clean
+# environment the moment the isolation is removed; both are demonstrated doing so
+# in the PR body.
+
+# --- 1. the derived list is complete ----------------------------------------
+#
+# Derived, never typed — but "derived" is only trustworthy if something notices
+# when the derivation stops matching the library. This is that something: it
+# fails if the sed breaks, if a knob is added to seat-probe.sh, or if one is
+# removed. A new knob is not automatically safe just because the list is
+# computed; someone has to decide whether the harness should neutralise it, and
+# this case is what forces that decision instead of letting it default to
+# "inherited".
+expected_knobs='SEAT_PROBE_BENIGN_DECLINE
+SEAT_PROBE_CPU_FLOOR_CS
+SEAT_PROBE_CPU_SAMPLE_S
+SEAT_PROBE_CPU_SLACK_S
+SEAT_PROBE_DARK_MIN
+SEAT_PROBE_DARK_WINDOW
+SEAT_PROBE_MUTE_MIN_DECLINES
+SEAT_PROBE_SESSION_BASE'
+actual_knobs="$(printf '%s\n' $SEAT_PROBE_KNOBS | sort)"
+assert_eq 'isolation: the derived knob list is exactly the library'"'"'s eight' \
+  "$expected_knobs" "$actual_knobs"
+
+# --- 2. knob_reset puts a poisoned knob back --------------------------------
+#
+# Poisoned HERE, in this shell, so the case does not depend on the caller's
+# environment to have anything to undo. Remove knob_reset's body and this fails
+# on a clean machine.
+SEAT_PROBE_CPU_FLOOR_CS=300
+SEAT_PROBE_MUTE_MIN_DECLINES=5
+SEAT_PROBE_DARK_WINDOW=25
+SEAT_PROBE_DARK_MIN=9
+SEAT_PROBE_CPU_SAMPLE_S=7
+knob_reset
+assert_eq 'isolation: knob_reset restores every knob to the library default' \
+  "$SEAT_PROBE_CPU_FLOOR_CS_DEFAULT $SEAT_PROBE_MUTE_MIN_DECLINES_DEFAULT $SEAT_PROBE_DARK_WINDOW_DEFAULT $SEAT_PROBE_DARK_MIN_DEFAULT $SEAT_PROBE_CPU_SAMPLE_S_DEFAULT" \
+  "$(seat_probe_cpu_floor_cs) $(seat_probe_min_declines) $(seat_probe_dark_window) $(seat_probe_dark_min) $(seat_probe_cpu_sample_s)"
+
+# The fixture base is the knob the harness OWNS, so a reset must not hand it back
+# to the library's ~/.claude/projects default — every fixture case in this file
+# reads through it, and they would all start measuring the real fleet.
+assert_eq 'isolation: knob_reset keeps the transcript base pointed at fixtures' \
+  "$FIXTURE_BASE" "$SEAT_PROBE_SESSION_BASE"
+
+# --- 3. the startup path applies it -----------------------------------------
+#
+# Case 2 proves the function works; it does not prove anything CALLS it. This
+# runs this same file as a child with three knobs poisoned in the child's
+# environment, in the print-baseline mode that stops right after startup, and
+# reads back what the real startup produced. Delete the `knob_reset` call at the
+# top and this fails — in a clean environment, which is the property that makes
+# it worth having.
+#
+# Not a pipeline: the substitution keeps the child's exit status reachable and
+# nothing can be truncated by a reader exiting early (#155).
+baseline_out="$(SEAT_PROBE_CPU_FLOOR_CS=300 \
+                SEAT_PROBE_MUTE_MIN_DECLINES=5 \
+                SEAT_PROBE_DARK_WINDOW=25 \
+                SEAT_PROBE_TEST_PRINT_BASELINE=1 \
+                bash "$0" 2>&1)"
+baseline_rc=$?
+if [ "$baseline_rc" -ne 0 ]; then
+  fail 'isolation: startup neutralises the caller'"'"'s environment' \
+    "the baseline child exited $baseline_rc" "$baseline_out"
+else
+  baseline_bad=""
+  for want in \
+    "SEAT_PROBE_CPU_FLOOR_CS=$SEAT_PROBE_CPU_FLOOR_CS_DEFAULT" \
+    "SEAT_PROBE_MUTE_MIN_DECLINES=$SEAT_PROBE_MUTE_MIN_DECLINES_DEFAULT" \
+    "SEAT_PROBE_DARK_WINDOW=$SEAT_PROBE_DARK_WINDOW_DEFAULT"; do
+    case "
+$baseline_out" in
+      *"
+$want"*) ;;
+      *) baseline_bad="$baseline_bad $want" ;;
+    esac
+  done
+  if [ -z "$baseline_bad" ]; then
+    pass 'isolation: startup neutralises the caller'"'"'s environment'
+  else
+    fail 'isolation: startup neutralises the caller'"'"'s environment' \
+      "the child inherited a poisoned knob; missing:$baseline_bad" \
+      "child baseline was: $(printf '%s' "$baseline_out" | tr '\n' ' ')"
+  fi
+fi
+
+# --- and the cases that set knobs ON PURPOSE still work ---------------------
+#
+# The baseline is a starting point, not a ban. Every deliberate override in this
+# file happens inside a subshell or a command substitution, so it dies with that
+# subshell and needs nothing from knob_reset — this pins that the two coexist,
+# and that the baseline is intact on the far side of one.
+( SEAT_PROBE_MUTE_MIN_DECLINES=5; seat_probe_min_declines >/dev/null 2>&1 )
+assert_eq 'isolation: a subshell override does not leak into the baseline' \
+  "$SEAT_PROBE_MUTE_MIN_DECLINES_DEFAULT" "$(seat_probe_min_declines)"
 
 # ============================================================================
 printf '\n%s\n' '---'
