@@ -1266,8 +1266,26 @@ seat_probe_stall_check() {
 # WHAT IS DELIBERATELY NOT COUNTED
 #
 # A session with NO user record never received a prompt, so it cannot have
-# failed to answer one. Seven such sessions exist here; they are skipped
-# entirely rather than counted as dark, and they do not occupy a window slot.
+# failed to answer one. Seven such sessions exist here. They are not EVIDENCE in
+# either direction — never counted as dark, never counted in the total the
+# verdict is read against — but they DO consume a window slot, because the
+# window is "the newest N transcripts" and not "the newest N transcripts that
+# turned out to be interesting".
+#
+# That is a deliberate choice between two defensible meanings, and the reason is
+# the runtime bound stated at SEAT_PROBE_DARK_WINDOW_MAX below. Skipping
+# unprompted sessions without spending their slot would let the loop walk
+# arbitrarily far back whenever a run of them sits at the top of the directory —
+# in the worst case the whole 299-file directory, one jq pass apiece — which is
+# exactly what the ceiling exists to prevent. Counting the slot keeps the walk
+# bounded at N files no matter what those files contain.
+#
+# The cost of that choice is that unprompted sessions SHRINK the measured window,
+# so the count is read against fewer sessions than N. It fails safe: a smaller
+# window can only mask an outage, never manufacture one. Measured on this host it
+# is nearly free — 7 unprompted sessions in 299 — and the threshold is an
+# absolute count rather than a ratio, so a few of them among the newest ten still
+# leave the count able to reach 3.
 #
 # A session whose only answers are the benign "No response requested." counts as
 # WORKED, not dark, for the reason the mute check treats it as breaking a
@@ -1513,6 +1531,11 @@ seat_probe_dark_check() {
     esac
     f="$dir/$name"
     [ -e "$f" ] || continue
+    # THE SLOT IS SPENT HERE, BEFORE THE SESSION IS CLASSIFIED, AND THAT ORDER IS
+    # THE DEFINITION OF THE WINDOW: N transcripts, whatever they turn out to
+    # contain. Classifying first and charging only "interesting" sessions would
+    # unbound the walk (see the window note above). Do not reorder these two
+    # without changing that note and the case that pins it.
     if [ "$seen" -ge "$window" ]; then
       break
     fi
@@ -1537,7 +1560,9 @@ seat_probe_dark_check() {
         ;;
       *)
         # unprompted: nothing was ever asked of it, so it cannot have failed to
-        # answer. Not counted, and it does not occupy a window slot.
+        # answer. Not counted as evidence in either direction — but its window
+        # slot was already spent above, by design; see the note on the window at
+        # the top of this section.
         :
         ;;
     esac

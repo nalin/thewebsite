@@ -1460,15 +1460,51 @@ seat_probe_dark_check "$wt"
 assert_eq 'dark: SEAT_DARK_LAST reports the NEWEST working session' \
   '2026-09-03T09:00:01.000Z' "$SEAT_DARK_LAST"
 
-# An unprompted session must not occupy a window slot — it is not evidence of
-# anything, in either direction.
+# An unprompted session is not EVIDENCE in either direction: never counted as
+# dark, never counted in the total the verdict is read against.
 wt="$(new_seat)"
 dead_run "$wt" s1 202609010800
 dead_run "$wt" s2 202609011000
 dead_run "$wt" s3 202609011200
 rec_summary | mk_session "$wt" s4 202609011400
-dark_case 'dark: an unprompted session does not occupy a window slot' \
+dark_case 'dark: an unprompted session is not counted as evidence' \
   "$wt" YES '' 3 3
+
+# ...BUT IT DOES CONSUME A WINDOW SLOT, and that is a separate claim needing a
+# separate fixture, because the case above cannot see it: four files against the
+# default window of 10 never reach the slot rule at all. It passed identically
+# whether a slot was spent or not, while its name asserted one of the two — the
+# "verified once" shape #155, #214 and #229 each closed, and it is why the
+# mutation row that claimed to pin it could not have been real (the code already
+# WAS the mutation).
+#
+# So this fixture makes the window SMALLER than the file count. Newest-first:
+# two unprompted, then four dead runs, with the window at 4.
+#
+#   slot IS spent (shipped): the window covers unprompted, unprompted, dead,
+#     dead -> 2 of 2 dark, below the threshold of 3 -> NO
+#   slot NOT spent:          the window skips past the two unprompted and
+#     reaches four dead runs -> 4 of 4 dark -> YES
+#
+# The two behaviours give OPPOSITE verdicts on the same files, so this case can
+# only pass under one of them.
+wt="$(new_seat)"
+rec_summary | mk_session "$wt" s6 202609011600
+rec_summary | mk_session "$wt" s5 202609011500
+dead_run "$wt" s4 202609011400
+dead_run "$wt" s3 202609011300
+dead_run "$wt" s2 202609011200
+dead_run "$wt" s1 202609011100
+
+# Set in THIS shell, not a subshell: dark_case reports through PASS/FAIL
+# counters, and a `( ... )` wrapper would increment a copy that dies with it —
+# the same subshell trap the seat counter at the top of this file exists for.
+# Restored to the source-time value rather than unset, because the getter warns
+# on a set-but-empty knob once sourcing's `:-` has already run.
+SEAT_PROBE_DARK_WINDOW=4
+dark_case 'dark: an unprompted session still consumes a window slot' \
+  "$wt" NO '' 2 2
+SEAT_PROBE_DARK_WINDOW=10
 
 # Files that are not transcripts are ignored rather than counted or tripped over.
 wt="$(new_seat)"
