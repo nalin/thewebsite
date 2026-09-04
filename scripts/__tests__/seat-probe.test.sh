@@ -37,7 +37,8 @@
 #     how the SIGPIPE class (#155) survived being "verified" once already.
 #   * The stall check SLEEPS when it reaches its CPU windows. No fixture here
 #     has a live pid, so every case short-circuits before that; the whole
-#     harness runs in about a second. If a case here starts taking 40s,
+#     harness runs in a few seconds (measured 6.6s with Section 7's 300-session
+#     fixture, against 2.4s before it). If a case here starts taking 40s,
 #     something reached the windows that should not have.
 #
 # Usage:
@@ -1165,7 +1166,499 @@ brokenjq_stall_case 'stall: a jq that fails is a failed check, not "no conversat
   "$wt" UNKNOWN unreadable
 
 # ============================================================================
-section 'Section 7 — the fail-open invariant, swept across every knob'
+section 'Section 7 — seat_probe_dark_check: a WINDOW of sessions (#221)'
+# ============================================================================
+
+# THE FAILURE THIS SECTION DEFENDS. Between 2026-09-01 19:19Z and
+# 2026-09-02 13:28Z eleven scheduled coordinator slots fired and NINE produced
+# no work; the ops record went dark for 25 hours and every existing signal read
+# green. Neither of the two checks above can see it, and the reason is
+# structural rather than a matter of tuning:
+#
+#   * the mute check needs 2+ consecutive declines IN ONE TRANSCRIPT, and each
+#     scheduled run gets a FRESH session — so eight failures were eight separate
+#     first offences and the run never reached 2;
+#   * the stall check needs the transcript to end WITHOUT an assistant record,
+#     and eight of the nine ended WITH one, the synthetic decline.
+#
+# So the cases here are about a SEQUENCE of sessions, and the ones that matter
+# most are the two that must NOT fire: a single dark session, and two of them.
+# Those are the transient-transport class the persistence doctrine exists to
+# suppress, and a check that goes red on them is one the loop learns to ignore.
+
+# $1 name  $2 worktree  $3 want SEAT_DARK  $4 want SEAT_DARK_UNKNOWN
+# $5 want SEAT_DARK_COUNT (optional)  $6 want SEAT_DARK_TOTAL (optional)
+dark_case() {
+  local name="$1" wt="$2" want_dark="$3" want_unknown="$4"
+  local want_count="${5:-}" want_total="${6:-}" rc
+  seat_probe_dark_check "$wt"
+  rc=$?
+  if [ "$rc" -ne 0 ]; then
+    fail "$name" "seat_probe_dark_check returned $rc; it must always return 0"
+    return 0
+  fi
+  if [ "$SEAT_DARK" != "$want_dark" ]; then
+    fail "$name" "SEAT_DARK expected '$want_dark', got '$SEAT_DARK'" \
+      "count=$SEAT_DARK_COUNT total=$SEAT_DARK_TOTAL unreadable=$SEAT_DARK_UNREADABLE unknown='$SEAT_DARK_UNKNOWN'"
+    return 0
+  fi
+  if [ "$SEAT_DARK_UNKNOWN" != "$want_unknown" ]; then
+    fail "$name" "SEAT_DARK_UNKNOWN expected '$want_unknown', got '$SEAT_DARK_UNKNOWN'"
+    return 0
+  fi
+  if [ -n "$want_count" ] && [ "$SEAT_DARK_COUNT" != "$want_count" ]; then
+    fail "$name" "SEAT_DARK_COUNT expected '$want_count', got '$SEAT_DARK_COUNT'"
+    return 0
+  fi
+  if [ -n "$want_total" ] && [ "$SEAT_DARK_TOTAL" != "$want_total" ]; then
+    fail "$name" "SEAT_DARK_TOTAL expected '$want_total', got '$SEAT_DARK_TOTAL'"
+    return 0
+  fi
+  pass "$name"
+}
+
+# Write one session file with an EXPLICIT mtime, because this check is the only
+# one whose verdict depends on the ORDER of several files. Records on stdin.
+# $1 wtpath  $2 session name  $3 touch stamp (YYYYMMDDhhmm)
+mk_session() {
+  local f
+  f="$(session_file "$1" "$2")"
+  cat > "$f"
+  touch -t "$3" "$f"
+}
+
+# A dead scheduled run, as it actually appears on disk: one user record carrying
+# the prompt, one synthetic zero-token decline, nothing else. Eight of the nine
+# #221 failures are byte-for-byte this shape.
+dead_run() { # wt name stamp [text]
+  { rec_dispatch '2026-09-01T19:19:38.000Z' 'the CEO prompt'
+    rec_decline  '2026-09-01T19:19:39.000Z' "${4:-API Error: Unable to connect to API (ENOTFOUND)}"
+  } | mk_session "$1" "$2" "$3"
+}
+
+# A run that did work.
+live_run() { # wt name stamp
+  { rec_dispatch '2026-09-02T07:18:15.000Z' 'the CEO prompt'
+    rec_answer   '2026-09-02T07:20:00.000Z' 'merged #204'
+    rec_dispatch '2026-09-02T07:30:00.000Z' 'next'
+    rec_answer   '2026-09-02T07:41:49.000Z' 'done'
+  } | mk_session "$1" "$2" "$3"
+}
+
+# --- the two reasons a guard can return without a verdict --------------------
+#
+# Same invariant as Sections 5 and 6 (#214, #216, #218): a guard that returns
+# without a verdict must say WHICH of the two reasons it had.
+
+wt="$(new_seat_no_dir)"
+dark_case 'dark: no transcript directory says so' "$wt" UNKNOWN no-transcript-dir
+
+wt="$(new_seat)"
+dark_case 'dark: an empty directory is "nothing here"' "$wt" UNKNOWN no-transcript
+
+# Sessions that exist and were never PROMPTED are a third, distinct nothing:
+# nothing was asked of them, so they cannot have failed to answer.
+wt="$(new_seat)"
+rec_summary | mk_session "$wt" s1 202609010800
+rec_summary | mk_session "$wt" s2 202609011000
+dark_case 'dark: sessions that never received a prompt say so' \
+  "$wt" UNKNOWN no-prompted-session
+
+# The case above stops inside jq — a transcript of nothing but `summary` records
+# emits no conversational rows at all, so the emptiness is decided before awk
+# ever runs. This one reaches the OTHER unprompted path, the one awk decides: a
+# transcript that DOES carry conversational records, all of them assistant, and
+# no user record among them. Nothing was asked of that session either, so it is
+# not evidence of an outage — and without a case here the awk branch that says
+# so is untested, which mutation-testing caught (a mutation folding "unprompted"
+# into "dark" survived the summary-only fixture).
+wt="$(new_seat)"
+for n in 1 2 3; do
+  rec_decline '2026-09-01T19:19:39.000Z' 'API Error: Unable to connect to API (ENOTFOUND)' \
+    | mk_session "$wt" "s$n" "20260901080$n"
+done
+dark_case 'dark: assistant records with no prompt are still not darkness' \
+  "$wt" UNKNOWN no-prompted-session
+
+if [ "$CAN_TEST_PERMS" -eq 1 ]; then
+  wt="$(new_seat)"
+  dead_run "$wt" s1 202609010800
+  dir="$(seat_probe_session_dir "$wt")"
+  chmod 000 "$dir"
+  dark_case 'dark: an unreadable DIRECTORY is a failed check, not an empty one' \
+    "$wt" UNKNOWN unreadable
+  chmod 755 "$dir"
+
+  # Every session in the window unreadable is the measurement failing. It must
+  # NOT read as "no sessions here", and it must never read as darkness.
+  wt="$(new_seat)"
+  dead_run "$wt" s1 202609010800
+  dead_run "$wt" s2 202609011000
+  dead_run "$wt" s3 202609011200
+  dir="$(seat_probe_session_dir "$wt")"
+  chmod 000 "$dir"/s1.jsonl "$dir"/s2.jsonl "$dir"/s3.jsonl
+  dark_case 'dark: every session unreadable is a failed check, never an alarm' \
+    "$wt" UNKNOWN unreadable
+  chmod 644 "$dir"/s1.jsonl "$dir"/s2.jsonl "$dir"/s3.jsonl
+else
+  skip 'dark: unreadable directory' 'running as root'
+  skip 'dark: every session unreadable' 'running as root'
+fi
+
+# --- the persistence gate, which is the whole reason this is 3 and not 1 -----
+#
+# Measured over the coordinator's 299 transcripts: runs of consecutive dark
+# sessions are 1, 2, 2, 2, 2, 3, 4, 6, 25 and 41 long. A threshold of 3
+# suppresses all six short blips — the same ENOTFOUND/timeout family the mute
+# check's own persistence gate suppresses — and still catches every real
+# outage. These first two cases are that gate.
+
+wt="$(new_seat)"
+dead_run "$wt" s1 202609010800
+dark_case 'dark: ONE dead run is not darkness' "$wt" NO '' 1 1
+
+wt="$(new_seat)"
+dead_run "$wt" s1 202609010800
+dead_run "$wt" s2 202609011000
+dark_case 'dark: TWO dead runs are still not darkness' "$wt" NO '' 2 2
+
+# THE #221 SIGNAL. Three consecutive scheduled runs that each took the prompt
+# and produced nothing. On the real transcripts this fires at 2026-09-01
+# 23:23:37Z — the third dead slot, about four hours in, against the 25 hours
+# the loop actually ran blind.
+wt="$(new_seat)"
+dead_run "$wt" s1 202609010800
+dead_run "$wt" s2 202609011000
+dead_run "$wt" s3 202609011200
+dark_case 'dark: THREE dead runs is the #221 signal' "$wt" YES '' 3 3
+
+# AND THEY DO NOT HAVE TO BE CONSECUTIVE. This is the case a trailing-streak
+# rule gets wrong and the reason this check counts over a window instead: the
+# real incident had a working run at 07:18Z sitting in the middle of nine dead
+# ones, which resets a streak to zero and hides the outage.
+wt="$(new_seat)"
+dead_run "$wt" s1 202609010800
+dead_run "$wt" s2 202609011000
+live_run "$wt" s3 202609011200
+dead_run "$wt" s4 202609011400
+dark_case 'dark: a working run in the middle does not reset the count' \
+  "$wt" YES '' 3 4
+
+# --- what is NOT darkness ----------------------------------------------------
+
+wt="$(new_seat)"
+live_run "$wt" s1 202609010800
+live_run "$wt" s2 202609011000
+live_run "$wt" s3 202609011200
+dark_case 'dark: runs that did work are not dark' "$wt" NO '' 0 3
+
+# ONE real assistant record is enough. The boundary is structural — zero versus
+# non-zero — not a tuned count of turns, and it fails toward "the loop is fine".
+# The real 07:18Z run is exactly this shape at a larger scale: 85 assistant
+# records of which 84 were real and one was a synthetic decline.
+wt="$(new_seat)"
+{ rec_dispatch '2026-09-02T07:18:15.000Z' 'the CEO prompt'
+  rec_decline  '2026-09-02T07:18:16.000Z' 'API Error: Unable to connect to API (ENOTFOUND)'
+  rec_answer   '2026-09-02T07:20:00.000Z' 'recovered and did the work'
+} | mk_session "$wt" s1 202609010800
+dead_run "$wt" s2 202609011000
+dead_run "$wt" s3 202609011200
+dark_case 'dark: one real record makes a session worked, declines notwithstanding' \
+  "$wt" NO '' 2 3
+
+# THE BENIGN DECLINE (#214). "No response requested." is the healthy end state
+# of a dispatch that asked for no reply. Counting it as darkness would
+# manufacture an outage out of three perfectly good no-reply dispatches — the
+# same false positive the mute check refuses, one level up.
+wt="$(new_seat)"
+dead_run "$wt" s1 202609010800 'No response requested.'
+dead_run "$wt" s2 202609011000 'No response requested.'
+dead_run "$wt" s3 202609011200 'No response requested.'
+dark_case 'dark: benign "no response requested" sessions are worked, not dark' \
+  "$wt" NO '' 0 3
+
+# A DEGRADED USAGE BLOCK MUST READ AS A REAL ANSWER, NOT AS DARKNESS. This is
+# the -1 trap the mute check documents: mapping an unreadable usage block to 0
+# would combine with model "<synthetic>" to read as a confirmed decline, so a
+# garbage usage block would COUNT TOWARD an outage. It has to fail the other
+# way.
+wt="$(new_seat)"
+for n in 1 2 3; do
+  { rec_dispatch '2026-09-01T19:19:38.000Z' 'the CEO prompt'
+    rec_bad_usage '2026-09-01T19:19:39.000Z'
+  } | mk_session "$wt" "s$n" "20260901080$n"
+done
+dark_case 'dark: an unreadable usage block reads as worked, never as dark' \
+  "$wt" NO '' 0 3
+
+# A NON-OBJECT .message MUST NOT DROP THE RECORD (#217's elif trap, and #214's
+# stale-verdict class). If such a record vanished from the pass, a session could
+# lose the very user record that makes it count as prompted.
+wt="$(new_seat)"
+for n in 1 2 3; do
+  { rec_bad_message '2026-09-01T19:19:38.000Z' user
+    rec_decline '2026-09-01T19:19:39.000Z' 'API Error: Unable to connect to API (ENOTFOUND)'
+  } | mk_session "$wt" "s$n" "20260901080$n"
+done
+dark_case 'dark: a non-object .message still counts as a prompted session' \
+  "$wt" YES '' 3 3
+
+# Malformed lines, bare scalars and compaction summaries survive the pass
+# without aborting it.
+wt="$(new_seat)"
+for n in 1 2 3; do
+  { rec_garbage
+    rec_scalar
+    rec_summary
+    rec_dispatch '2026-09-01T19:19:38.000Z' 'the CEO prompt'
+    rec_decline  '2026-09-01T19:19:39.000Z' 'API Error: Unable to connect to API (ENOTFOUND)'
+  } | mk_session "$wt" "s$n" "20260901080$n"
+done
+dark_case 'dark: garbage lines do not abort the pass' "$wt" YES '' 3 3
+
+# --- the window -------------------------------------------------------------
+#
+# The window is what keeps this check inside its runtime budget AND what stops
+# an outage from alarming forever: old dark sessions age out as new ones push
+# them off the end.
+
+wt="$(new_seat)"
+dead_run "$wt" s1 202609010800
+dead_run "$wt" s2 202609010900
+dead_run "$wt" s3 202609011000
+for n in 4 5 6 7 8 9; do
+  live_run "$wt" "s$n" "2026090111$(printf '%02d' $(( n * 5 )))"
+done
+dark_case 'dark: the full window still sees three old darks' "$wt" YES '' 3 9
+# Narrow the window to the newest four and the darks fall off the end entirely.
+( SEAT_PROBE_DARK_WINDOW=4
+  seat_probe_dark_check "$wt"
+  [ "$SEAT_DARK" = "NO" ] && [ "$SEAT_DARK_COUNT" = "0" ] ) 2>/dev/null
+if [ $? -eq 0 ]; then
+  pass 'dark: a narrower window drops sessions older than it'
+else
+  fail 'dark: a narrower window drops sessions older than it' \
+    'the window did not bound how far back the count reaches'
+fi
+
+# NEWEST-FIRST ORDERING, which SEAT_DARK_LAST depends on entirely. It reports
+# the most recent session that produced work, and that is the field separating
+# "the loop is dark right now" from "it was dark yesterday and has recovered".
+# Reading the window oldest-first would report the wrong one and quietly invert
+# that meaning.
+wt="$(new_seat)"
+{ rec_dispatch '2026-09-01T01:00:00.000Z' 'old'
+  rec_answer   '2026-09-01T01:00:01.000Z' 'old work'
+} | mk_session "$wt" s1 202609010800
+dead_run "$wt" s2 202609011000
+dead_run "$wt" s3 202609011200
+dead_run "$wt" s4 202609011400
+{ rec_dispatch '2026-09-03T09:00:00.000Z' 'new'
+  rec_answer   '2026-09-03T09:00:01.000Z' 'new work'
+} | mk_session "$wt" s5 202609011600
+seat_probe_dark_check "$wt"
+assert_eq 'dark: SEAT_DARK_LAST reports the NEWEST working session' \
+  '2026-09-03T09:00:01.000Z' "$SEAT_DARK_LAST"
+
+# An unprompted session is not EVIDENCE in either direction: never counted as
+# dark, never counted in the total the verdict is read against.
+wt="$(new_seat)"
+dead_run "$wt" s1 202609010800
+dead_run "$wt" s2 202609011000
+dead_run "$wt" s3 202609011200
+rec_summary | mk_session "$wt" s4 202609011400
+dark_case 'dark: an unprompted session is not counted as evidence' \
+  "$wt" YES '' 3 3
+
+# ...BUT IT DOES CONSUME A WINDOW SLOT, and that is a separate claim needing a
+# separate fixture, because the case above cannot see it: four files against the
+# default window of 10 never reach the slot rule at all. It passed identically
+# whether a slot was spent or not, while its name asserted one of the two — the
+# "verified once" shape #155, #214 and #229 each closed, and it is why the
+# mutation row that claimed to pin it could not have been real (the code already
+# WAS the mutation).
+#
+# So this fixture makes the window SMALLER than the file count. Newest-first:
+# two unprompted, then four dead runs, with the window at 4.
+#
+#   slot IS spent (shipped): the window covers unprompted, unprompted, dead,
+#     dead -> 2 of 2 dark, below the threshold of 3 -> NO
+#   slot NOT spent:          the window skips past the two unprompted and
+#     reaches four dead runs -> 4 of 4 dark -> YES
+#
+# The two behaviours give OPPOSITE verdicts on the same files, so this case can
+# only pass under one of them.
+wt="$(new_seat)"
+rec_summary | mk_session "$wt" s6 202609011600
+rec_summary | mk_session "$wt" s5 202609011500
+dead_run "$wt" s4 202609011400
+dead_run "$wt" s3 202609011300
+dead_run "$wt" s2 202609011200
+dead_run "$wt" s1 202609011100
+
+# Set in THIS shell, not a subshell: dark_case reports through PASS/FAIL
+# counters, and a `( ... )` wrapper would increment a copy that dies with it —
+# the same subshell trap the seat counter at the top of this file exists for.
+#
+# SAVE AND RESTORE THE PRIOR VALUE, NEVER A LITERAL 10. A literal looks
+# equivalent and is not: it overwrites whatever the OPERATOR set, for every case
+# after this one, and two of them exist precisely to notice that value —
+# `dark knob: the window defaults to 10` and the 300-session case, which asserts
+# SEAT_DARK_TOTAL=10. Measured with `SEAT_PROBE_DARK_WINDOW=25` exported: with
+# the literal the suite reports 167/0 and SAYS NOTHING; with the save/restore it
+# reports 165/2, which is the same pair of failures the file had before this
+# case existed. The literal does not fix the ambient-knob defect (#234) — it
+# HIDES it, and #234 was filed non-blocking on the sole ground that it fails
+# LOUD. Worse, `the window defaults to 10` would then pass because an unrelated
+# fixture four lines up clobbered the variable, not because the default is 10 —
+# a case passing for the wrong reason, which is the thing this section exists to
+# not do.
+#
+# A plain save is always safe here, and an earlier revision of this comment
+# claimed otherwise — that restoring the prior value risked a set-but-empty knob
+# the getter warns on. That is true only of a value captured BEFORE sourcing.
+# Sourcing runs `SEAT_PROBE_DARK_WINDOW="${SEAT_PROBE_DARK_WINDOW:-10}"`, so by
+# the time any case runs the variable is always set and non-empty — measured,
+# knob unset gives 10 and knob=25 gives 25. The empty state that comment was
+# guarding against is not reachable from here.
+dark_window_save="$SEAT_PROBE_DARK_WINDOW"
+SEAT_PROBE_DARK_WINDOW=4
+dark_case 'dark: an unprompted session still consumes a window slot' \
+  "$wt" NO '' 2 2
+SEAT_PROBE_DARK_WINDOW="$dark_window_save"
+
+# Files that are not transcripts are ignored rather than counted or tripped over.
+wt="$(new_seat)"
+dir="$(seat_probe_session_dir "$wt")"
+dead_run "$wt" s1 202609010800
+dead_run "$wt" s2 202609011000
+dead_run "$wt" s3 202609011200
+printf 'not a transcript\n' > "$dir/notes.txt"
+mkdir -p "$dir/a-subdirectory"
+dark_case 'dark: non-transcript entries are ignored' "$wt" YES '' 3 3
+
+# --- a PARTIAL failure is not UNKNOWN, and must say so ----------------------
+#
+# If some sessions parsed and others did not, the verdict stands on the ones
+# that did — but the caller has to be able to say the window was measured
+# incompletely. An unreadable session is never counted as dark.
+if [ "$CAN_TEST_PERMS" -eq 1 ]; then
+  wt="$(new_seat)"
+  dir="$(seat_probe_session_dir "$wt")"
+  dead_run "$wt" s1 202609010800
+  dead_run "$wt" s2 202609011000
+  dead_run "$wt" s3 202609011200
+  live_run "$wt" s4 202609011400
+  chmod 000 "$dir"/s4.jsonl
+  seat_probe_dark_check "$wt"
+  if [ "$SEAT_DARK" = "YES" ] && [ "$SEAT_DARK_UNREADABLE" = "1" ] && [ "$SEAT_DARK_TOTAL" = "3" ]; then
+    pass 'dark: a partly unreadable window still yields a verdict and reports the gap'
+  else
+    fail 'dark: a partly unreadable window still yields a verdict and reports the gap' \
+      "SEAT_DARK=$SEAT_DARK unreadable=$SEAT_DARK_UNREADABLE total=$SEAT_DARK_TOTAL (want YES/1/3)"
+  fi
+  chmod 644 "$dir"/s4.jsonl
+else
+  skip 'dark: a partly unreadable window' 'running as root'
+fi
+
+# --- a big directory: no truncation, no early exit, window honoured ---------
+#
+# `ls -t | head -$window` is the obvious spelling of "newest N" and is the one
+# this check refuses to use, because head exits after its lines and ls can take
+# SIGPIPE — a 141 that propagates under a caller's `set -euo pipefail` and kills
+# the whole run. That is the #155 class the mute and stall checks both carry
+# comments about.
+#
+# BE PRECISE ABOUT WHAT THIS CASE DOES AND DOES NOT PROVE. Measured on the real
+# coordinator directory while writing this: 299 entries make ~17KB of `ls`
+# output, which fits inside the 64KB pipe buffer, so `ls -t | head -1` there
+# completes with status 0 and does NOT reproduce the signal. A fixture of this
+# size therefore cannot demonstrate SIGPIPE either, and claiming it did would be
+# the kind of "verified once" that let the class survive in the first place.
+#
+# What it does prove is the part that is checkable at this size and is what
+# actually broke: a directory far larger than the window still yields a verdict,
+# still honours the window, and still returns 0 under the strict options. The
+# SIGPIPE class is closed by CONSTRUCTION — there is no pipeline in the
+# enumeration to take a signal — and that is a property of the code, not of this
+# fixture. The assertion is on the UNPIPED exit status.
+wt="$(new_seat)"
+dead_run "$wt" s001 202609010800
+dead_run "$wt" s002 202609010900
+dead_run "$wt" s003 202609011000
+n=4
+while [ "$n" -le 300 ]; do
+  live_run "$wt" "s$(printf '%03d' "$n")" "202608$(printf '%02d' $(( (n % 27) + 1 )))0800"
+  n=$(( n + 1 ))
+done
+( set -euo pipefail
+  . "$PROBE"
+  SEAT_PROBE_PIDS=()
+  SEAT_PROBE_CWDS=()
+  seat_probe_dark_check "$wt"
+  [ "$SEAT_DARK" = "YES" ] || exit 9
+  [ "$SEAT_DARK_TOTAL" = "10" ] || exit 10 ) >/dev/null 2>&1
+rc=$?
+if [ "$rc" -eq 0 ]; then
+  pass 'dark: a 300-session directory truncates nothing and honours the window'
+else
+  fail 'dark: a 300-session directory truncates nothing and honours the window' \
+    "exit $rc (141 = SIGPIPE; 9 = wrong verdict; 10 = window not honoured)"
+fi
+
+# --- the knobs --------------------------------------------------------------
+
+uint_default_window="$SEAT_PROBE_DARK_WINDOW_DEFAULT"
+uint_default_min="$SEAT_PROBE_DARK_MIN_DEFAULT"
+
+assert_eq 'dark knob: the window defaults to 10' '10' "$(seat_probe_dark_window)"
+assert_eq 'dark knob: the threshold defaults to 3' '3' "$(seat_probe_dark_min)"
+assert_eq 'dark knob: a valid window override is honoured' \
+  '25' "$(SEAT_PROBE_DARK_WINDOW=25 seat_probe_dark_window 2>/dev/null)"
+assert_eq 'dark knob: a valid threshold override is honoured' \
+  '5' "$(SEAT_PROBE_DARK_MIN=5 seat_probe_dark_min 2>/dev/null)"
+
+# THE WINDOW TAKES A CEILING AND THE THRESHOLD DOES NOT, and the rule deciding
+# that is the one at seat_probe_uint: a knob is bounded only when its
+# over-large value fails toward a FALSE ALARM.
+#
+# An over-large WINDOW sweeps further back, so more old dark sessions land
+# inside the count and a fixed threshold fires on outages that already
+# recovered — the alarm direction. It is also the runtime bound: each session
+# costs one jq pass, and walking all 299 transcripts costs 2.8s against the
+# 0.2s the newest 10 cost.
+assert_eq 'dark knob: the window is capped at its ceiling (alarm direction)' \
+  "$uint_default_window" "$(SEAT_PROBE_DARK_WINDOW=$(( SEAT_PROBE_DARK_WINDOW_MAX + 1 )) seat_probe_dark_window 2>/dev/null)"
+assert_eq 'dark knob: the window accepts exactly its ceiling' \
+  "$SEAT_PROBE_DARK_WINDOW_MAX" "$(SEAT_PROBE_DARK_WINDOW=$SEAT_PROBE_DARK_WINDOW_MAX seat_probe_dark_window 2>/dev/null)"
+
+# An over-large THRESHOLD demands more dark sessions than a window can hold,
+# which reports the seat NOT dark — toward "the loop is fine", the only
+# direction this file may fail in. So it is unbounded, exactly like
+# SEAT_PROBE_MUTE_MIN_DECLINES, and a huge-but-comparable value must be
+# ACCEPTED rather than rejected back to a default that would alarm.
+assert_eq 'dark knob: the threshold has no ceiling (it fails toward "fine")' \
+  '999999999' "$(SEAT_PROBE_DARK_MIN=999999999 seat_probe_dark_min 2>/dev/null)"
+
+# And the verdict side of that: an absurd threshold silences the check, never
+# the reverse.
+wt="$(new_seat)"
+dead_run "$wt" s1 202609010800
+dead_run "$wt" s2 202609011000
+dead_run "$wt" s3 202609011200
+( SEAT_PROBE_DARK_MIN=999999999
+  seat_probe_dark_check "$wt"
+  [ "$SEAT_DARK" = "NO" ] ) 2>/dev/null
+if [ $? -eq 0 ]; then
+  pass 'dark: an over-large threshold silences the check rather than tripping it'
+else
+  fail 'dark: an over-large threshold silences the check rather than tripping it' \
+    'an unreachable threshold produced an alarm'
+fi
+
+# ============================================================================
+section 'Section 8 — the fail-open invariant, swept across every knob'
 # ============================================================================
 
 # THE ONE INVARIANT THE WHOLE FILE RESTS ON. Every rejection falls open to the
@@ -1238,6 +1731,8 @@ sweep_fail_open() { # knob_name getter_fn default
 sweep_fail_open SEAT_PROBE_CPU_SAMPLE_S      seat_probe_cpu_sample_s   "$uint_default_sample"
 sweep_fail_open SEAT_PROBE_CPU_FLOOR_CS      seat_probe_cpu_floor_cs   "$uint_default_floor"
 sweep_fail_open SEAT_PROBE_MUTE_MIN_DECLINES seat_probe_min_declines   "$SEAT_PROBE_MUTE_MIN_DECLINES_DEFAULT"
+sweep_fail_open SEAT_PROBE_DARK_WINDOW       seat_probe_dark_window    "$SEAT_PROBE_DARK_WINDOW_DEFAULT"
+sweep_fail_open SEAT_PROBE_DARK_MIN          seat_probe_dark_min       "$SEAT_PROBE_DARK_MIN_DEFAULT"
 
 # And the verdict side of the same invariant: no bad knob value may turn a
 # healthy fixture into an alarm. A false "your live seat is dead" sends
@@ -1254,10 +1749,14 @@ for v in abc -1 0 99999999999999999999 18446744073709551617 ""; do
   ( SEAT_PROBE_MUTE_MIN_DECLINES="$v"
     SEAT_PROBE_CPU_FLOOR_CS="$v"
     SEAT_PROBE_CPU_SAMPLE_S="$v"
+    SEAT_PROBE_DARK_WINDOW="$v"
+    SEAT_PROBE_DARK_MIN="$v"
     seat_probe_mute_check "$wt_ok" 2>/dev/null
     [ "$SEAT_MUTE" = "NO" ] || exit 1
     seat_probe_stall_check "$wt_ok" 2>/dev/null
-    [ "$SEAT_STALL" = "NO" ] || exit 1 ) || {
+    [ "$SEAT_STALL" = "NO" ] || exit 1
+    seat_probe_dark_check "$wt_ok" 2>/dev/null
+    [ "$SEAT_DARK" = "NO" ] || exit 1 ) || {
       fail "fail-open: a healthy seat stays healthy under a bad knob ($v)" \
         'a garbage knob value produced an alarm on a healthy fixture'
       alarm=1
@@ -1266,7 +1765,7 @@ done
 [ "$alarm" -eq 0 ] && pass 'fail-open: no bad knob value turns a healthy seat into an alarm'
 
 # ============================================================================
-section 'Section 8 — the caller contract'
+section 'Section 9 — the caller contract'
 # ============================================================================
 
 # Both real callers source this file under `set -euo pipefail`, and one of them
@@ -1303,12 +1802,13 @@ fi
 # `set -u` rather than report UNKNOWN.
 ( set -euo pipefail
   . "$PROBE"
-  [ "$SEAT_MUTE" = "UNKNOWN" ] && [ "$SEAT_STALL" = "UNKNOWN" ] ) >/dev/null 2>&1
+  [ "$SEAT_MUTE" = "UNKNOWN" ] && [ "$SEAT_STALL" = "UNKNOWN" ] \
+    && [ "$SEAT_DARK" = "UNKNOWN" ] ) >/dev/null 2>&1
 rc=$?
 if [ "$rc" -eq 0 ]; then
-  pass 'contract: SEAT_MUTE/SEAT_STALL initialise to UNKNOWN at source time'
+  pass 'contract: SEAT_MUTE/SEAT_STALL/SEAT_DARK initialise to UNKNOWN at source time'
 else
-  fail 'contract: SEAT_MUTE/SEAT_STALL initialise to UNKNOWN at source time' "exit $rc"
+  fail 'contract: SEAT_MUTE/SEAT_STALL/SEAT_DARK initialise to UNKNOWN at source time' "exit $rc"
 fi
 
 # Every check runs unpiped under the strict options against a real fixture.
@@ -1318,7 +1818,10 @@ fi
   SEAT_PROBE_CWDS=()
   seat_probe_mute_check "$wt_ok"
   seat_probe_stall_check "$wt_ok"
+  seat_probe_dark_check "$wt_ok"
   seat_probe_session_dir "$wt_ok" >/dev/null
+  seat_probe_dark_window >/dev/null
+  seat_probe_dark_min >/dev/null
   seat_probe_cpu_sample_s >/dev/null
   seat_probe_cpu_floor_cs >/dev/null ) >/dev/null 2>&1
 rc=$?

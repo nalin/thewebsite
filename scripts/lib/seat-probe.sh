@@ -33,6 +33,7 @@
 # Optionally, and ONLY for a reporting caller:
 #   seat_probe_mute_check "$worktree_path"   # sets SEAT_MUTE* below
 #   seat_probe_stall_check "$worktree_path"  # sets SEAT_STALL* below; SLEEPS
+#   seat_probe_dark_check "$worktree_path"   # sets SEAT_DARK* below
 #
 # After seat_probe_classify, these globals describe that seat:
 #   SEAT_STATUS       OK | DETACHED | NO-AGENT | DOWN | MISSING
@@ -64,6 +65,20 @@
 #                      no window was taken)
 #   SEAT_STALL_UNKNOWN why the verdict is UNKNOWN ("" unless SEAT_STALL=UNKNOWN)
 #
+# And after seat_probe_dark_check (#221):
+#   SEAT_DARK            YES | NO | UNKNOWN
+#   SEAT_DARK_COUNT      sessions in the window that produced no work
+#   SEAT_DARK_TOTAL      prompted sessions the window actually measured
+#   SEAT_DARK_LAST       timestamp of the newest session that DID work ("" if none)
+#   SEAT_DARK_LAST_AGE_S seconds since it, when derivable ("" otherwise)
+#   SEAT_DARK_UNREADABLE sessions in the window that could not be parsed
+#   SEAT_DARK_UNKNOWN    why the verdict is UNKNOWN ("" unless SEAT_DARK=UNKNOWN)
+#
+# The first two checks read ONE transcript; the third reads a WINDOW of them,
+# because the failure it catches is invisible inside any single file: a
+# scheduled run that dies on its first turn leaves one clean-looking transcript,
+# and it is only the SEQUENCE of them that shows the loop has stopped (#221).
+#
 # UNKNOWN IS NOT ONE CONDITION, AND THE DIFFERENCE IS THE WHOLE POINT (#214)
 #
 # Every ambiguity in the mute check yields UNKNOWN, and a reporting caller shows
@@ -76,13 +91,14 @@
 #
 #   no-transcript-dir     this seat has no transcript directory at all
 #   no-transcript         no .jsonl in it at all
+#   no-prompted-session   sessions exist, none of them received a prompt
 #   no-assistant-message  the transcript holds no assistant turn yet
 #   unexplained-decline   a local decline carrying no text to explain itself
 #   unreadable            THE CHECK ITSELF FAILED — jq missing, unreadable
 #                         file, or a parse that aborted partway
 #
-# Only `unreadable` means the measurement is broken. The other four mean it ran
-# and there was legitimately nothing to measure, which is the normal state of a
+# Only `unreadable` means the measurement is broken. The others mean it ran and
+# there was legitimately nothing to measure, which is the normal state of a
 # freshly launched seat and must stay silent.
 #
 # WHY THIS IS SEPARATE FROM seat_probe_classify, AND MUST STAY SEPARATE (#212)
@@ -1156,6 +1172,441 @@ seat_probe_stall_check() {
     now="$(date +%s)"
     SEAT_STALL_AGE_S=$(( now - epoch ))
     [ "$SEAT_STALL_AGE_S" -lt 0 ] && SEAT_STALL_AGE_S=0
+  fi
+
+  return 0
+}
+
+# --- dark: scheduled runs that produced no work at all (#221) ---------------
+#
+# The THIRD blind spot, and the only one that cannot be seen inside a single
+# transcript. Between 2026-09-01 19:19Z and 2026-09-02 13:28Z eleven scheduled
+# coordinator slots fired and NINE produced no work. The ops record went dark
+# for 25 hours and every existing signal read green the whole time.
+#
+# WHY THE OTHER TWO CHECKS CANNOT SEE IT — measured, not assumed
+#
+# seat_probe_mute_check requires SEAT_PROBE_MUTE_MIN_DECLINES (2) consecutive
+# local declines WITHIN ONE TRANSCRIPT. That persistence gate is correct and is
+# not weakened here: 143 of 306 historical transcripts end on a single transient
+# decline. But every scheduled run gets a FRESH session, so those eight failures
+# were eight separate FIRST offences, one per transcript, and the run never
+# reaches 2. The gate is per-transcript; the failure is one-per-transcript
+# repeated ACROSS transcripts.
+#
+# seat_probe_stall_check requires the transcript to end WITHOUT an assistant
+# record. Eight of the nine ended WITH one — the synthetic decline — which is
+# precisely the record it requires to be absent. Only the 11:45Z run (one user
+# record, zero assistant records) is in its reach.
+#
+# So this check looks ACROSS sessions, over time. That is the whole point of it,
+# and it is why it is a third function rather than a loosening of either
+# existing one.
+#
+# WHAT "PRODUCED NO WORK" IS, STRUCTURALLY
+#
+# A session that received a prompt and produced no assistant record the MODEL
+# wrote. It reuses the local-decline signature the mute check already
+# characterises — model "<synthetic>" with zero input+output tokens — but asks a
+# different question of it: not "does this transcript END on declines" but "does
+# this session contain ANY real answer at all".
+#
+# The boundary is structural, not a tuned threshold: zero real assistant records
+# versus one or more. Measured over all 299 coordinator transcripts on this
+# host, 89 sessions have exactly ZERO and every other prompted session has at
+# least one (the lowest working session has 1, the median run has dozens). There
+# is nothing to tune between those two states because there is nothing between
+# them.
+#
+# Those 89 are not noise, and reading them as a 30% false-positive rate was the
+# first wrong turn taken here. Every one carries a genuine failure in its single
+# assistant record — 38 "Login expired · Please run /login", 39 ENOTFOUND, 5
+# "Request timed out", 3 expired SSL certificate, 1 revoked OAuth token, 1
+# ECONNRESET, 1 "529 Overloaded" — and not one is the benign
+# "No response requested.". They are the true rate of a failure that has been
+# happening since August and was never once visible.
+#
+# WHY A WINDOW AND NOT A TRAILING STREAK
+#
+# The obvious shape — "how many consecutive recent sessions were dark" — cannot
+# work HERE, and the reason is specific to the caller. fleet-liveness.sh runs at
+# the START of a coordinator run, from inside the coordinator's own session,
+# which is by then live and working. That session is the NEWEST transcript in
+# this very directory, so a trailing streak anchored at the newest session reads
+# zero from the one seat the check exists to watch. A count over a WINDOW is
+# immune to it: the caller's own live session simply occupies one of the slots.
+#
+# The cost of the window is that the alarm outlives the incident — the darks
+# age out only as new sessions push them off the end. That is why the verdict
+# ships with SEAT_DARK_LAST, the timestamp of the newest session that DID work:
+# it is what separates "the loop is dark right now" from "the loop was dark
+# yesterday and has recovered", and a caller that prints the count without it is
+# publishing half the finding.
+#
+# WHY THE DEFAULTS ARE 3 OF 10
+#
+# Measured by replaying the rule over the 292 prompted sessions in the
+# coordinator's own transcript directory, oldest to newest:
+#
+#   threshold >=2 of 10 : 5 distinct alarm episodes in ~4 months
+#   threshold >=3 of 10 : 4 distinct alarm episodes
+#   threshold >=6 of 10 : 3 distinct alarm episodes
+#
+# 3 is where the transient class stops counting: historical runs of consecutive
+# dark sessions are 1, 2, 2, 2, 2, 3, 4, 6, 25 and 41 long, so a threshold of 3
+# suppresses all six short blips — the same ENOTFOUND/timeout family the mute
+# check's persistence gate suppresses, for the same reason — while still
+# catching every genuine outage. The four episodes it does fire on are real:
+# 08-06, a 25-session outage ending 08-09, a 41-session outage ending 08-17, and
+# #221 itself.
+#
+# Against #221 specifically it opens at the THIRD dead slot, 2026-09-01 23:23Z —
+# about four hours in, rather than the 25 hours the loop actually ran blind.
+#
+# WHAT IS DELIBERATELY NOT COUNTED
+#
+# A session with NO user record never received a prompt, so it cannot have
+# failed to answer one. Seven such sessions exist here. They are not EVIDENCE in
+# either direction — never counted as dark, never counted in the total the
+# verdict is read against — but they DO consume a window slot, because the
+# window is "the newest N transcripts" and not "the newest N transcripts that
+# turned out to be interesting".
+#
+# That is a deliberate choice between two defensible meanings, and the reason is
+# the runtime bound stated at SEAT_PROBE_DARK_WINDOW_MAX below. Skipping
+# unprompted sessions without spending their slot would let the loop walk
+# arbitrarily far back whenever a run of them sits at the top of the directory —
+# in the worst case the whole 299-file directory, one jq pass apiece — which is
+# exactly what the ceiling exists to prevent. Counting the slot keeps the walk
+# bounded at N files no matter what those files contain.
+#
+# The cost of that choice is that unprompted sessions SHRINK the measured window,
+# so the count is read against fewer sessions than N. It fails safe: a smaller
+# window can only mask an outage, never manufacture one. Measured on this host it
+# is nearly free — 7 unprompted sessions in 299 — and the threshold is an
+# absolute count rather than a ratio, so a few of them among the newest ten still
+# leave the count able to reach 3.
+#
+# A session whose only answers are the benign "No response requested." counts as
+# WORKED, not dark, for the reason the mute check treats it as breaking a
+# decline run: it is a healthy end state for a dispatch that asked for no reply.
+# None of the 89 historical dark sessions is one, but a future no-reply dispatch
+# would manufacture a dark session out of a perfectly good one.
+#
+# A session that is live and still inside its first turn has a user record and
+# no assistant record yet, and so reads dark for those few seconds. It can
+# contribute at most ONE to the count — it is the newest file — so it can never
+# reach the threshold of 3 on its own.
+#
+# UNKNOWN CAUSES (same doctrine as the other two checks: only `unreadable`
+# means the measurement itself broke and must be surfaced; the rest mean it ran
+# and there was nothing to measure, and stay silent):
+#
+#   no-transcript-dir     no transcript directory for this seat
+#   no-transcript         no .jsonl in it
+#   no-prompted-session   sessions exist, none of them received a prompt
+#   unreadable            THE CHECK ITSELF FAILED — the directory could not be
+#                         listed, or every session in the window failed to parse
+#
+# A PARTIAL failure is not UNKNOWN: if some sessions parsed and others did not,
+# the verdict stands on the ones that did and SEAT_DARK_UNREADABLE carries the
+# count, so a caller can say the window was measured incompletely. Unreadable
+# sessions are never counted as dark — ambiguity fails toward "the loop is
+# fine", like everything else in this file.
+
+# How many recent sessions to examine, and how many of them must have produced
+# no work before the seat is called dark. Overridable for tests.
+SEAT_PROBE_DARK_WINDOW="${SEAT_PROBE_DARK_WINDOW:-10}"
+SEAT_PROBE_DARK_WINDOW_DEFAULT=10
+SEAT_PROBE_DARK_MIN="${SEAT_PROBE_DARK_MIN:-3}"
+SEAT_PROBE_DARK_MIN_DEFAULT=3
+
+# The window takes a CEILING and the threshold does not, and the rule deciding
+# that is the one stated at seat_probe_uint: a knob gets a maximum only when its
+# over-large value fails toward a FALSE ALARM.
+#
+#   SEAT_PROBE_DARK_MIN over-large demands more dark sessions than a window can
+#   hold, which reports the seat NOT dark — toward "the loop is fine", the only
+#   direction this file may fail in. No ceiling, exactly like
+#   SEAT_PROBE_MUTE_MIN_DECLINES.
+#
+#   SEAT_PROBE_DARK_WINDOW over-large sweeps further back in history, so more
+#   dark sessions land inside the count and a fixed threshold fires more
+#   readily on older, already-recovered outages. That is the alarm direction, so
+#   it is bounded. The bound is also a RUNTIME bound, which is the sharper of
+#   the two: each session in the window costs one jq pass, and the whole point
+#   of the window is that a check running inside a two-hourly loop must not walk
+#   299 transcripts. Measured on the coordinator's directory: the newest 10
+#   cost ~0.2s, all 299 cost 2.8s. At 50 the worst case stays a fraction of a
+#   second per seat, and 50 sessions is still four days of a two-hourly cadence.
+SEAT_PROBE_DARK_WINDOW_MAX=50
+
+# Initialised at source time, like the SEAT_MUTE*/SEAT_STALL* sets, so a caller
+# that reads them before ever calling seat_probe_dark_check cannot trip `set -u`.
+SEAT_DARK="UNKNOWN"
+SEAT_DARK_COUNT=0
+SEAT_DARK_TOTAL=0
+SEAT_DARK_LAST=""
+SEAT_DARK_LAST_AGE_S=""
+SEAT_DARK_UNREADABLE=0
+SEAT_DARK_UNKNOWN="no-transcript-dir"
+
+seat_probe_dark_window() {
+  seat_probe_uint SEAT_PROBE_DARK_WINDOW "${SEAT_PROBE_DARK_WINDOW:-}" \
+    "$SEAT_PROBE_DARK_WINDOW_DEFAULT" 1 "$SEAT_PROBE_DARK_WINDOW_MAX"
+}
+
+seat_probe_dark_min() {
+  seat_probe_uint SEAT_PROBE_DARK_MIN "${SEAT_PROBE_DARK_MIN:-}" \
+    "$SEAT_PROBE_DARK_MIN_DEFAULT" 1 ""
+}
+
+# Classify ONE session file. Prints "<state>\t<last timestamp>":
+#
+#   worked      at least one assistant record the model actually wrote
+#   dark        received a prompt, produced no such record
+#   unprompted  no user record at all — nothing was ever asked of it
+#   unreadable  the file could not be read or the parse failed
+#
+# The jq pass is the mute check's, widened to carry `user` records too, and it
+# keeps every one of that pass's hard-won properties. Each accessor is
+# type-guarded to DEGRADE rather than abort, because a type error aborts the
+# whole pass and a partial pass would silently under-count the very records this
+# verdict is read from. `((.message | objects) // {}) as $m` makes every
+# downstream accessor total.
+#
+# The token total degrades to -1, never 0, for the reason spelled out in the
+# mute check: 0 combined with model "<synthetic>" reads as a confirmed local
+# decline, so an unreadable usage block would COUNT TOWARD darkness and fail
+# toward alarm. -1 fails the `!= 0` test the other way, so a degraded record
+# reads as a real answer and the session reads as having worked.
+seat_probe_session_state() {
+  local f="$1" jq_out jq_rc res
+  jq_rc=0
+
+  if [ ! -r "$f" ]; then
+    printf 'unreadable\t\n'
+    return 0
+  fi
+
+  jq_out="$(jq -Rrc '
+      fromjson? | objects
+      | ((.type | strings) // "") as $t
+      | select($t == "user" or $t == "assistant")
+      | ((.message | objects) // {}) as $m
+      | (($m.usage | objects) // {}) as $u
+      | (($m.content | arrays) // []) as $c
+      | [ $t,
+          ((.timestamp | strings) // ""),
+          (($m.model | strings) // ""),
+          ([ ($u.input_tokens | numbers), ($u.output_tokens | numbers) ] as $x
+           | if ($x | length) == 0 then -1 else ($x | add) end),
+          (((($c[0] | objects) // {}) | (.text | strings)) // "") ]
+      | @tsv' "$f" 2>/dev/null)" || jq_rc=$?
+
+  # A non-zero pass yields NO verdict, never a verdict read from partial output
+  # — the #216 rule, applied here for the same reason it was applied there.
+  if [ "$jq_rc" -ne 0 ]; then
+    printf 'unreadable\t\n'
+    return 0
+  fi
+  if [ -z "$jq_out" ]; then
+    printf 'unprompted\t\n'
+    return 0
+  fi
+
+  # A BENIGN decline counts as a real answer, not as darkness: it is the healthy
+  # end state of a dispatch that asked for no reply, and counting it would
+  # manufacture a dark session out of a working one. Same guard, same empty-value
+  # hazard, as the mute check's awk loop — an empty override must not turn
+  # index() into "everything is benign".
+  res="$(printf '%s\n' "$jq_out" \
+    | SEAT_PROBE_BENIGN_DECLINE="$SEAT_PROBE_BENIGN_DECLINE" awk -F'\t' '
+        BEGIN { benign = ENVIRON["SEAT_PROBE_BENIGN_DECLINE"]; worked = 0; users = 0; last = "" }
+        {
+          if ($2 != "") last = $2
+          if ($1 == "user") {
+            users++
+          } else if ($3 != "<synthetic>" || $4 + 0 != 0) {
+            worked = 1
+          } else if (benign != "" && index($5, benign) == 1) {
+            worked = 1
+          }
+        }
+        END {
+          if (worked) state = "worked"
+          else if (users > 0) state = "dark"
+          else state = "unprompted"
+          printf "%s\t%s\n", state, last
+        }' || true)"
+
+  # jq emitted lines, so awk had at least one record and always prints. An empty
+  # $res here therefore means awk itself failed — a broken check, not no data.
+  if [ -z "$res" ]; then
+    printf 'unreadable\t\n'
+    return 0
+  fi
+  printf '%s\n' "$res"
+  return 0
+}
+
+# Decide whether this seat's RECENT SESSIONS have been producing work.
+#
+# Sets SEAT_DARK / SEAT_DARK_COUNT / SEAT_DARK_TOTAL / SEAT_DARK_LAST /
+# SEAT_DARK_LAST_AGE_S / SEAT_DARK_UNREADABLE / SEAT_DARK_UNKNOWN.
+#
+# Unlike seat_probe_stall_check this never sleeps and never reads the process
+# table: it is a pure transcript measurement, so a caller pays only jq.
+seat_probe_dark_check() {
+  local wtpath="$1" dir listing ls_rc name f state ts
+  local window min seen dark total unread last_worked base epoch now
+
+  SEAT_DARK="UNKNOWN"
+  SEAT_DARK_COUNT=0
+  SEAT_DARK_TOTAL=0
+  SEAT_DARK_LAST=""
+  SEAT_DARK_LAST_AGE_S=""
+  SEAT_DARK_UNREADABLE=0
+  SEAT_DARK_UNKNOWN="no-transcript-dir"
+
+  dir="$(seat_probe_session_dir "$wtpath")"
+  [ -d "$dir" ] || return 0
+
+  # Both bits, for the reason spelled out at the same guard in the other two
+  # checks: `[ -d ]` stays true on an unreadable directory because stat works
+  # through the parent, and the enumeration below would then come back empty and
+  # land this seat on the silent "nothing here" path. -r is what the listing
+  # needs; -x is what stat'ing the entries needs.
+  #
+  # This guard and the `ls` exit-status guard below are REDUNDANT for the
+  # permission case, deliberately and measurably: mutation-testing this function
+  # showed that disabling either one alone leaves the verdict correct, and only
+  # disabling BOTH makes an unreadable directory read as an empty one. It is
+  # kept anyway — it states the precondition explicitly instead of inferring it
+  # from a tool's exit status, and it keeps this function's shape identical to
+  # the other two, which is how a reader checks that all three hold the same
+  # invariant.
+  if [ ! -r "$dir" ] || [ ! -x "$dir" ]; then
+    SEAT_DARK_UNKNOWN="unreadable"
+    return 0
+  fi
+
+  SEAT_DARK_UNKNOWN="no-transcript"
+
+  window="$(seat_probe_dark_window)"
+  min="$(seat_probe_dark_min)"
+
+  # NEWEST-FIRST, AND WITHOUT A PIPELINE. `ls -t | head -$window` is the obvious
+  # spelling and is the #155 SIGPIPE bug: head exits after its lines, ls takes
+  # SIGPIPE, and under a caller's `set -euo pipefail` that 141 propagates and
+  # kills the whole run once a directory outgrows the pipe buffer. This
+  # directory has 299 transcripts, which is well past it.
+  #
+  # A command substitution is not a pipeline — ls runs to completion into a
+  # variable and its exit status survives — so the loop below can stop early
+  # with a plain `break` and nothing takes a signal.
+  #
+  # `ls -t -- "$dir"` lists BASENAMES rather than expanding a glob, which keeps
+  # the argument list off ARG_MAX no matter how many transcripts a seat
+  # accumulates. Entries that are not .jsonl are skipped, and a name that does
+  # not resolve to an existing file is skipped too, so a directory holding
+  # anything else cannot derail the window.
+  ls_rc=0
+  listing="$(ls -t -- "$dir" 2>/dev/null)" || ls_rc=$?
+  if [ "$ls_rc" -ne 0 ]; then
+    SEAT_DARK_UNKNOWN="unreadable"
+    return 0
+  fi
+
+  seen=0
+  dark=0
+  total=0
+  unread=0
+  last_worked=""
+
+  while IFS= read -r name; do
+    case "$name" in
+      *.jsonl) ;;
+      *) continue ;;
+    esac
+    f="$dir/$name"
+    [ -e "$f" ] || continue
+    # THE SLOT IS SPENT HERE, BEFORE THE SESSION IS CLASSIFIED, AND THAT ORDER IS
+    # THE DEFINITION OF THE WINDOW: N transcripts, whatever they turn out to
+    # contain. Classifying first and charging only "interesting" sessions would
+    # unbound the walk (see the window note above). Do not reorder these two
+    # without changing that note and the case that pins it.
+    if [ "$seen" -ge "$window" ]; then
+      break
+    fi
+    seen=$(( seen + 1 ))
+
+    state="$(seat_probe_session_state "$f")"
+    ts="${state#*	}"
+    state="${state%%	*}"
+
+    case "$state" in
+      worked)
+        total=$(( total + 1 ))
+        # Newest-first, so the FIRST working session seen is the most recent one.
+        [ -n "$last_worked" ] || last_worked="$ts"
+        ;;
+      dark)
+        total=$(( total + 1 ))
+        dark=$(( dark + 1 ))
+        ;;
+      unreadable)
+        unread=$(( unread + 1 ))
+        ;;
+      *)
+        # unprompted: nothing was ever asked of it, so it cannot have failed to
+        # answer. Not counted as evidence in either direction — but its window
+        # slot was already spent above, by design; see the note on the window at
+        # the top of this section.
+        :
+        ;;
+    esac
+  done <<<"$listing"
+
+  # No verdict, and the cause has to say WHICH of the two reasons it was — the
+  # invariant stated at the mute check's directory guard, which this check is
+  # held to exactly like the other two.
+  if [ "$total" -eq 0 ]; then
+    if [ "$seen" -eq 0 ]; then
+      SEAT_DARK_UNKNOWN="no-transcript"
+    elif [ "$unread" -gt 0 ]; then
+      SEAT_DARK_UNKNOWN="unreadable"
+    else
+      SEAT_DARK_UNKNOWN="no-prompted-session"
+    fi
+    SEAT_DARK_UNREADABLE="$unread"
+    return 0
+  fi
+
+  SEAT_DARK_COUNT="$dark"
+  SEAT_DARK_TOTAL="$total"
+  SEAT_DARK_UNREADABLE="$unread"
+  SEAT_DARK_LAST="$last_worked"
+  SEAT_DARK_UNKNOWN=""
+
+  if [ "$dark" -ge "$min" ]; then
+    SEAT_DARK="YES"
+  else
+    SEAT_DARK="NO"
+  fi
+
+  # Age of the last session that produced work — a convenience, never a gate. If
+  # the timestamp will not parse, report the count without it rather than
+  # suppressing the finding.
+  if [ -n "$last_worked" ]; then
+    base="${last_worked%%.*}"
+    base="${base%Z}"
+    epoch="$(TZ=UTC date -j -f '%Y-%m-%dT%H:%M:%S' "$base" '+%s' 2>/dev/null || true)"
+    if [ -n "$epoch" ]; then
+      now="$(date +%s)"
+      SEAT_DARK_LAST_AGE_S=$(( now - epoch ))
+      [ "$SEAT_DARK_LAST_AGE_S" -lt 0 ] && SEAT_DARK_LAST_AGE_S=0
+    fi
   fi
 
   return 0
