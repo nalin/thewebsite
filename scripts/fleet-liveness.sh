@@ -41,6 +41,22 @@
 #                                    reply of any kind after it, not merely a
 #                                    tool call in flight — and is burning no
 #                                    CPU (#217). Neither is a SEAT_STATUS value.
+#   4. Each seat's RECENT SESSIONS  — the checks above all ask about the seat as
+#                                    it stands now, and a loop can stop
+#                                    producing work while every one of them
+#                                    reads OK. Nine of eleven scheduled
+#                                    coordinator runs died on arrival over 25
+#                                    hours in #221 and this report said OK
+#                                    throughout, correctly: by the time anything
+#                                    probed the seat, the failing sessions had
+#                                    exited. So the newest sessions in the
+#                                    seat's transcript directory are counted,
+#                                    and a seat whose recent sessions took a
+#                                    prompt and never got a model answer is
+#                                    reported — as a WARNING, not a problem,
+#                                    because the seat is healthy and a restart
+#                                    is the wrong repair. Not a SEAT_STATUS
+#                                    value either.
 #
 # WHAT IT DELIBERATELY DOES NOT DO
 #   It never restarts, relaunches, kills or repairs anything. Recovery stays a
@@ -71,6 +87,16 @@
 #                     that reports a working seat as STALLED (#222).
 #                     Either knob outside its range warns on stderr and falls
 #                     back to its default; it never skews a verdict.
+#     SEAT_PROBE_DARK_WINDOW (default 10, max 50) how many recent sessions the
+#                     dark-run check looks at. Capped because an over-large
+#                     window both sweeps already-recovered outages back into the
+#                     count and costs one jq pass per session (#221).
+#     SEAT_PROBE_DARK_MIN (default 3) how many of those must have produced no
+#                     work before the seat is reported. Uncapped: an over-large
+#                     value only silences the check, which is the safe
+#                     direction. 3 is where the transient class stops counting —
+#                     measured, historical runs of consecutive dead sessions are
+#                     1, 2, 2, 2, 2, 3, 4, 6, 25 and 41 long.
 #     WORKSPACE_ROOT  (default ~/orca/workspaces/thewebsite)
 #     ROLES           same as --roles
 #
@@ -99,7 +125,7 @@ REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 . "$REPO_ROOT/scripts/lib/seat-probe.sh"
 
 usage() {
-  sed -n '2,61p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//' >&2
+  sed -n '2,77p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//' >&2
   exit 2
 }
 
@@ -356,6 +382,67 @@ for role in "${ROLE_LIST[@]}"; do
         # is the host having slept through all four CPU windows, which on this
         # machine (#194's 1-minute sleep setting) is a real and recurring
         # condition rather than a hypothetical one.
+        # THE THIRD BLIND SPOT (#221), AND THE ONLY ONE THAT IS NOT ABOUT THE
+        # SEAT AS IT STANDS RIGHT NOW.
+        #
+        # MUTE and STALLED both ask "can this seat finish the turn it is
+        # holding". A seat can pass both — pane live, process live, last turn
+        # answered by the model — and still belong to a loop that has stopped
+        # producing work, because the failure is in the sessions that already
+        # ENDED. Between 2026-09-01 19:19Z and 2026-09-02 13:28Z nine of eleven
+        # scheduled coordinator runs took the CEO prompt, died on one network
+        # error apiece, and left a transcript that looks fine in isolation. The
+        # ops record went dark for 25 hours and every line of this report said
+        # OK, correctly, the whole time.
+        #
+        # So this one is reported as a WARNING and NOT as a problem, which is a
+        # deliberate difference from MUTE and STALLED and not an oversight:
+        #
+        #   * The seat is not sick. By the time this runs the failing sessions
+        #     are gone and the process in front of us is healthy — which is
+        #     exactly what fleet-liveness kept reporting throughout #221, and it
+        #     was right. Raising ROLE_FAIL would print FLEET DEGRADED and point
+        #     the reader at restart-team.sh, which is the WRONG repair for a
+        #     seat whose process is alive: it stacks a second session on it.
+        #   * The finding is retrospective, and a window-based count outlives
+        #     the incident by design — the dark sessions age out only as new
+        #     ones push them off the end. A retrospective finding that held the
+        #     exit code non-zero for a day after recovery would train the loop
+        #     to ignore exit 5, which currently means something sharp.
+        #
+        # What it must never be is SILENT, because silence is the entire defect
+        # #221 describes. It gets a line on the seat and a warning that carries
+        # the two numbers a reader needs: how many of the recent sessions
+        # produced nothing, and when one last produced something — which is what
+        # separates "the loop is dark right now" from "it was dark yesterday".
+        dark_note=""
+        seat_probe_dark_check "$wtpath"
+        if [ "$SEAT_DARK" = "YES" ]; then
+          if [ -n "$SEAT_DARK_LAST" ]; then
+            dark_last="last produced work at $SEAT_DARK_LAST"
+            [ -n "$SEAT_DARK_LAST_AGE_S" ] && \
+              dark_last="$dark_last ($(( SEAT_DARK_LAST_AGE_S / 3600 ))h ago)"
+          else
+            dark_last="NO session in that window produced any work"
+          fi
+          dark_partial=""
+          [ "$SEAT_DARK_UNREADABLE" -gt 0 ] && \
+            dark_partial=" ($SEAT_DARK_UNREADABLE more could not be read, so the count is a floor)"
+          dark_note=" — $SEAT_DARK_COUNT of the last $SEAT_DARK_TOTAL sessions produced no work"
+          WARNINGS+=("$role: $SEAT_DARK_COUNT of the last $SEAT_DARK_TOTAL sessions on this seat produced NO work — they took a prompt and never got an answer from the model$dark_partial; $dark_last. The seat itself is healthy and this is NOT a restart: the failing sessions have already exited. For the coordinator seat this is the scheduled loop going dark (#221) — check ~/.thewebsite-coordinator-watchdog.log to confirm the slots fired, and expect a transport error (ENOTFOUND, an expired login, a timed-out request) as the single assistant record in each dead session.")
+        elif [ "$SEAT_DARK" = "UNKNOWN" ] && [ "$SEAT_DARK_UNKNOWN" = "unreadable" ]; then
+          # Same doctrine as the two notes below (#214): a check that could not
+          # run must say so rather than read as a clean one.
+          dark_note=" — DARK-RUN CHECK DID NOT RUN (transcripts unreadable)"
+          WARNINGS+=("$role: the dark-run check could not run (the transcript directory could not be listed, or every session in the window failed to parse), so a seat whose recent scheduled runs all died on arrival would still read OK here. Check jq is on PATH and that this seat's transcript directory is readable (#221)")
+        elif [ "$SEAT_DARK" = "NO" ] && [ "$SEAT_DARK_UNREADABLE" -gt 0 ]; then
+          # A verdict was reached, but on fewer sessions than the window asked
+          # for. Not an alarm — unreadable sessions are never counted as dark —
+          # but the reader should know the window was measured incompletely.
+          dark_note=" — dark-run window measured $SEAT_DARK_TOTAL of $(( SEAT_DARK_TOTAL + SEAT_DARK_UNREADABLE )) sessions"
+          WARNINGS+=("$role: the dark-run check read only $SEAT_DARK_TOTAL of the $(( SEAT_DARK_TOTAL + SEAT_DARK_UNREADABLE )) sessions in its window ($SEAT_DARK_UNREADABLE could not be parsed). The verdict stands on the ones it could read and unreadable sessions are never counted as dark, so this understates rather than overstates (#221)")
+        fi
+
         stall_note=""
         if [ "$SEAT_STALL" = "UNKNOWN" ] && [ "$SEAT_STALL_UNKNOWN" = "unreadable" ]; then
           stall_note=" — STALL CHECK DID NOT RUN (transcript unreadable)"
@@ -364,7 +451,7 @@ for role in "${ROLE_LIST[@]}"; do
           stall_note=" — STALL CHECK DID NOT RUN (host slept through the CPU windows)"
           WARNINGS+=("$role: this seat holds an unanswered turn, but the host slept through both CPU sample windows twice, so whether it is working could not be measured — a suspended process accrues no CPU either way. No verdict was taken rather than a guessed one. Re-run when the host is awake; the keep-awake decision is #194 (#217)")
         fi
-        line "$role" "OK" "$SEAT_HANDLE$age; claude pid(s) $SEAT_PIDS$husk_note$mute_note$stall_note"
+        line "$role" "OK" "$SEAT_HANDLE$age; claude pid(s) $SEAT_PIDS$husk_note$mute_note$stall_note$dark_note"
         if [ "$SEAT_PID_COUNT" -gt 1 ]; then
           WARNINGS+=("$role: $SEAT_PID_COUNT claude processes share this worktree (pids $SEAT_PIDS) — likely a pre-restart generation left running; confirm by cwd+CPU before reaping (#155)")
         fi
