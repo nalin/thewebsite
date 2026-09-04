@@ -1,0 +1,151 @@
+# Run the seat-probe harness on every change to scripts/ (#235).
+#
+# WHAT THIS JOB IS FOR
+#
+# scripts/__tests__/seat-probe.test.sh carries the regression cover for
+# scripts/lib/seat-probe.sh — the shared seat probe that fleet-liveness.sh,
+# restart-team.sh and coordinator-watchdog.sh all read "is this seat alive?"
+# from. Until now nothing ran it: it went when a human, or a CEO run at a review
+# gate, remembered to type it. That is not a hypothetical gap. The inverted
+# window test at the #230 gate left the suite reporting 124/0 and it took a
+# reviewer running a mutation BY HAND to find it — a harness that only runs when
+# someone already suspects a problem cannot catch the problem nobody suspects.
+#
+# ---------------------------------------------------------------------------
+# WHICH BASH THIS GREEN CHECK ACTUALLY PROVES — READ THIS BEFORE TRUSTING IT
+# ---------------------------------------------------------------------------
+#
+# It runs on macOS with /bin/bash, which is GNU bash 3.2.57. That is a
+# DELIBERATE pin, not a default, and the reason is that a green check on the
+# easy choice would have been a weaker claim than it looks:
+#
+#   * The production host is macOS running bash 3.2.57 with BSD userland. Every
+#     caller of seat-probe.sh runs there.
+#   * A GitHub ubuntu-latest runner is bash 5.x with GNU userland. Several cases
+#     in the suite reason explicitly about 3.2 semantics (#232) — the
+#     string-compare-versus-arithmetic boundary in seat_probe_uint, the 64-bit
+#     wrap points, `[` returning status 2 on an incomparable value. Those are
+#     the cases most likely to behave differently on 5.x, and they are exactly
+#     the ones whose failure would matter. Passing on 5.x is a DIFFERENT claim
+#     from passing on the host, and the weaker one.
+#   * The library also shells out to BSD-only tools — `date -j -f` for
+#     timestamp parsing, `ps -o cputime=` hundredths, `stat`. On GNU coreutils
+#     those degrade rather than error, so a Linux run could go green while
+#     silently exercising less than it appears to.
+#
+# SO, STATED PLAINLY — what a green check here does and does not mean:
+#
+#   PROVES:          the suite passes on bash 3.2.57 with BSD userland, i.e.
+#                    the shell and toolchain the production host actually runs.
+#   DOES NOT PROVE:  portability to bash 5.x or to GNU userland. Nothing in
+#                    this repo runs there today, and this job is not evidence
+#                    that anything could.
+#   ALSO NOT:        the runner's macOS image, jq version and hardware are not
+#                    the dev host's. This pins the SHELL, not the whole world.
+#
+# The version is asserted below rather than assumed. GitHub's macOS images also
+# ship a Homebrew bash 5.x, and Actions' default `shell: bash` resolves through
+# PATH — so `bash foo.sh` here would quietly run 5.x and this whole rationale
+# would evaporate without a single line of YAML changing. The steps invoke
+# /bin/bash by absolute path AND fail the job if it is not 3.2, so a runner
+# image change surfaces as a red build instead of a silently weaker claim.
+#
+# ---------------------------------------------------------------------------
+# NO PIPELINES — the suite's exit status is the job's verdict
+# ---------------------------------------------------------------------------
+#
+# The suite is run UNPIPED and its status is carried to `exit` explicitly.
+# Piping it through head/grep/tee would replace the status with the last
+# command's and silently truncate on SIGPIPE, which is how the defect in #213
+# stayed invisible while looking tested. Output goes to a FILE by redirection —
+# a redirect is not a pipe, cannot SIGPIPE, and cannot substitute an exit code —
+# and the summary below reads that file after the suite has already finished.
+#
+# That the status really does propagate is not asserted here, it is
+# DEMONSTRATED: the PR that introduced this job mutated the library and showed
+# the job going red.
+
+name: seat-probe suite
+
+on:
+  push:
+    paths:
+      - 'scripts/**'
+      - '.github/workflows/seat-probe-suite.yml'
+  pull_request:
+    paths:
+      - 'scripts/**'
+      - '.github/workflows/seat-probe-suite.yml'
+  # So the job can be demonstrated on demand — proving a CI job runs is part of
+  # adding one, and a job nobody has watched run is a claim, not cover.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: seat-probe-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  suite:
+    # macOS for bash 3.2.57 + BSD userland. See the header: this is the pin that
+    # makes the green check mean what the production host needs it to mean.
+    runs-on: macos-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Pin check — /bin/bash must be 3.2, and jq must exist
+        run: |
+          set -euo pipefail
+          echo "runner: $(sw_vers -productName 2>/dev/null) $(sw_vers -productVersion 2>/dev/null) $(uname -m)"
+          echo "/bin/bash: $(/bin/bash --version | head -1)"
+
+          # The assertion, not a print. If a future runner image moves /bin/bash
+          # off 3.2, this job must go red rather than keep passing while quietly
+          # proving something weaker.
+          ver="$(/bin/bash -c 'echo "${BASH_VERSINFO[0]}.${BASH_VERSINFO[1]}"')"
+          if [ "$ver" != "3.2" ]; then
+            echo "::error::/bin/bash is $ver, expected 3.2 — this job exists to test the"
+            echo "::error::production shell (bash 3.2.57 on macOS). Passing on another"
+            echo "::error::version is a weaker claim than this check is meant to make."
+            exit 1
+          fi
+          echo "OK: /bin/bash is $ver, matching the production host"
+
+          # The harness exits 2 without jq. Say so in one line rather than
+          # leaving a bare exit 2 for someone to decode.
+          if ! command -v jq >/dev/null 2>&1; then
+            echo "::error::jq is not installed on this runner; the harness requires it"
+            exit 1
+          fi
+          echo "jq: $(jq --version)"
+
+      - name: Run the seat-probe suite (unpiped)
+        run: |
+          set -uo pipefail
+
+          # UNPIPED. Redirection to a file, never a pipe: nothing downstream can
+          # take SIGPIPE, truncate the output, or replace the status. `rc` is
+          # captured from the suite itself and is what this step exits with.
+          rc=0
+          /bin/bash scripts/__tests__/seat-probe.test.sh > suite.log 2>&1 || rc=$?
+
+          cat suite.log
+
+          # Reading a finished file, not tapping a live stream, so this cannot
+          # affect the status either way.
+          {
+            echo '### seat-probe suite'
+            echo ''
+            echo "- shell: \`$(/bin/bash --version | head -1)\`"
+            echo "- exit: \`$rc\`"
+            echo ''
+            echo '```'
+            tail -3 suite.log
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          exit "$rc"
