@@ -388,10 +388,12 @@ section 'Section 3 — seat_probe_cpu_window_busy: the BUSY/IDLE decision'
 busy_case() {
   local name="$1" deltas="$2" want="$3" floor="${4:-$uint_default_floor}"
   local rc got
-  # UNPIPED, and in a SUBSHELL. bash leaves a `VAR=x func` prefix assignment
-  # SET in the calling shell after the call (unlike a prefix on a real
-  # command), so a prefix here would leak one case's floor into every case
-  # after it — and the leak would read as a passing boundary.
+  # UNPIPED, and in a SUBSHELL — so no case's floor or deltas can reach a later
+  # one. A leaked floor would read as a passing boundary rather than as a
+  # failure, which is the shape of bug this section exists to catch (#232: the
+  # comment here previously justified the subshell with a claim about `VAR=x
+  # func` prefix assignments persisting, which is not true of the bash 3.2.57
+  # this harness targets — the containment argument does not need it).
   ( SEAT_PROBE_CPU_FLOOR_CS="$floor"
     SEAT_PROBE_CPU_DELTAS="$deltas"
     seat_probe_cpu_window_busy ) 2>/dev/null
@@ -980,6 +982,187 @@ rec_dispatch '2026-09-02T10:00:00.000Z' 'go' > "$dir/s.jsonl"
 mute_case  'mute+stall: a seat that never answered is not MUTE...' \
   "$wt" UNKNOWN no-assistant-message
 stall_case 'mute+stall: ...it is the stall check that sees it' "$wt" UNKNOWN no-process
+
+# --- the WIRING: how a window result becomes a verdict (#231) ----------------
+#
+# Every fixture above stops at the no-process guard, so until now NOTHING in
+# this file observed the branch the check takes with a window result in hand.
+# That gap was proved real by MUTATION at the #230 gate: inverting the first
+# window's test —
+#
+#     -  if seat_probe_cpu_window_busy; then
+#     +  if ! seat_probe_cpu_window_busy; then
+#
+# — left the harness at 124/0, exit 0. That inversion is precisely the false
+# alarm this file is written never to produce: a working seat reads STALLED,
+# fleet-liveness.sh reports it, and restart-team.sh stacks a second session on
+# a live process.
+#
+# THE SEAM IS FUNCTION SHADOWING IN A SUBSHELL, NOT A HOOK IN THE PROBE. #231
+# assumed this needed an injectable window result added to seat-probe.sh, and
+# worried — correctly — that such a seam could become a way for a caller to
+# talk the check into "the seat is fine". No seam is needed. bash lets this
+# harness redefine seat_probe_pids_for_path, seat_probe_self_claude_pid and
+# seat_probe_cpu_window_or_fail INSIDE the command substitution below, where
+# the definitions die with the subshell. seat-probe.sh is untouched, so the
+# production surface gains nothing a caller could reach.
+#
+# What is replaced is only the part that SLEEPS. The decision itself —
+# seat_probe_cpu_window_busy, pinned case by case above — is left alone and
+# still decides every case here from the injected deltas, so these cases pin
+# the wiring rather than restating the decision. Cost: microseconds.
+#
+#   $1 name  $2 worktree  $3 window-1 spec  $4 window-2 spec
+#   $5 want SEAT_STALL  $6 want SEAT_STALL_UNKNOWN  $7 want SEAT_STALL_CPU
+#   $8 self pid (optional; the caller's own claude pid, '' for none)
+#
+# A window spec is either a SEAT_PROBE_CPU_DELTAS string or the word `fail`,
+# which stands for a window the host slept through.
+wired_case() {
+  local name="$1" wt="$2" w1="$3" w2="$4" want="$5" want_unknown="$6"
+  local want_cpu="$7" self_pid="${8-}"
+  local out rc got got_unknown got_cpu
+  out="$(
+    seat_probe_pids_for_path()  { printf '%s\n' '111 222'; }
+    seat_probe_self_claude_pid() { [ -n "$self_pid" ] && printf '%s\n' "$self_pid"; return 0; }
+    wired_n=0
+    seat_probe_cpu_window_or_fail() {
+      local spec
+      wired_n=$(( wired_n + 1 ))
+      if [ "$wired_n" -eq 1 ]; then spec="$w1"; else spec="$w2"; fi
+      if [ "$spec" = fail ]; then
+        SEAT_PROBE_CPU_DELTAS=''
+        return 1
+      fi
+      SEAT_PROBE_CPU_DELTAS="$spec"
+      return 0
+    }
+    seat_probe_stall_check "$wt"
+    printf '%s\t%s\t%s\t%s' "$?" "$SEAT_STALL" "$SEAT_STALL_UNKNOWN" "$SEAT_STALL_CPU"
+  )"
+  rc="$(printf '%s' "$out" | cut -f1)"
+  got="$(printf '%s' "$out" | cut -f2)"
+  got_unknown="$(printf '%s' "$out" | cut -f3)"
+  got_cpu="$(printf '%s' "$out" | cut -f4)"
+  if [ "$rc" != 0 ]; then
+    fail "$name" "seat_probe_stall_check returned $rc; it must always return 0"
+    return 0
+  fi
+  if [ "$got" != "$want" ]; then
+    fail "$name" "SEAT_STALL expected '$want', got '$got'" \
+      "unknown='$got_unknown' cpu='$got_cpu'"
+    return 0
+  fi
+  if [ "$got_unknown" != "$want_unknown" ]; then
+    fail "$name" "SEAT_STALL_UNKNOWN expected '$want_unknown', got '$got_unknown'"
+    return 0
+  fi
+  if [ "$got_cpu" != "$want_cpu" ]; then
+    fail "$name" "SEAT_STALL_CPU expected '$want_cpu', got '$got_cpu'"
+    return 0
+  fi
+  pass "$name"
+}
+
+# One fixture serves every wiring case: a genuine unanswered dispatch, which is
+# the only transcript shape that reaches a window at all.
+wt="$(new_seat)"
+dir="$(seat_probe_session_dir "$wt")"
+{ rec_answer   '2026-09-02T10:00:00.000Z' 'ready'
+  rec_dispatch '2026-09-02T10:00:01.000Z' 'go'
+} > "$dir/s.jsonl"
+
+# THE CASE THE MUTATION ESCAPED. A busy first window ends it: NO, one window
+# recorded, no confirm window taken. Invert the test and this reads YES.
+wired_case 'stall-wiring: a busy first window ends the check at NO' \
+  "$wt" '111:250 222:0' '111:0 222:0' NO '' 'w1:111:250 222:0'
+
+# The CONFIRM window is not decoration (#207): one flat window cannot tell a
+# working process from a stuck one, so a busy SECOND window still reads NO.
+# Delete the confirm window, or invert its test, and this reads YES.
+wired_case 'stall-wiring: a busy confirm window still ends at NO' \
+  "$wt" '111:0 222:0' '111:250 222:0' NO '' 'w1:111:0 222:0 w2:111:250 222:0'
+
+# TWO flat windows, and only then, is a stall. Both windows are reported, so
+# the finding carries its own evidence.
+wired_case 'stall-wiring: two flat windows are the STALLED verdict' \
+  "$wt" '111:0 222:0' '111:0 222:0' YES '' 'w1:111:0 222:0 w2:111:0 222:0'
+
+# The fail-open invariant, at the wiring: an UNREADABLE delta reads busy, so a
+# pid that changed under the probe can never manufacture a stall.
+wired_case 'stall-wiring: an unreadable delta in a window falls open to NO' \
+  "$wt" '111:none 222:0' '111:0 222:0' NO '' 'w1:111:none 222:0'
+
+# `sample-invalid` — the eighth UNKNOWN cause, and the last one with no
+# assertion at all (#229 gap 2). A window the host slept through proves
+# nothing, so the check reports that it could not measure rather than a
+# verdict, at EITHER window. The first case also pins that no CPU evidence is
+# recorded when the first window never produced any.
+wired_case 'stall-wiring: a slept-through first window is UNKNOWN, not a verdict' \
+  "$wt" fail fail UNKNOWN sample-invalid ''
+wired_case 'stall-wiring: a slept-through confirm window is UNKNOWN, not a verdict' \
+  "$wt" '111:0 222:0' fail UNKNOWN sample-invalid 'w1:111:0 222:0'
+
+# THE SELF GUARD, ahead of both windows. A coordinator running this probe is
+# mid-turn by construction — the unanswered record IS the turn that invoked the
+# script — so its own seat reports NO without taking 40s of windows. The window
+# specs below would read STALLED if the guard let them run.
+wired_case 'stall-wiring: the probe never stalls its own seat' \
+  "$wt" '111:0 222:0' '111:0 222:0' NO '' 'self:111' 111
+
+# --- a jq that fails must say so, never read as an empty transcript (#229) ---
+#
+# The stall check's `jq_rc != 0 -> unreadable` branch. Forcing it false leaves
+# the harness green: the behaviour degrades to `no-conversation`, which is
+# SILENT — exactly the #216 shape, a broken check reading as "nothing to
+# measure" instead of "this check failed". The mute side of this class is
+# covered by the permission fixtures; this is the stall side's jq status, and
+# it is the same class the #214 chain closed five instances of.
+#
+# Reached with a jq on PATH that always fails, so the transcript stays
+# perfectly readable and the earlier -r guards cannot be what fires. This case
+# needs no permission fixture, so unlike those it also runs as root.
+JQ_STUB_DIR="$TMPROOT/brokenjq"
+mkdir -p "$JQ_STUB_DIR"
+printf '#!/bin/sh\nexit 3\n' > "$JQ_STUB_DIR/jq"
+chmod 755 "$JQ_STUB_DIR/jq"
+
+brokenjq_stall_case() { # name worktree want want_unknown
+  local name="$1" wt="$2" want="$3" want_unknown="$4" out rc got got_unknown
+  out="$(
+    PATH="$JQ_STUB_DIR:$PATH"
+    # bash caches command lookups; a PATH assignment is documented to
+    # invalidate them, but say so explicitly rather than rely on it.
+    hash -r 2>/dev/null || true
+    seat_probe_stall_check "$wt"
+    printf '%s\t%s\t%s' "$?" "$SEAT_STALL" "$SEAT_STALL_UNKNOWN"
+  )"
+  rc="$(printf '%s' "$out" | cut -f1)"
+  got="$(printf '%s' "$out" | cut -f2)"
+  got_unknown="$(printf '%s' "$out" | cut -f3)"
+  if [ "$rc" != 0 ]; then
+    fail "$name" "seat_probe_stall_check returned $rc; it must always return 0"
+    return 0
+  fi
+  if [ "$got" != "$want" ] || [ "$got_unknown" != "$want_unknown" ]; then
+    fail "$name" "expected '$want'/'$want_unknown', got '$got'/'$got_unknown'"
+    return 0
+  fi
+  pass "$name"
+}
+
+# The stub is only ever a stub. If it ever stopped failing, the case below
+# would pass for the wrong reason.
+if "$JQ_STUB_DIR/jq" -n . >/dev/null 2>&1; then
+  fail 'stall: the broken-jq stub actually fails' 'the stub returned 0'
+else
+  pass 'stall: the broken-jq stub actually fails'
+fi
+
+# The same fixture that reports UNKNOWN/no-process with a working jq: with a
+# failing one it must report the CHECK failing, not an empty conversation.
+brokenjq_stall_case 'stall: a jq that fails is a failed check, not "no conversation"' \
+  "$wt" UNKNOWN unreadable
 
 # ============================================================================
 section 'Section 7 — the fail-open invariant, swept across every knob'
