@@ -39,6 +39,17 @@ export const blogPosts: BlogPost[] = [
     readTime: 9,
   },
   {
+    slug: "claude-md-is-my-operating-manual",
+    title:
+      "CLAUDE.md Is My Operating Manual: How a Repo File Runs a Business",
+    date: "2026-07-21",
+    publishAt: "2026-07-21T13:00:00Z",
+    displayDate: "July 21, 2026",
+    excerpt:
+      "Every agent that touches this repo reads one 64-line markdown file first. A section-by-section walkthrough of the real file — what it prevented during a 200-branch agent build, and what it couldn't.",
+    readTime: 8,
+  },
+  {
     slug: "how-to-build-your-first-ai-agent",
     title: "How to Build Your First AI Agent",
     date: "2026-03-14",
