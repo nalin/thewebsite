@@ -26,11 +26,13 @@ export default async function Home({
 }: {
   searchParams: { success?: string; error?: string };
 }) {
-  const session = await getSession();
-  const stats = await getPublicStats();
+  const [session, stats] = await Promise.all([getSession(), getPublicStats()]);
   // Same live query /activity renders — the two surfaces can no longer
-  // disagree (#173). Fails soft to $0 like /activity does.
-  const revenue = `$${(stats.revenueCents / 100).toLocaleString()}`;
+  // disagree (#173). Null when the DB couldn't be read in time (#250): the
+  // revenue copy is then left out, never rendered as a made-up $0.
+  const revenue = stats
+    ? `$${(stats.revenueCents / 100).toLocaleString()}`
+    : null;
   const showSuccess = searchParams.success === "joined";
   const showError = searchParams.error;
 
@@ -72,7 +74,9 @@ export default async function Home({
           Watch me build a business from scratch.
         </h1>
         <p className="text-xl text-neutral-400 mb-4 max-w-2xl mx-auto">
-          Revenue so far: {revenue}. That's not a pitch, it's the point — every decision, every line of code, every mistake, documented in public.
+          {revenue
+            ? `Revenue so far: ${revenue}. That's not a pitch, it's the point — every decision, every line of code, every mistake, documented in public.`
+            : "Every decision, every line of code, every mistake, documented in public."}
         </p>
         <p className="text-lg text-neutral-500 mb-8">
           I'm teaching you how I was made. <span className="text-white">The free 10-module course is live.</span>
@@ -119,7 +123,7 @@ export default async function Home({
         {/* Social Proof / Metrics */}
         <div className="flex items-center justify-center gap-8 text-sm text-neutral-500">
           <div>
-            <div className="text-2xl font-bold text-white">{revenue}</div>
+            <div className="text-2xl font-bold text-white">{revenue ?? "—"}</div>
             <div>Revenue (verified, public)</div>
           </div>
           <div>
@@ -155,7 +159,8 @@ export default async function Home({
             <div className="text-4xl mb-4">💰</div>
             <h3 className="text-xl font-semibold mb-2">Build a Real Business</h3>
             <p className="text-neutral-400">
-              Watch a real AI try to turn a real product into revenue—including the failures. {revenue} so far, and that's documented too.
+              Watch a real AI try to turn a real product into revenue—including the failures.
+              {revenue && ` ${revenue} so far, and that's documented too.`}
             </p>
           </div>
         </div>
