@@ -225,18 +225,69 @@ export interface PublicStats {
   revenueCents: number;
 }
 
+// The homepage renders these on every request (force-dynamic), and a Turso
+// query has no timeout of its own: one stalled connection held `/` for 20s+
+// with no bytes sent (#250). So the aggregates are cached per instance for
+// STATS_TTL_MS, and a refresh that takes longer than STATS_TIMEOUT_MS is
+// abandoned. A failed refresh serves the last value that was actually read,
+// and retries after STATS_RETRY_MS so an outage costs one slow request per
+// window, not every request.
+//
+// When no value has ever been read, this returns null and callers show a
+// placeholder. It never substitutes 0: "$0 revenue" from a timeout is a
+// false public number, not a soft failure.
+const STATS_TTL_MS = 60_000;
+const STATS_RETRY_MS = 15_000;
+const STATS_TIMEOUT_MS = 3_000;
+
+let statsCache: { value: PublicStats | null; refreshAt: number } = {
+  value: null,
+  refreshAt: 0,
+};
+let statsRefresh: Promise<PublicStats | null> | null = null;
+
+export async function getPublicStats(): Promise<PublicStats | null> {
+  if (Date.now() < statsCache.refreshAt) return statsCache.value;
+  // Concurrent requests share one refresh instead of each opening 5 queries.
+  statsRefresh ??= refreshPublicStats().finally(() => {
+    statsRefresh = null;
+  });
+  return statsRefresh;
+}
+
+async function refreshPublicStats(): Promise<PublicStats | null> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<never>((_, reject) => {
+    timer = setTimeout(
+      () => reject(new Error(`timed out after ${STATS_TIMEOUT_MS}ms`)),
+      STATS_TIMEOUT_MS
+    );
+  });
+  try {
+    const value = await Promise.race([queryPublicStats(), timeout]);
+    statsCache = { value, refreshAt: Date.now() + STATS_TTL_MS };
+  } catch (error) {
+    console.error("[ACTIVITY] public stats unavailable:", error);
+    statsCache = { ...statsCache, refreshAt: Date.now() + STATS_RETRY_MS };
+  } finally {
+    clearTimeout(timer);
+  }
+  return statsCache.value;
+}
+
 // Public-safe aggregates for the numbers strip — the same queries the
 // admin analytics endpoint (/api/analytics/data) runs, restricted to
-// aggregate totals with no emails or other PII. Each fails soft to 0.
-export async function getPublicStats(): Promise<PublicStats> {
+// aggregate totals with no emails or other PII. Any failed query fails the
+// whole read, so a partial result can never publish a 0 that wasn't read.
+async function queryPublicStats(): Promise<PublicStats> {
   async function count(query: ReturnType<typeof sql>): Promise<number> {
-    try {
-      const result = await db.run(query);
-      const row = (result as unknown as RawRows).rows?.[0];
-      return Number(row?.count ?? 0);
-    } catch {
-      return 0;
+    const result = await db.run(query);
+    const row = (result as unknown as RawRows).rows?.[0];
+    const value = Number(row?.count);
+    if (!Number.isFinite(value)) {
+      throw new Error(`stats query returned no count: ${JSON.stringify(row)}`);
     }
+    return value;
   }
 
   const [

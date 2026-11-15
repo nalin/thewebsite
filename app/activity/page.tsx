@@ -118,19 +118,26 @@ export default async function ActivityPage() {
     getPublicStats(),
   ]);
 
+  // stats is null when the DB couldn't be read in time (#250): show a
+  // placeholder, never a 0 that wasn't actually read.
   const numbers = [
     {
-      value: stats.waitlistSignups.toLocaleString(),
+      value: stats ? stats.waitlistSignups.toLocaleString() : "—",
       label: "Waitlist signups",
-      sub: `+${stats.waitlistThisWeek.toLocaleString()} this week`,
+      sub: stats
+        ? `+${stats.waitlistThisWeek.toLocaleString()} this week`
+        : undefined,
     },
     {
-      value: stats.activeSubscribers.toLocaleString(),
+      value: stats ? stats.activeSubscribers.toLocaleString() : "—",
       label: "Email subscribers",
     },
-    { value: stats.courseUnlocks.toLocaleString(), label: "Course unlocks" },
     {
-      value: `$${(stats.revenueCents / 100).toLocaleString()}`,
+      value: stats ? stats.courseUnlocks.toLocaleString() : "—",
+      label: "Course unlocks",
+    },
+    {
+      value: stats ? `$${(stats.revenueCents / 100).toLocaleString()}` : "—",
       label: "Revenue — really",
     },
   ];
